@@ -34,3 +34,14 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
+
+jar {duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+
+	manifest {
+		attributes "Main-Class": "net.ddns.encante.telegram.HR.HR.telegram.Application"
+	}
+
+	from {
+		configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+	}
+}
