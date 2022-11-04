@@ -5,8 +5,7 @@ plugins {
 }
 
 group = 'net.ddns.encante.telegram.HR'
-version = '0.0.1-SNAPSHOT'
-sourceCompatibility = '17'
+version = '0.0.1'
 
 configurations {
 	compileOnly {
@@ -27,13 +26,13 @@ dependencies {
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	implementation 'com.konghq:unirest-java:3.13.11'
-	implementation 'com.google.code.gson:gson:2.9.0'
+	implementation 'com.konghq:unirest-java:3.13.12'
+	implementation 'com.google.code.gson:gson:2.10'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
-}
+//tasks.named('test') {
+//	useJUnitPlatform()
+//}
 
 jar {duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
 

@@ -15,9 +15,13 @@ public class RemoteRequest {
 
         HttpResponse<String> response = Unirest.post(url+"chat_id=5580797031&text="+messageToSend).asString();
         System.out.println(url+"\r\n");
-        System.out.println("RESPONCE STATUS: \r\n" + response.getStatus() + " " + response.getStatusText()
+        System.out.println("RESPONSE STATUS: \r\n" + response.getStatus() + " " + response.getStatusText()
                 + "\r\nHEADERS: \r\n" + response.getHeaders().toString()
                 + "\r\nBODY: " + response.getBody());
     }
+
+//    public void setWebhook (String address){
+//
+//    }
 
 }
