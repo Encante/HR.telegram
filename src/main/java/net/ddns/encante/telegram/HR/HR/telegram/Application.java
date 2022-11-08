@@ -8,7 +8,7 @@ public class Application {
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 		RemoteRequest request = new RemoteRequest();
-		request.sendMessage("Bot odpalony");
+		request.sendMessage("Bot odpalony T: " + Utils.getCurrentDateTime());
 	}
 
 }
