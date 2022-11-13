@@ -7,13 +7,19 @@ import kong.unirest.Unirest;
 public class RemoteRequest {
     private final String token = "***REMOVED***";
 
-//    @Autowired
-//    public RemoteRequest
+// chat id:
+//    ja:   5580797031
+//    Yana: 566760042
 
-    public void sendMessage (String messageToSend){
+    public void sendMessageToChatId(String messageToSend, Long chat_id ){
         String url = "https://api.telegram.org/bot"+token+"/sendMessage?";
 
-        HttpResponse<String> response = Unirest.post(url+"chat_id=5580797031&text="+messageToSend).asString();
+        HttpResponse<String> response = Unirest.post(url+
+                "chat_id="+
+                chat_id+
+                "&text="+
+                messageToSend)
+                .asString();
         System.out.println(url+"\r\n");
         System.out.println("RESPONSE STATUS: \r\n" + response.getStatus() + " " + response.getStatusText()
                 + "\r\nHEADERS: \r\n" + response.getHeaders().toString()

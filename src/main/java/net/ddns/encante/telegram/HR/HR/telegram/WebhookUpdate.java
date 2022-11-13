@@ -1,6 +1,7 @@
 package net.ddns.encante.telegram.HR.HR.telegram;
 
 import lombok.Getter;
+import lombok.ToString;
 
 public class WebhookUpdate {
 
@@ -26,6 +27,8 @@ public class WebhookUpdate {
         @Getter
         private String first_name;
         @Getter
+        private String last_name;
+        @Getter
         private String type;
     }
 
@@ -36,6 +39,8 @@ public class WebhookUpdate {
         private boolean is_bot;
         @Getter
         private String first_name;
+        @Getter
+        private String last_name;
         @Getter
         private String language_code;
     }
