@@ -32,8 +32,11 @@ public class RequestHandler {
                 }
             }
         }
-//        send message to me
-        request.sendMessageToChatId("New message! T: "+Utils.getCurrentDateTime()+" FROM: "+update.message.from.getFirst_name()+" "+ update.message.from.getLast_name()+" CHAT ID: "+update.message.chat.getId()+" CONTENT: "+update.message.getText(), 5580797031L);
+//        if not from me, send message to me
+if (update.message.from.getId() != 5580797031L)
+        {
+            request.sendMessageToChatId("New message! T: " + Utils.getCurrentDateTime() + " FROM: " + update.message.from.getFirst_name() + " " + update.message.from.getLast_name() + " CHAT ID: " + update.message.chat.getId() + " CONTENT: " + update.message.getText(), 5580797031L);
+        }
 
 //        then print to console
         System.out.println("update id: " +update.getUpdate_id());
