@@ -1,23 +1,26 @@
-package net.ddns.encante.telegram.HR.HR.telegram;
+package net.ddns.encante.telegram.HR;
 
 import com.google.gson.Gson;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+
 @RestController
 public class RequestHandler {
-
+//    get beans ;)
+    @Autowired
+    RemoteRequest request;
+    @Autowired
+    Gson gson;
 //    when receiving message:
     @PostMapping("/HR4telegram")
     public String postHandler (@RequestBody String content){
-//        create necessary utility objects
-        Gson gson = new Gson();
-        RemoteRequest request = new RemoteRequest();
 //        do WebhookUpdate object from JSON
         WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class);
 //        check for and do commands:
-        if (update.message.getText().substring(0,1).equals("/")) {
+        if (update.message.getText().charAt(0) == '/') {
             String[] commands = update.message.getText().split(" ");
             switch (commands[0]) {
                 case "/hi" -> request.sendMessageToChatId("Hello " + update.message.from.getFirst_name() + "!", update.message.chat.getId());

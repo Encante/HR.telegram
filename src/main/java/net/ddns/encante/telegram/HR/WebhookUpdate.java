@@ -1,7 +1,6 @@
-package net.ddns.encante.telegram.HR.HR.telegram;
+package net.ddns.encante.telegram.HR;
 
 import lombok.Getter;
-import lombok.ToString;
 
 public class WebhookUpdate {
 

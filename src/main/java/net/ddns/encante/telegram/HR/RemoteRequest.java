@@ -1,18 +1,19 @@
-package net.ddns.encante.telegram.HR.HR.telegram;
+package net.ddns.encante.telegram.HR;
 
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
+import org.springframework.stereotype.Component;
 
-//@Component
+@Component
 public class RemoteRequest {
-    private final String token = "***REMOVED***";
+    private final String beanToken = "***REMOVED***";
 
 // chat id:
 //    ja:   5580797031
 //    Yana: 566760042
 
     public void sendMessageToChatId(String messageToSend, Long chat_id ){
-        String url = "https://api.telegram.org/bot"+token+"/sendMessage?";
+        String url = "https://api.telegram.org/bot"+ beanToken +"/sendMessage?";
 
         HttpResponse<String> response = Unirest.post(url+
                 "chat_id="+

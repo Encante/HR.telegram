@@ -1,4 +1,4 @@
-package net.ddns.encante.telegram.HR.HR.telegram;
+package net.ddns.encante.telegram.HR;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

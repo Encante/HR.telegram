@@ -1,4 +1,4 @@
-package net.ddns.encante.telegram.HR.HR.telegram;
+package net.ddns.encante.telegram.HR;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
