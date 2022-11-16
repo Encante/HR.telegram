@@ -6,14 +6,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class RemoteRequest {
-    private final String beanToken = "***REMOVED***";
+    private final String botToken = "***REMOVED***";
 
 // chat id:
 //    ja:   5580797031
 //    Yana: 566760042
 
     public void sendMessageToChatId(String messageToSend, Long chat_id ){
-        String url = "https://api.telegram.org/bot"+ beanToken +"/sendMessage?";
+        String url = "https://api.telegram.org/bot"+ botToken +"/sendMessage?";
 
         HttpResponse<String> response = Unirest.post(url+
                 "chat_id="+
