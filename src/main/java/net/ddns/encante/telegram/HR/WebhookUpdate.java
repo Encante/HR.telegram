@@ -12,13 +12,13 @@ import java.util.List;
 @Getter
 public class WebhookUpdate {
 
-        Long update_id;
+        Integer update_id;
         Message message;
     }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class User {
-    Long id;
+    Integer id;
     boolean is_bot;
     String first_name;
     String last_name;
@@ -27,7 +27,7 @@ class User {
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Chat {
-    Long id;
+    Integer id;
     String first_name;
     String last_name;
     String type;
@@ -35,22 +35,22 @@ class Chat {
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Message {
-    Long message_id;
+    Integer message_id;
     Integer message_thread_id;
     User from;
     Chat sender_chat;
-    Long date;
+    Integer date;
     Chat chat;
     User forward_from_chat;
-    Long forward_from_message_id;
+    Integer forward_from_message_id;
     String forward_signature;
     String forward_sender_name;
-    Long forward_date;
+    Integer forward_date;
     boolean is_topic_message;
     boolean is_automatic_forward;
     Message reply_to_message;
     User via_bot;
-    Long edit_date;
+    Integer edit_date;
     boolean has_protected_content;
     String media_group_id;
     String author_signature;
@@ -81,8 +81,8 @@ class Message {
     boolean supergroup_chat_created;
     boolean channel_chat_created;
     MessageAutoDeleteTimerChanged message_auto_delete_timer_changed;
-    Long migrate_to_chat_id;
-    Long migrate_from_chat_id;
+    Integer migrate_to_chat_id;
+    Integer migrate_from_chat_id;
     Message pinned_message;
     Invoice invoice;
     SuccessfulPayment successful_payment;
@@ -103,7 +103,7 @@ class Message {
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class MessageId{
-    Long message_id;
+    Integer message_id;
 }
 
 @Getter
@@ -125,7 +125,7 @@ class PhotoSize{
     String file_unique_id;
     Integer width;
     Integer height;
-    Long file_size;
+    Integer file_size;
 }
 
 @Getter
@@ -139,7 +139,7 @@ class Animation{
     PhotoSize thumb;
     String file_name;
     String mime_type;
-    Long file_size;
+    Integer file_size;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -151,7 +151,7 @@ class Audio{
     String title;
     String file_name;
     String mime_type;
-    Long file_size;
+    Integer file_size;
     PhotoSize thumb;
 }
 @Getter
@@ -162,7 +162,7 @@ class Document{
     PhotoSize thumb;
     String file_name;
     String mime_type;
-    Long file_size;
+    Integer file_size;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -175,7 +175,7 @@ class Video{
     PhotoSize thumb;
     String file_name;
     String mime_type;
-    Long file_size;
+    Integer file_size;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -185,7 +185,7 @@ class VideoNote{
     Integer lenght;
     Integer duration;
     PhotoSize thumb;
-    Long file_size;
+    Integer file_size;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -194,7 +194,7 @@ class Voice{
     String file_unique_id;
     Integer duration;
     String mime_type;
-    Long file_size;
+    Integer file_size;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -202,7 +202,7 @@ class Contact{
     String phone_number;
     String first_name;
     String last_name;
-    Long user_id;
+    Integer user_id;
     String vcard;
 }
 @Getter
@@ -239,12 +239,12 @@ class Poll{
     String explanation;
     ArrayList<MessageEntity> explanation_entities;
     Integer open_period;
-    Long close_date;
+    Integer close_date;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Location{
-    Float longtitude;
+    Float Integertitude;
     Float latitude;
     Float horizontal_accuracy;
     Integer live_period;
@@ -287,13 +287,19 @@ class ForumTopicCreated{
     Integer icon_color;
     String icon_custom_emoji_id;
 }
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 class ForumTopicClosed;
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 class ForumTopicReopened;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class VideoChatScheduled{
-    Long start_date;
+    Integer start_date;
 }
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 class VideoChatStarted;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -316,7 +322,7 @@ class UserProfilePhotos{
 class File{
     String file_id;
     String file_unique_id;
-    Long file_size;
+    Integer file_size;
     String file_path;
 }
 @Getter
@@ -414,7 +420,7 @@ class ChatInviteLink{
     boolean is_primary;
     boolean is_revoked;
     String name;
-    Long expire_date;
+    Integer expire_date;
     Integer member_limit;
     Integer pending_join_request_count;
 }
@@ -434,4 +440,166 @@ class ChatAdministratorRights{
     boolean can_pin_messages;
     boolean can_manage_topics;
 }
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatMember;
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class ChatMemberOwner {
+    String status;
+    User user;
+    boolean is_anonymous;
+    String custom_title;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class ChatMemberAdministrator{
+    String status;
+    User user;
+    boolean can_be_edited;
+    boolean is_anonymous;
+    boolean can_manage_chat;
+    boolean can_delete_messages;
+    boolean can_manage_video_chats;
+    boolean can_restrict_members;
+    boolean can_promote_members;
+    boolean can_change_info;
+    boolean can_invite_users;
+    boolean can_post_messages;
+    boolean can_edit_messages;
+    boolean can_pin_messages;
+    boolean can_manage_topics;
+    String custom_title;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class ChatMemberMember{
+    String status;
+    User user;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class ChatMemberRestricted {
+    String status;
+    User user;
+    boolean is_member;
+    boolean can_change_info;
+    boolean can_invite_users;
+    boolean can_pin_messages;
+    boolean can_manage_topics;
+    boolean can_send_messages;
+    boolean can_send_media_messages;
+    boolean can_send_polls;
+    boolean can_send_other_messages;
+    boolean can_add_web_page_previews;
+    Integer until_date;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class ChatMemberLeft{
+    String status;
+    User user;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class ChatMemberBanned{
+    String status;
+    User user;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class ChatMemberUpdated{
+    Chat chat;
+    User from;
+    Integer date;
+    ChatMember old_chat_member;
+    ChatMember new_chat_member;
+    ChatInviteLink invite_link;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class ChatJoinRequest{
+    Chat chat;
+    User from;
+    Integer date;
+    String bio;
+    ChatInviteLink invite_link;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class ChatPermissions{
+    boolean can_send_messages;
+    boolean can_send_media_messages;
+    boolean can_send_polls;
+    boolean can_send_other_messages;
+    boolean can_add_web_page_previews;
+    boolean can_change_info;
+    boolean can_invite_users;
+    boolean can_pin_messages;
+    boolean can_manage_topics;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class ChatLocation{
+    Location location;
+    String adress;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class ForumTopic{
+    Integer message_thread_id;
+    String name;
+    Integer icon_color;
+    String icon_custom_emoji_id;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class BotCommand{
+    String command;
+    String description;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class BotCommandScope;
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class BotCommandScopeDefault{
+    String type;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class BotCommandScopeAllPrivateChats{
+    String type;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class BotCommandScopeAllGroupChats{
+    String type;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class BotCommandScopeAllChatAdministrators{
+    String type;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class BotCommandScopeChat{
+    String type;
+    Integer chat_id;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class BotCommandScopeAdministrators{
+    String type;
+    Integer chat_id;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class BotCommandScopeChatMember{
+    String type;
+    Integer chat_id;
+    Integer user_id;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class MenuButton;
