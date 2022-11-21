@@ -3,6 +3,7 @@ package net.ddns.encante.telegram.HR;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+import org.aspectj.weaver.ast.Or;
 
 import java.util.AbstractCollection;
 import java.util.ArrayList;
@@ -12,13 +13,13 @@ import java.util.List;
 @Getter
 public class WebhookUpdate {
 
-        Integer update_id;
+        Long update_id;
         Message message;
     }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class User {
-    Integer id;
+    Long id;
     boolean is_bot;
     String first_name;
     String last_name;
@@ -27,7 +28,7 @@ class User {
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Chat {
-    Integer id;
+    Long id;
     String first_name;
     String last_name;
     String type;
@@ -35,22 +36,22 @@ class Chat {
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Message {
-    Integer message_id;
-    Integer message_thread_id;
+    Long message_id;
+    Long message_thread_id;
     User from;
     Chat sender_chat;
-    Integer date;
+    Long date;
     Chat chat;
     User forward_from_chat;
-    Integer forward_from_message_id;
+    Long forward_from_message_id;
     String forward_signature;
     String forward_sender_name;
-    Integer forward_date;
+    Long forward_date;
     boolean is_topic_message;
     boolean is_automatic_forward;
     Message reply_to_message;
     User via_bot;
-    Integer edit_date;
+    Long edit_date;
     boolean has_protected_content;
     String media_group_id;
     String author_signature;
@@ -81,8 +82,8 @@ class Message {
     boolean supergroup_chat_created;
     boolean channel_chat_created;
     MessageAutoDeleteTimerChanged message_auto_delete_timer_changed;
-    Integer migrate_to_chat_id;
-    Integer migrate_from_chat_id;
+    Long migrate_to_chat_id;
+    Long migrate_from_chat_id;
     Message pinned_message;
     Invoice invoice;
     SuccessfulPayment successful_payment;
@@ -95,7 +96,7 @@ class Message {
     VideoChatScheduled video_chat_scheduled;
     VideoChatStarted video_chat_started;
     VideoChatEnded video_chat_ended;
-    VideoChatPaticipantsInvited video_chat_participants_invited;
+    VideoChatParticipantsInvited video_chat_participants_invited;
     WebAppData web_app_data;
     InlineKeyboardMarkup reply_markup;
 }
@@ -103,15 +104,15 @@ class Message {
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class MessageId{
-    Integer message_id;
+    Long message_id;
 }
 
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class MessageEntity{
     String type;
-    Integer offset;
-    Integer lenght;
+    Long offset;
+    Long lenght;
     String url;
     User user;
     String language;
@@ -123,9 +124,9 @@ class MessageEntity{
 class PhotoSize{
     String file_id;
     String file_unique_id;
-    Integer width;
-    Integer height;
-    Integer file_size;
+    Long width;
+    Long height;
+    Long file_size;
 }
 
 @Getter
@@ -133,25 +134,25 @@ class PhotoSize{
 class Animation{
     String file_id;
     String file_unique_id;
-    Integer width;
-    Integer height;
-    Integer duration;
+    Long width;
+    Long height;
+    Long duration;
     PhotoSize thumb;
     String file_name;
     String mime_type;
-    Integer file_size;
+    Long file_size;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Audio{
     String file_id;
     String file_unique_id;
-    Integer duration;
+    Long duration;
     String performer;
     String title;
     String file_name;
     String mime_type;
-    Integer file_size;
+    Long file_size;
     PhotoSize thumb;
 }
 @Getter
@@ -162,39 +163,39 @@ class Document{
     PhotoSize thumb;
     String file_name;
     String mime_type;
-    Integer file_size;
+    Long file_size;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Video{
     String file_id;
     String file_unique_id;
-    Integer width;
-    Integer height;
-    Integer duration;
+    Long width;
+    Long height;
+    Long duration;
     PhotoSize thumb;
     String file_name;
     String mime_type;
-    Integer file_size;
+    Long file_size;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class VideoNote{
     String file_id;
     String file_unique_id;
-    Integer lenght;
-    Integer duration;
+    Long lenght;
+    Long duration;
     PhotoSize thumb;
-    Integer file_size;
+    Long file_size;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Voice{
     String file_id;
     String file_unique_id;
-    Integer duration;
+    Long duration;
     String mime_type;
-    Integer file_size;
+    Long file_size;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -202,27 +203,27 @@ class Contact{
     String phone_number;
     String first_name;
     String last_name;
-    Integer user_id;
+    Long user_id;
     String vcard;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Dice{
     String emoji;
-    Integer value;
+    Long value;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class PollOption{
     String text;
-    Integer voter_count;
+    Long voter_count;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class PollAnswer{
     String poll_id;
     User user;
-    ArrayList<Integer> option_ids;
+    ArrayList<Long> option_ids;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -230,26 +231,26 @@ class Poll{
     String id;
     String question;
     ArrayList<PollOption> options;
-    Integer total_voter_count;
+    Long total_voter_count;
     boolean is_closed;
     boolean is_anonymous;
     String type;
     boolean allows_multiple_answers;
-    Integer correct_option_id;
+    Long correct_option_id;
     String explanation;
     ArrayList<MessageEntity> explanation_entities;
-    Integer open_period;
-    Integer close_date;
+    Long open_period;
+    Long close_date;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Location{
-    Float Integertitude;
+    Float Longtitude;
     Float latitude;
     Float horizontal_accuracy;
-    Integer live_period;
-    Integer heading;
-    Integer proximity_alert_radius;
+    Long live_period;
+    Long heading;
+    Long proximity_alert_radius;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -273,38 +274,38 @@ class WebAppData{
 class ProximityAlertTriggered{
     User traveler;
     User watcher;
-    Integer distance;
+    Long distance;
     }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class MessageAutoDeleteTimerChanged{
-    Integer message_auto_delete_time;
+    Long message_auto_delete_time;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ForumTopicCreated{
     String name;
-    Integer icon_color;
+    Long icon_color;
     String icon_custom_emoji_id;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class ForumTopicClosed;
+class ForumTopicClosed{}
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class ForumTopicReopened;
+class ForumTopicReopened{}
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class VideoChatScheduled{
-    Integer start_date;
+    Long start_date;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class VideoChatStarted;
+class VideoChatStarted{}
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class VideoChatEnded{
-    Integer duration;
+    Long duration;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -314,7 +315,7 @@ class VideoChatParticipantsInvited{
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class UserProfilePhotos{
-    Integer total_count;
+    Long total_count;
     ArrayList<ArrayList<PhotoSize>> photos;
 }
 @Getter
@@ -322,7 +323,7 @@ class UserProfilePhotos{
 class File{
     String file_id;
     String file_unique_id;
-    Integer file_size;
+    Long file_size;
     String file_path;
 }
 @Getter
@@ -420,9 +421,9 @@ class ChatInviteLink{
     boolean is_primary;
     boolean is_revoked;
     String name;
-    Integer expire_date;
-    Integer member_limit;
-    Integer pending_join_request_count;
+    Long expire_date;
+    Long member_limit;
+    Long pending_join_request_count;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -442,7 +443,7 @@ class ChatAdministratorRights{
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class ChatMember;
+class ChatMember{}
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatMemberOwner {
@@ -492,7 +493,7 @@ class ChatMemberRestricted {
     boolean can_send_polls;
     boolean can_send_other_messages;
     boolean can_add_web_page_previews;
-    Integer until_date;
+    Long until_date;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -511,7 +512,7 @@ class ChatMemberBanned{
 class ChatMemberUpdated{
     Chat chat;
     User from;
-    Integer date;
+    Long date;
     ChatMember old_chat_member;
     ChatMember new_chat_member;
     ChatInviteLink invite_link;
@@ -521,7 +522,7 @@ class ChatMemberUpdated{
 class ChatJoinRequest{
     Chat chat;
     User from;
-    Integer date;
+    Long date;
     String bio;
     ChatInviteLink invite_link;
 }
@@ -547,9 +548,9 @@ class ChatLocation{
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ForumTopic{
-    Integer message_thread_id;
+    Long message_thread_id;
     String name;
-    Integer icon_color;
+    Long icon_color;
     String icon_custom_emoji_id;
 }
 @Getter
@@ -560,7 +561,7 @@ class BotCommand{
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class BotCommandScope;
+class BotCommandScope{}
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class BotCommandScopeDefault{
@@ -585,21 +586,269 @@ class BotCommandScopeAllChatAdministrators{
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class BotCommandScopeChat{
     String type;
-    Integer chat_id;
+    Long chat_id;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class BotCommandScopeAdministrators{
     String type;
-    Integer chat_id;
+    Long chat_id;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class BotCommandScopeChatMember{
     String type;
-    Integer chat_id;
-    Integer user_id;
+    Long chat_id;
+    Long user_id;
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class MenuButton;
+class MenuButton{}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class MenuButtonCommands{
+    String type;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class MenuButtonWebApp{
+    String type;
+    String text;
+    WebAppInfo web_app;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class MenuButtonDefault{
+    String type;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class ResponseParameters {
+    Long migrate_to_chat_id;
+    Long retry_after;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class InputMedia{}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class InputMediaPhoto{
+    String type;
+    String media;
+    String caption;
+    String parse_mode;
+    ArrayList<MessageEntity> caption_entities;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class InputMediaVideo{
+    String type;
+    String media;
+    String thumb;
+    String caption;
+    String parse_mode;
+    ArrayList<MessageEntity> caption_entities;
+    Long width;
+    Long height;
+    Long duration;
+    boolean supports_streaming;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class InputMediaAnimation{
+    String type;
+    String media;
+    String thumb;
+    String caption;
+    String parse_mode;
+    ArrayList<MessageEntity> caption_entities;
+    Long width;
+    Long height;
+    Long duration;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class InputMediaAudio{
+    String type;
+    String media;
+    String thumb;
+    String caption;
+    String parse_mode;
+    ArrayList<MessageEntity> caption_entities;
+    Long duration;
+    String performer;
+    String title;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class InputMediaDocument{
+    String type;
+    String media;
+    String thumb;
+    String caption;
+    String parse_mode;
+    ArrayList<MessageEntity> caption_entities;
+    boolean disable_content_type_detection;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class Sticker{
+    String file_id;
+    String file_unique_id;
+    String type;
+    Long width;
+    Long height;
+    boolean is_animated;
+    boolean is_video;
+    PhotoSize thumb;
+    String emoji;
+    String set_name;
+    File premium_animation;
+    MaskPosition mask_position;
+    String custom_emoji_id;
+    Long file_size;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class StickerSet{
+    String name;
+    String title;
+    String sticker_type;
+    boolean is_animated;
+    boolean is_video;
+    ArrayList<Sticker> stickers;
+    PhotoSize thumb;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class MaskPosition{
+    String point;
+    Float x_shift;
+    Float y_shift;
+    Float scale;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class LabeledPrice{
+    String label;
+    Long amount;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class Invoice{
+    String type;
+    String description;
+    String start_parameter;
+    String currency;
+    Long total_amount;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class ShippingAddress{
+    String country_code;
+    String state;
+    String city;
+    String street_line1;
+    String street_line2;
+    String post_code;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class OrderInfo{
+    String name;
+    String phone_number;
+    String email;
+    ShippingAddress shipping_address;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class ShippingOption{
+    String id;
+    String title;
+    ArrayList<LabeledPrice> prices;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class SuccessfulPayment{
+    String currency;
+    Long total_amount;
+    String invoice_payload;
+    String shipping_option_id;
+    OrderInfo order_info;
+    String telegram_payment_charge_id;
+    String provider_payment_charge_id;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class ShippingQuery{
+    String id;
+    User from;
+    String invoice_payload;
+    ShippingAddress shipping_address;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class PreCheckoutQuery{
+    String id;
+    User from;
+    String currency;
+    Long total_amount;
+    String invoice_payload;
+    String shipping_option_id;
+    OrderInfo order_info;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class PassportData{
+    ArrayList<EncryptedPassportElement> data;
+    EncryptedCredentials credentials;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class PassportFile{
+    String file_id;
+    String file_unique_id;
+    Long file_size;
+    Long file_date;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class EncryptedPassportElement{
+    String type;
+    String data;
+    String phone_number;
+    String email;
+    ArrayList<PassportFile> files;
+    PassportFile front_inside;
+    PassportFile reverse_side;
+    PassportFile selfie;
+    ArrayList<PassportFile> translation;
+    String hash;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class EncryptedCredentials{
+    String data;
+    String hash;
+    String secret;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class Game{
+    String title;
+    String description;
+    ArrayList<PhotoSize> photo;
+    String text;
+    ArrayList<MessageEntity> text_entities;
+    Animation animation;
+}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class CallbackGame{}
+@Getter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class GameHighScore{
+    Long position;
+    User user;
+    Long score;
+}
