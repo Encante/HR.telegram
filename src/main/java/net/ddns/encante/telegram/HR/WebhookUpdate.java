@@ -3,19 +3,68 @@ package net.ddns.encante.telegram.HR;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
-import org.aspectj.weaver.ast.Or;
 
-import java.util.AbstractCollection;
 import java.util.ArrayList;
-import java.util.List;
 
 // klasa na updaty wysyłane webhookami
 @Getter
 public class WebhookUpdate {
+//    @Autowired
+//    RemoteRequest request;
 
         Long update_id;
         Message message;
+
+//        METODY
+    void printUpdateToConsole(){
+    if (message.getText()!=null){
+        System.out.println("update id: " + getUpdate_id());
+        System.out.println("chat id: " + message.getChat().getId());
+        System.out.println("message id: " + message.getMessage_id());
+        System.out.println("message: " + message.getText());
+        System.out.println("From: " + message.getFrom().getFirst_name());
+        if (message.getFrom().getLast_name() != null)
+            System.out.println(message.getFrom().getLast_name());
+        System.out.println("Is bot: " + message.getFrom().is_bot());
+        }
+    else {
+        System.out.println("Not a text message!");
+        System.out.println("update id: " + getUpdate_id());
+        System.out.println("chat id: " + message.getChat().getId());
+        System.out.println("message id: " + message.getMessage_id());
+        System.out.println("From: " + message.getFrom().getFirst_name());
+        if (message.getFrom().getLast_name() != null)
+            System.out.println(message.getFrom().getLast_name());
+        System.out.println("Is bot: " + message.getFrom().is_bot());
+        }
     }
+    void sendUpdateToChatId(RemoteRequest request,Long chatId){
+        if (message.getText()!= null) {
+            request.sendMessageToChatId("New message! T: " + Utils.getCurrentDateTime()
+                            + "  FROM: "
+                            + message.getFrom().getFirst_name()
+                            + " "
+                            + message.getFrom().getLast_name()
+                            + "  CHAT ID: "
+                            + message.getChat().getId()
+                            + "  CONTENT: "
+                            + message.getText()
+                    ,chatId);
+        }
+        else {
+            request.sendMessageToChatId("New Message! T:"
+                    + Utils.getCurrentDateTime()
+                    +"but there's no text!"
+                    +"  FROM: "
+                    + message.getFrom().getFirst_name()
+                    + " "
+                    + message.getFrom().getLast_name()
+                    + "  CHAT ID: "
+                    + message.getChat().getId()
+                    ,chatId);
+        }
+    }
+}
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class User {
@@ -339,6 +388,9 @@ class ReplyKeyboardMarkup{
     boolean one_time_keyboard;
     String input_field_placeholder;
     boolean selective;
+    public ReplyKeyboardMarkup(ArrayList<ArrayList<KeyboardButton>> keys){
+        this.keyboard = keys;
+    }
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -348,6 +400,10 @@ class KeyboardButton{
     boolean request_location;
     KeyboardButtonPollType request_poll;
     WebAppInfo web_app;
+    
+    public KeyboardButton(String keyText){
+        this.text = keyText;
+    }
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
