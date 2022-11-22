@@ -15,5 +15,5 @@ public class Application {
 				+ Utils.getCurrentDateTime()
 				, 5580797031L);
 		request.sendMessageWithKeyboardToChatId(5580797031L);
-	}
+}
 }

@@ -2,6 +2,7 @@ package net.ddns.encante.telegram.HR;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import java.util.ArrayList;
@@ -83,6 +84,7 @@ class Chat {
     String type;
 }
 @Getter
+@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Message {
     Long message_id;
