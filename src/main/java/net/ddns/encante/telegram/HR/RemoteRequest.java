@@ -7,6 +7,7 @@ import kong.unirest.Unirest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.sql.SQLOutput;
 import java.util.ArrayList;
 
 @Component
@@ -27,20 +28,33 @@ public void sendMessageToChatId(String messageToSend, Long chat_id ){
     printResponseStringToConsole(response);
 }
 public void sendMessageWithKeyboardToChatId(Long chat_id){
-    KeyboardButton a = new KeyboardButton("a");
-    KeyboardButton b = new KeyboardButton("b");
-    KeyboardButton c = new KeyboardButton("c");
-    ArrayList<KeyboardButton> col1 = new ArrayList<KeyboardButton>();
+    InlineKeyboardButton a = new InlineKeyboardButton(); a.setText("a");
+    InlineKeyboardButton b = new InlineKeyboardButton(); b.setText("b");
+    InlineKeyboardButton c = new InlineKeyboardButton(); c.setText("c");
+    ArrayList<InlineKeyboardButton> col1 = new ArrayList<InlineKeyboardButton>();
     col1.add(a);
     col1.add(b);
     col1.add(c);
-    ArrayList<ArrayList<KeyboardButton>> keyz = new ArrayList<>();
+    ArrayList<ArrayList<InlineKeyboardButton>> keyz = new ArrayList<>();
     keyz.add(col1);
-    ReplyKeyboardMarkup testReplyKeyboardMarkup = new ReplyKeyboardMarkup(keyz);
-    String keyboardJson = gson.toJson(testReplyKeyboardMarkup);
-//    HttpResponse<JsonNode> response = Unirest.post(sendMessageUrl + "chat_id=" + chat_id + "&text=Hejka")..asJson();
-//    printResponseJsonToConsole(response);
-    System.out.println(keyboardJson);
+    InlineKeyboardMarkup testInlineKeyboardMarkup = new InlineKeyboardMarkup();
+    testInlineKeyboardMarkup.setInline_keyboard(keyz);
+    Chat chat = new Chat();
+    chat.setId(5580797031L);chat.setType("private");
+    System.out.println(chat.getId());
+    Message msg = new Message();
+    msg.setChat(chat);msg.setText("Hohoho");msg.setReply_markup(testInlineKeyboardMarkup);
+    System.out.println(msg.getChat().getId());
+    Gson gson = new Gson();
+    String body = gson.toJson(msg)  ;
+//    String keyboardJson = gson.toJson(testInlineKeyboardMarkup);
+    HttpResponse<JsonNode> response = Unirest.post(sendMessageUrl)
+            .header("Content-Type", "application/json")
+            .body(body)
+            .asJson();
+    System.out.println(body);
+    printResponseJsonToConsole(response);
+//    System.out.println(keyboardJson);
 }
 void printResponseStringToConsole(HttpResponse<String> response){
     System.out.println("RESPONSE STATUS: \r\n" + response.getStatus()

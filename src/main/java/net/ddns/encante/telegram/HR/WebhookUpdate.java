@@ -10,8 +10,6 @@ import java.util.ArrayList;
 // klasa na updaty wysyłane webhookami
 @Getter
 public class WebhookUpdate {
-//    @Autowired
-//    RemoteRequest request;
 
         Long update_id;
         Message message;
@@ -75,6 +73,7 @@ class User {
     String last_name;
     String language_code;
 }
+@Setter
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Chat {
@@ -418,11 +417,13 @@ class ReplyKeyboardRemove{
     boolean remove_keyboard;
     boolean selective;
 }
+@Setter
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class InlineKeyboardMarkup{
     ArrayList<ArrayList<InlineKeyboardButton>> inline_keyboard;
 }
+@Setter
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class InlineKeyboardButton{
