@@ -60,9 +60,9 @@ public class RequestHandler {
                         }
                         case "/inline" -> {
                             if (commands[1].equalsIgnoreCase("m"))
-                                request.testKochana(5580797031L);
+                                request.testKochana(gson,5580797031L);
                             if (commands[1].equalsIgnoreCase("y"))
-                                request.testKochana(566760042L);
+                                request.testKochana(gson,566760042L);
                         }
 //                    case "/test" -> {
 //                        request.

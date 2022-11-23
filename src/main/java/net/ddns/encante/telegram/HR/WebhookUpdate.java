@@ -10,8 +10,8 @@ import java.util.ArrayList;
 
 // klasa na updaty wysyłane webhookami
 //i nie tylko
-@Getter
-@Setter
+@Getter @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 class SendMessageWithInlineKeyboard{
     @NonNull
     Long chat_id;
@@ -27,7 +27,24 @@ class SendMessageWithInlineKeyboard{
     boolean allow_sending_without_reply;
     InlineKeyboardMarkup reply_markup;
 }
-@Getter
+@Getter @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class SendMessageWithReplyKeyboard{
+    @NonNull
+    Long chat_id;
+    Long message_thread_id;
+    @NonNull
+    String text;
+    String parse_mode;
+    ArrayList<MessageEntity> entities;
+    boolean disable_web_page_preview;
+    boolean disable_notification;
+    boolean protect_content;
+    Long reply_to_message_id;
+    boolean allow_sending_without_reply;
+    ReplyKeyboardMarkup reply_markup;
+}
+@Getter @Setter
 public class WebhookUpdate {
 
         Long update_id;
@@ -83,7 +100,7 @@ public class WebhookUpdate {
         }
     }
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class User {
     Long id;
@@ -92,8 +109,7 @@ class User {
     String last_name;
     String language_code;
 }
-@Setter
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Chat {
     Long id;
@@ -101,8 +117,7 @@ class Chat {
     String last_name;
     String type;
 }
-@Getter
-@Setter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Message {
     Long message_id;
@@ -170,13 +185,13 @@ class Message {
     InlineKeyboardMarkup reply_markup;
 }
 
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class MessageId{
     Long message_id;
 }
 
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class MessageEntity{
     String type;
@@ -188,7 +203,7 @@ class MessageEntity{
     String custom_emoji_id;
 }
 
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class PhotoSize{
     String file_id;
@@ -198,7 +213,7 @@ class PhotoSize{
     Long file_size;
 }
 
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Animation{
     String file_id;
@@ -211,7 +226,7 @@ class Animation{
     String mime_type;
     Long file_size;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Audio{
     String file_id;
@@ -224,7 +239,7 @@ class Audio{
     Long file_size;
     PhotoSize thumb;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Document{
     String file_id;
@@ -234,7 +249,7 @@ class Document{
     String mime_type;
     Long file_size;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Video{
     String file_id;
@@ -247,7 +262,7 @@ class Video{
     String mime_type;
     Long file_size;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class VideoNote{
     String file_id;
@@ -257,7 +272,7 @@ class VideoNote{
     PhotoSize thumb;
     Long file_size;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Voice{
     String file_id;
@@ -266,7 +281,7 @@ class Voice{
     String mime_type;
     Long file_size;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Contact{
     String phone_number;
@@ -275,26 +290,26 @@ class Contact{
     Long user_id;
     String vcard;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Dice{
     String emoji;
     Long value;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class PollOption{
     String text;
     Long voter_count;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class PollAnswer{
     String poll_id;
     User user;
     ArrayList<Long> option_ids;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Poll{
     String id;
@@ -311,7 +326,7 @@ class Poll{
     Long open_period;
     Long close_date;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Location{
     Float Longtitude;
@@ -321,7 +336,7 @@ class Location{
     Long heading;
     Long proximity_alert_radius;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Venue{
     Location location;
@@ -332,62 +347,62 @@ class Venue{
     String google_place_id;
     String google_place_type;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class WebAppData{
     String data;
     String button_text;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ProximityAlertTriggered{
     User traveler;
     User watcher;
     Long distance;
     }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class MessageAutoDeleteTimerChanged{
     Long message_auto_delete_time;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ForumTopicCreated{
     String name;
     Long icon_color;
     String icon_custom_emoji_id;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ForumTopicClosed{}
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ForumTopicReopened{}
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class VideoChatScheduled{
     Long start_date;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class VideoChatStarted{}
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class VideoChatEnded{
     Long duration;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class VideoChatParticipantsInvited{
     ArrayList<User> users;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class UserProfilePhotos{
     Long total_count;
     ArrayList<ArrayList<PhotoSize>> photos;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class File{
     String file_id;
@@ -395,12 +410,12 @@ class File{
     Long file_size;
     String file_path;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class WebAppInfo{
     String url;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ReplyKeyboardMarkup{
     ArrayList<ArrayList<KeyboardButton>> keyboard;
@@ -408,11 +423,21 @@ class ReplyKeyboardMarkup{
     boolean one_time_keyboard;
     String input_field_placeholder;
     boolean selective;
-    public ReplyKeyboardMarkup(ArrayList<ArrayList<KeyboardButton>> keys){
-        this.keyboard = keys;
+    public ReplyKeyboardMarkup factory(int cols, int rows,String... args){
+        ArrayList<String> names = new ArrayList<>();
+        for (int i = 0; i < cols; i++) {
+            ArrayList<KeyboardButton> row;
+            for (String arg : args) {
+                names.add(arg);
+            }
+            for (int i = 0; i < rows; i++) {
+                KeyboardButton
+            }
+        }
+
     }
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class KeyboardButton{
     String text;
@@ -420,30 +445,24 @@ class KeyboardButton{
     boolean request_location;
     KeyboardButtonPollType request_poll;
     WebAppInfo web_app;
-    
-    public KeyboardButton(String keyText){
-        this.text = keyText;
-    }
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class KeyboardButtonPollType{
     String text;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ReplyKeyboardRemove{
     boolean remove_keyboard;
     boolean selective;
 }
-@Setter
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class InlineKeyboardMarkup{
     ArrayList<ArrayList<InlineKeyboardButton>> inline_keyboard;
 }
-@Setter
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class InlineKeyboardButton{
     String text;
@@ -456,7 +475,7 @@ class InlineKeyboardButton{
     CallbackGame callback_game;
     boolean pay;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class LoginUrl{
     String url;
@@ -464,7 +483,7 @@ class LoginUrl{
     String bot_username;
     boolean request_write_access;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class CallbackQuery{
     String id;
@@ -475,14 +494,14 @@ class CallbackQuery{
     String data;
     String game_short_name;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ForceReply{
     boolean force_reply;
     String input_field_placeholder;
     boolean selective;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatPhoto{
     String small_file_id;
@@ -490,7 +509,7 @@ class ChatPhoto{
     String big_file_id;
     String big_file_unique_id;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatInviteLink{
     String invite_link;
@@ -503,7 +522,7 @@ class ChatInviteLink{
     Long member_limit;
     Long pending_join_request_count;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatAdministratorRights{
     boolean is_anonymous;
@@ -519,10 +538,10 @@ class ChatAdministratorRights{
     boolean can_pin_messages;
     boolean can_manage_topics;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatMember{}
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatMemberOwner {
     String status;
@@ -530,7 +549,7 @@ class ChatMemberOwner {
     boolean is_anonymous;
     String custom_title;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatMemberAdministrator{
     String status;
@@ -550,13 +569,13 @@ class ChatMemberAdministrator{
     boolean can_manage_topics;
     String custom_title;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatMemberMember{
     String status;
     User user;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatMemberRestricted {
     String status;
@@ -573,19 +592,19 @@ class ChatMemberRestricted {
     boolean can_add_web_page_previews;
     Long until_date;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatMemberLeft{
     String status;
     User user;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatMemberBanned{
     String status;
     User user;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatMemberUpdated{
     Chat chat;
@@ -595,7 +614,7 @@ class ChatMemberUpdated{
     ChatMember new_chat_member;
     ChatInviteLink invite_link;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatJoinRequest{
     Chat chat;
@@ -604,7 +623,7 @@ class ChatJoinRequest{
     String bio;
     ChatInviteLink invite_link;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatPermissions{
     boolean can_send_messages;
@@ -617,13 +636,13 @@ class ChatPermissions{
     boolean can_pin_messages;
     boolean can_manage_topics;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ChatLocation{
     Location location;
     String adress;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ForumTopic{
     Long message_thread_id;
@@ -631,84 +650,84 @@ class ForumTopic{
     Long icon_color;
     String icon_custom_emoji_id;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class BotCommand{
     String command;
     String description;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class BotCommandScope{}
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class BotCommandScopeDefault{
     String type;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class BotCommandScopeAllPrivateChats{
     String type;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class BotCommandScopeAllGroupChats{
     String type;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class BotCommandScopeAllChatAdministrators{
     String type;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class BotCommandScopeChat{
     String type;
     Long chat_id;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class BotCommandScopeAdministrators{
     String type;
     Long chat_id;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class BotCommandScopeChatMember{
     String type;
     Long chat_id;
     Long user_id;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class MenuButton{}
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class MenuButtonCommands{
     String type;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class MenuButtonWebApp{
     String type;
     String text;
     WebAppInfo web_app;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class MenuButtonDefault{
     String type;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ResponseParameters {
     Long migrate_to_chat_id;
     Long retry_after;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class InputMedia{}
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class InputMediaPhoto{
     String type;
@@ -717,7 +736,7 @@ class InputMediaPhoto{
     String parse_mode;
     ArrayList<MessageEntity> caption_entities;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class InputMediaVideo{
     String type;
@@ -731,7 +750,7 @@ class InputMediaVideo{
     Long duration;
     boolean supports_streaming;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class InputMediaAnimation{
     String type;
@@ -744,7 +763,7 @@ class InputMediaAnimation{
     Long height;
     Long duration;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class InputMediaAudio{
     String type;
@@ -757,7 +776,7 @@ class InputMediaAudio{
     String performer;
     String title;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class InputMediaDocument{
     String type;
@@ -768,7 +787,7 @@ class InputMediaDocument{
     ArrayList<MessageEntity> caption_entities;
     boolean disable_content_type_detection;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Sticker{
     String file_id;
@@ -786,7 +805,7 @@ class Sticker{
     String custom_emoji_id;
     Long file_size;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class StickerSet{
     String name;
@@ -797,7 +816,7 @@ class StickerSet{
     ArrayList<Sticker> stickers;
     PhotoSize thumb;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class MaskPosition{
     String point;
@@ -805,13 +824,13 @@ class MaskPosition{
     Float y_shift;
     Float scale;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class LabeledPrice{
     String label;
     Long amount;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Invoice{
     String type;
@@ -820,7 +839,7 @@ class Invoice{
     String currency;
     Long total_amount;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ShippingAddress{
     String country_code;
@@ -830,7 +849,7 @@ class ShippingAddress{
     String street_line2;
     String post_code;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class OrderInfo{
     String name;
@@ -838,14 +857,14 @@ class OrderInfo{
     String email;
     ShippingAddress shipping_address;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ShippingOption{
     String id;
     String title;
     ArrayList<LabeledPrice> prices;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class SuccessfulPayment{
     String currency;
@@ -856,7 +875,7 @@ class SuccessfulPayment{
     String telegram_payment_charge_id;
     String provider_payment_charge_id;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ShippingQuery{
     String id;
@@ -864,7 +883,7 @@ class ShippingQuery{
     String invoice_payload;
     ShippingAddress shipping_address;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class PreCheckoutQuery{
     String id;
@@ -875,13 +894,13 @@ class PreCheckoutQuery{
     String shipping_option_id;
     OrderInfo order_info;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class PassportData{
     ArrayList<EncryptedPassportElement> data;
     EncryptedCredentials credentials;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class PassportFile{
     String file_id;
@@ -889,7 +908,7 @@ class PassportFile{
     Long file_size;
     Long file_date;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class EncryptedPassportElement{
     String type;
@@ -903,14 +922,14 @@ class EncryptedPassportElement{
     ArrayList<PassportFile> translation;
     String hash;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class EncryptedCredentials{
     String data;
     String hash;
     String secret;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class Game{
     String title;
@@ -920,10 +939,10 @@ class Game{
     ArrayList<MessageEntity> text_entities;
     Animation animation;
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class CallbackGame{}
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class GameHighScore{
     Long position;
