@@ -4,10 +4,8 @@ import com.google.gson.Gson;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 
 @Component
@@ -27,10 +25,10 @@ public void sendMessageToChatId(String messageToSend, Long chat_id ){
             .asString();
     printResponseStringToConsole(response);
 }
-public void sendMessageWithKeyboardToChatId(Long chat_id){
-    InlineKeyboardButton a = new InlineKeyboardButton(); a.setText("a");
-    InlineKeyboardButton b = new InlineKeyboardButton(); b.setText("b");
-    InlineKeyboardButton c = new InlineKeyboardButton(); c.setText("c");
+public void testSendMessageWithKeyboardToChatId(Long chat_id){
+    InlineKeyboardButton a = new InlineKeyboardButton(); a.setCallback_data("a"); a.setText("A");
+    InlineKeyboardButton b = new InlineKeyboardButton();b.setCallback_data("b"); b.setText("B");
+    InlineKeyboardButton c = new InlineKeyboardButton();c.setCallback_data("c"); c.setText("C");
     ArrayList<InlineKeyboardButton> col1 = new ArrayList<InlineKeyboardButton>();
     col1.add(a);
     col1.add(b);
@@ -39,23 +37,43 @@ public void sendMessageWithKeyboardToChatId(Long chat_id){
     keyz.add(col1);
     InlineKeyboardMarkup testInlineKeyboardMarkup = new InlineKeyboardMarkup();
     testInlineKeyboardMarkup.setInline_keyboard(keyz);
-    Chat chat = new Chat();
-    chat.setId(5580797031L);chat.setType("private");
-    System.out.println(chat.getId());
-    Message msg = new Message();
-    msg.setChat(chat);msg.setText("Hohoho");msg.setReply_markup(testInlineKeyboardMarkup);
-    System.out.println(msg.getChat().getId());
+    SendMessageWithInlineKeyboard message = new SendMessageWithInlineKeyboard();
+    message.setChat_id(5580797031L);
+    message.setText("Działa");
+    message.setReply_markup(testInlineKeyboardMarkup);
     Gson gson = new Gson();
-    String body = gson.toJson(msg)  ;
-//    String keyboardJson = gson.toJson(testInlineKeyboardMarkup);
+    String body = gson.toJson(message);
+    System.out.println(body);
     HttpResponse<JsonNode> response = Unirest.post(sendMessageUrl)
             .header("Content-Type", "application/json")
             .body(body)
             .asJson();
-    System.out.println(body);
     printResponseJsonToConsole(response);
-//    System.out.println(keyboardJson);
 }
+    public void testKochana(Long chat_id){
+        InlineKeyboardButton wiemButton = new InlineKeyboardButton(); wiemButton.setCallback_data("Wiem"); wiemButton.setText("Wiem!");
+        InlineKeyboardButton oczywiscieButton = new InlineKeyboardButton();oczywiscieButton.setCallback_data("Oczywiscie"); oczywiscieButton.setText("Oczywiscie!");
+        InlineKeyboardButton jeszczeJakButton = new InlineKeyboardButton();jeszczeJakButton.setCallback_data("Jeszcze jak"); jeszczeJakButton.setText("Jeszcze jak!");
+        ArrayList<InlineKeyboardButton> col1 = new ArrayList<InlineKeyboardButton>();
+        col1.add(wiemButton);
+        col1.add(oczywiscieButton);
+        col1.add(jeszczeJakButton);
+        ArrayList<ArrayList<InlineKeyboardButton>> row1 = new ArrayList<>();
+        row1.add(col1);
+        InlineKeyboardMarkup testInlineKeyboardMarkup = new InlineKeyboardMarkup();
+        testInlineKeyboardMarkup.setInline_keyboard(row1);
+        SendMessageWithInlineKeyboard message = new SendMessageWithInlineKeyboard();
+        message.setChat_id(chat_id);
+        message.setText("Hej czy wiesz ze jestes najkochansza osoba na swiecie?");
+        message.setReply_markup(testInlineKeyboardMarkup);
+        Gson gson = new Gson();
+        String body = gson.toJson(message);
+        HttpResponse<JsonNode> response = Unirest.post(sendMessageUrl)
+                .header("Content-Type", "application/json")
+                .body(body)
+                .asJson();
+        printResponseJsonToConsole(response);
+    }
 void printResponseStringToConsole(HttpResponse<String> response){
     System.out.println("RESPONSE STATUS: \r\n" + response.getStatus()
             + " "

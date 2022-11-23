@@ -4,16 +4,35 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;
 
 // klasa na updaty wysyłane webhookami
+//i nie tylko
+@Getter
+@Setter
+class SendMessageWithInlineKeyboard{
+    @NonNull
+    Long chat_id;
+    Long message_thread_id;
+    @NonNull
+    String text;
+    String parse_mode;
+    ArrayList<MessageEntity> entities;
+    boolean disable_web_page_preview;
+    boolean disable_notification;
+    boolean protect_content;
+    Long reply_to_message_id;
+    boolean allow_sending_without_reply;
+    InlineKeyboardMarkup reply_markup;
+}
 @Getter
 public class WebhookUpdate {
 
         Long update_id;
         Message message;
-
+        CallbackQuery callback_query;
 //        METODY
     void printUpdateToConsole(){
     if (message.getText()!=null){
