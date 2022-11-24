@@ -426,13 +426,10 @@ class ReplyKeyboardMarkup{
     public ReplyKeyboardMarkup factory(int cols, int rows,String... args){
         ArrayList<String> names = new ArrayList<>();
         for (int i = 0; i < cols; i++) {
-            ArrayList<KeyboardButton> row;
             for (String arg : args) {
                 names.add(arg);
             }
-            for (int i = 0; i < rows; i++) {
-                KeyboardButton
-            }
+            ArrayList<ArrayList<KeyboardButton>> cols = new ArrayList<>();
         }
 
     }
