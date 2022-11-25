@@ -1,12 +1,15 @@
 package net.ddns.encante.telegram.HR;
 
+import com.sun.istack.NotNull;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 // klasa na updaty wysyłane webhookami
 //i nie tylko
@@ -75,7 +78,7 @@ public class WebhookUpdate {
     }
     void sendUpdateToChatId(RemoteRequest request,Long chatId){
         if (message.getText()!= null) {
-            request.sendMessageToChatId("New message! T: " + Utils.getCurrentDateTime()
+            request.sendMessageToChatIdByString("New message! T: " + Utils.getCurrentDateTime()
                             + "  FROM: "
                             + message.getFrom().getFirst_name()
                             + " "
@@ -87,7 +90,7 @@ public class WebhookUpdate {
                     ,chatId);
         }
         else {
-            request.sendMessageToChatId("New Message! T:"
+            request.sendMessageToChatIdByString("New Message! T:"
                     + Utils.getCurrentDateTime()
                     +"but there's no text!"
                     +"  FROM: "
@@ -423,25 +426,55 @@ class ReplyKeyboardMarkup{
     boolean one_time_keyboard;
     String input_field_placeholder;
     boolean selective;
-    public ReplyKeyboardMarkup factory(int cols, int rows,String... args){
-        ArrayList<String> names = new ArrayList<>();
-        for (int i = 0; i < cols; i++) {
-            for (String arg : args) {
-                names.add(arg);
-            }
-            ArrayList<ArrayList<KeyboardButton>> cols = new ArrayList<>();
+    @Getter
+    @Setter
+    public class KeyboardBuilder {
+
+        private int rows;
+        private int cols;
+        private ArrayList<String> names;
+        private ArrayList<KeyboardButton> rowx;
+        private ArrayList<ArrayList<KeyboardButton>> out;
+
+        public KeyboardBuilder(int rows, int cols){
+            this.rows=rows;
+            this.cols=cols;
+            this.names=new ArrayList<>();
+            this.rowx=new ArrayList<>();
+            this.out=new ArrayList<>();
         }
 
+        public void factory (String @NotNull ...args)
+        {
+            Collections.addAll(this.names, args);
+//            check if there is suitable names for all buttons
+            if(rows+cols == names.size()) {
+                for (int i = 0; i < cols; i++) {
+                    for (int j = 0; j < rows; j++) {
+                        this.rowx.add(new KeyboardButton()) .add(this.names.get(0));
+                        this.names.remove(0);
+                    }
+                    this.out.add(this.rowx);
+                    this.rowx = new ArrayList<>();
+                }
+            }
+//            return this.out;
+//        System.out.println("Out na koniec: "+out.toString());
+        }
     }
 }
-@Getter @Setter
+@Getter @Setter @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class KeyboardButton{
+    @NonNull
     String text;
     boolean request_contact;
     boolean request_location;
     KeyboardButtonPollType request_poll;
     WebAppInfo web_app;
+    public KeyboardButton(String text){
+        this.text = text;
+    }
 }
 @Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)

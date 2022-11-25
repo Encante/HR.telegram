@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ public class RemoteRequest {
 // chat id:
 //    ja:   5580797031L
 //    Yaneczka: 566760042L
-public void sendMessageToChatId(String messageToSend, Long chat_id ){
+public String sendMessageToChatIdByString(String messageToSend, Long chat_id ){
     HttpResponse<String> response = Unirest.post(sendMessageUrl+
             "chat_id="+
             chat_id+
@@ -23,6 +24,17 @@ public void sendMessageToChatId(String messageToSend, Long chat_id ){
             messageToSend)
             .asString();
     printResponseStringToConsole(response);
+    return response.toString();
+}
+public String sendMessageToChatIdByObject(String messageToSend, @NotNull String replyKeyboardType){
+    switch (replyKeyboardType){
+        case "inline"{
+            System.out.println("inline keyboard placeholder");
+        }
+        case "reply"{
+            ReplyKeyboardMarkup keyboard;
+        }
+    }
 }
     public void testKochana(Gson gson,Long chat_id){
         InlineKeyboardButton wiemButton = new InlineKeyboardButton(); wiemButton.setCallback_data("Wiem"); wiemButton.setText("Wiem!");

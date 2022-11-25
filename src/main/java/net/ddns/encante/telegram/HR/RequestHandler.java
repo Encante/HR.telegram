@@ -33,7 +33,7 @@ public class RequestHandler {
 //                    request.sendMessageToChatId("wybrałeś C", 5580797031L);
 //                }
 //            }
-            request.sendMessageToChatId("Callback received! T: "
+            request.sendMessageToChatIdByString("Callback received! T: "
                     + Utils.getCurrentDateTime()
                     + "FROM: "
                     + update.callback_query.getFrom().getFirst_name()
@@ -51,12 +51,12 @@ public class RequestHandler {
                 if (update.message.getText().charAt(0) == '/') {
                     String[] commands = update.message.getText().split(" ");
                     switch (commands[0]) {
-                        case "/hi" -> request.sendMessageToChatId("Hello " + update.message.getFrom().getFirst_name() + "!", update.message.getChat().getId());
+                        case "/hi" -> request.sendMessageToChatIdByString("Hello " + update.message.getFrom().getFirst_name() + "!", update.message.getChat().getId());
                         case "/sm" -> {
                             if (commands[1].equalsIgnoreCase("m"))
-                                request.sendMessageToChatId(update.message.getText().substring(6), 5580797031L);
+                                request.sendMessageToChatIdByString(update.message.getText().substring(6), 5580797031L);
                             if (commands[1].equalsIgnoreCase("y"))
-                                request.sendMessageToChatId(update.message.getText().substring(6), 566760042L);
+                                request.sendMessageToChatIdByString(update.message.getText().substring(6), 566760042L);
                         }
                         case "/inline" -> {
                             if (commands[1].equalsIgnoreCase("m"))
