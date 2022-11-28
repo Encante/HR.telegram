@@ -1,6 +1,5 @@
 package net.ddns.encante.telegram.HR;
 
-import com.sun.istack.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,31 +14,27 @@ import java.util.Collections;
 //i nie tylko
 @Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class SendMessageWithInlineKeyboard{
+class MessageWithInlineKeyboard extends Message {
     @NonNull
-    Long chat_id;
-    Long message_thread_id;
-    @NonNull
-    String text;
-    String parse_mode;
-    ArrayList<MessageEntity> entities;
-    boolean disable_web_page_preview;
-    boolean disable_notification;
-    boolean protect_content;
-    Long reply_to_message_id;
-    boolean allow_sending_without_reply;
-    InlineKeyboardMarkup reply_markup;
+    Long chat_id;//tylko tu
+//    @NonNull
+//    String text;
+    String parse_mode;//tylko tu
+    boolean disable_web_page_preview;//tylko tu
+    boolean disable_notification;//tylko tu
+    boolean protect_content;//tylko tu
+    Long reply_to_message_id;//tylko tu
+    boolean allow_sending_without_reply;//tt
+    InlineKeyboardMarkup reply_markup;//tt
 }
 @Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class SendMessageWithReplyKeyboard{
+class MessageWithReplyKeyboard extends Message {
     @NonNull
     Long chat_id;
-    Long message_thread_id;
-    @NonNull
-    String text;
+//    @NonNull
+//    String text;
     String parse_mode;
-    ArrayList<MessageEntity> entities;
     boolean disable_web_page_preview;
     boolean disable_notification;
     boolean protect_content;
@@ -127,7 +122,9 @@ class Message {
     Long message_thread_id;
     User from;
     Chat sender_chat;
+    @NonNull
     Long date;
+    @NonNull
     Chat chat;
     User forward_from_chat;
     Long forward_from_message_id;
@@ -185,7 +182,6 @@ class Message {
     VideoChatEnded video_chat_ended;
     VideoChatParticipantsInvited video_chat_participants_invited;
     WebAppData web_app_data;
-    InlineKeyboardMarkup reply_markup;
 }
 
 @Getter @Setter
@@ -421,6 +417,7 @@ class WebAppInfo{
 @Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ReplyKeyboardMarkup{
+    @NonNull
     ArrayList<ArrayList<KeyboardButton>> keyboard;
     boolean resize_keyboard;
     boolean one_time_keyboard;
@@ -444,14 +441,16 @@ class ReplyKeyboardMarkup{
             this.out=new ArrayList<>();
         }
 
-        public void factory (String @NotNull ...args)
+        public void factory (String ...args)
         {
             Collections.addAll(this.names, args);
 //            check if there is suitable names for all buttons
-            if(rows+cols == names.size()) {
+            if(rows*cols == names.size()) {
                 for (int i = 0; i < cols; i++) {
+                    System.out.println("DODAWANIE COLS");
                     for (int j = 0; j < rows; j++) {
-                        this.rowx.add(new KeyboardButton()) .add(this.names.get(0));
+                        this.rowx.add(new KeyboardButton(this.names.get(0)));
+                        System.out.println("ROWX: "+this.rowx.toString());
                         this.names.remove(0);
                     }
                     this.out.add(this.rowx);

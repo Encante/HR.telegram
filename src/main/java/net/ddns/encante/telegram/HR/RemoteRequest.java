@@ -26,15 +26,47 @@ public String sendMessageToChatIdByString(String messageToSend, Long chat_id ){
     printResponseStringToConsole(response);
     return response.toString();
 }
-public String sendMessageToChatIdByObject(String messageToSend, @NotNull String replyKeyboardType){
+public String sendMessageToChatIdByObject(String textMessageToSend, @NotNull String replyKeyboardType, @NotNull Long chat_id){
     switch (replyKeyboardType){
-        case "inline"{
+        case "inline" ->{
             System.out.println("inline keyboard placeholder");
         }
-        case "reply"{
-            ReplyKeyboardMarkup keyboard;
+        case "reply" -> {
+            System.out.println("REPLY KEYBOARD PLACEHOLDER");
+            MessageWithReplyKeyboard messageToSend = new MessageWithReplyKeyboard();
+            messageToSend.setChat_id(chat_id);
+            messageToSend.setText(textMessageToSend);
+            String[] names = {"Sing","for","me"};
+            ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+            ReplyKeyboardMarkup.KeyboardBuilder builder = keyboardMarkup.new KeyboardBuilder(3,1);
+            builder.factory(names);
+            keyboardMarkup.setKeyboard(builder.getOut());
+            keyboardMarkup.setOne_time_keyboard(true);
+            messageToSend.setReply_markup(keyboardMarkup);
+            Gson gson = new Gson();
+            String body = gson.toJson(messageToSend);
+            String bodyTest = "{\n" +
+                    "  \"chat_id\": 5580797031,\n" +
+                    "  \"reply_markup\": {\n" +
+                    "    \"resize_keyboard\": true,\n" +
+                    "    \"keyboard\": [\n" +
+                    "      [\n" +
+                    "        \"Button 1\",\n" +
+                    "        \"Button 2\"\n" +
+                    "      ]\n" +
+                    "    ]\n" +
+                    "  },\n" +
+                    "  \"text\": \"So\"\n" +
+                    "}";
+            HttpResponse<JsonNode> response = Unirest.post(sendMessageUrl)
+                    .header("Content-Type", "application/json")
+                    .body(bodyTest)
+                    .asJson();
+            System.out.println("BODY to: "+body);
+            printResponseJsonToConsole(response);
         }
     }
+    return "send message to chatid by object";
 }
     public void testKochana(Gson gson,Long chat_id){
         InlineKeyboardButton wiemButton = new InlineKeyboardButton(); wiemButton.setCallback_data("Wiem"); wiemButton.setText("Wiem!");
@@ -48,7 +80,7 @@ public String sendMessageToChatIdByObject(String messageToSend, @NotNull String 
         col1.add(row1);
         InlineKeyboardMarkup testInlineKeyboardMarkup = new InlineKeyboardMarkup();
         testInlineKeyboardMarkup.setInline_keyboard(col1);
-        SendMessageWithInlineKeyboard message = new SendMessageWithInlineKeyboard();
+        MessageWithInlineKeyboard message = new MessageWithInlineKeyboard();
         message.setChat_id(chat_id);
         message.setText("Hej czy wiesz ze jestes najkochansza osoba na swiecie?");
         message.setReply_markup(testInlineKeyboardMarkup);

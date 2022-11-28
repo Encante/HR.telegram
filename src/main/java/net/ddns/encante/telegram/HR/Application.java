@@ -14,5 +14,6 @@ public class Application {
 		request.sendMessageToChatIdByString("Bot odpalony T: "
 				+ Utils.getCurrentDateTime()
 				, 5580797031L);
+		request.sendMessageToChatIdByObject("So","reply",5580797031L);
 	}
 }
