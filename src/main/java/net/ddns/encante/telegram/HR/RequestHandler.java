@@ -48,6 +48,7 @@ public class RequestHandler {
                             sendMessage.sendMessageToChatIdByObject(ReplyKeyboardType.NO);
                         }
                         case "/sm" -> {
+                            //dopisac ochrone przed pustym 2 parametrem
                             if (commands[1].equalsIgnoreCase("m")){
                                 sendMessage.setChat_id(5580797031L);
                                 sendMessage.setText(update.message.getText().substring(6));
