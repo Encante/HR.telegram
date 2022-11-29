@@ -2,12 +2,14 @@ package net.ddns.encante.telegram.HR;
 
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
+@Component
 public class RequestHandler {
 //    get beans ;)
     @Autowired
@@ -22,17 +24,6 @@ public class RequestHandler {
         WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class);
 //            check if it is callback
         if (update.getCallback_query()!=null){
-//            switch (update.callback_query.getData()){
-//                case "a" -> {
-//                    request.sendMessageToChatId("wybrałeś A", 5580797031L);
-//                }
-//                case "b" -> {
-//                    request.sendMessageToChatId("wybrałeś B", 5580797031L);
-//                }
-//                case "c" -> {
-//                    request.sendMessageToChatId("wybrałeś C", 5580797031L);
-//                }
-//            }
             request.sendMessageToChatIdByString("Callback received! T: "
                     + Utils.getCurrentDateTime()
                     + "FROM: "

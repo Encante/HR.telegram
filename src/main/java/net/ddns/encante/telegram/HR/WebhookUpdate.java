@@ -13,36 +13,6 @@ import java.util.Collections;
 // klasa na updaty wysyłane webhookami
 //i nie tylko
 @Getter @Setter
-@FieldDefaults(level = AccessLevel.PRIVATE)
-class MessageWithInlineKeyboard extends Message {
-    @NonNull
-    Long chat_id;//tylko tu
-//    @NonNull
-//    String text;
-    String parse_mode;//tylko tu
-    boolean disable_web_page_preview;//tylko tu
-    boolean disable_notification;//tylko tu
-    boolean protect_content;//tylko tu
-    Long reply_to_message_id;//tylko tu
-    boolean allow_sending_without_reply;//tt
-    InlineKeyboardMarkup reply_markup;//tt
-}
-@Getter @Setter
-@FieldDefaults(level = AccessLevel.PRIVATE)
-class MessageWithReplyKeyboard extends Message {
-    @NonNull
-    Long chat_id;
-//    @NonNull
-//    String text;
-    String parse_mode;
-    boolean disable_web_page_preview;
-    boolean disable_notification;
-    boolean protect_content;
-    Long reply_to_message_id;
-    boolean allow_sending_without_reply;
-    ReplyKeyboardMarkup reply_markup;
-}
-@Getter @Setter
 public class WebhookUpdate {
 
         Long update_id;
@@ -182,6 +152,7 @@ class Message {
     VideoChatEnded video_chat_ended;
     VideoChatParticipantsInvited video_chat_participants_invited;
     WebAppData web_app_data;
+    InlineKeyboardMarkup reply_markup;
 }
 
 @Getter @Setter
@@ -488,7 +459,6 @@ class ReplyKeyboardMarkup{
             }
             else{
                 System.out.println("Not enough names for all buttons.");
-
             }
             return new ReplyKeyboardMarkup(this);
 //        public void factory (String ...args)
