@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;
@@ -39,32 +40,6 @@ public class WebhookUpdate {
         if (message.getFrom().getLast_name() != null)
             System.out.println(message.getFrom().getLast_name());
         System.out.println("Is bot: " + message.getFrom().is_bot());
-        }
-    }
-    void sendUpdateToChatId(RemoteRequest request,Long chatId){
-        if (message.getText()!= null) {
-            request.sendMessageToChatIdByString("New message! T: " + Utils.getCurrentDateTime()
-                            + "  FROM: "
-                            + message.getFrom().getFirst_name()
-                            + " "
-                            + message.getFrom().getLast_name()
-                            + "  CHAT ID: "
-                            + message.getChat().getId()
-                            + "  CONTENT: "
-                            + message.getText()
-                    ,chatId);
-        }
-        else {
-            request.sendMessageToChatIdByString("New Message! T:"
-                    + Utils.getCurrentDateTime()
-                    +"but there's no text!"
-                    +"  FROM: "
-                    + message.getFrom().getFirst_name()
-                    + " "
-                    + message.getFrom().getLast_name()
-                    + "  CHAT ID: "
-                    + message.getChat().getId()
-                    ,chatId);
         }
     }
 }
@@ -449,7 +424,6 @@ class ReplyKeyboardMarkup{
                     System.out.println("DODAWANIE COLS");
                     for (int j = 0; j < rows; j++) {
                         this.rowx.add(new KeyboardButton(this.names.get(0)));
-                        System.out.println("ROWX: "+this.rowx.toString());
                         this.names.remove(0);
                     }
                     this.keyboardLayout.add(this.rowx);
@@ -491,7 +465,7 @@ class KeyboardButton{
     boolean request_location;
     KeyboardButtonPollType request_poll;
     WebAppInfo web_app;
-    public KeyboardButton(String text){
+    public KeyboardButton(@NotNull String text){
         this.text = text;
     }
 }

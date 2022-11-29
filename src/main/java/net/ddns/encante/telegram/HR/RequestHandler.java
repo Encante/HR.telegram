@@ -9,30 +9,29 @@ import org.springframework.web.bind.annotation.RestController;
 
 
 @RestController
-@Component
 public class RequestHandler {
 //    get beans ;)
-    @Autowired
-    RemoteRequest request;
-    @Autowired
-    Gson gson;
+
 //    when receiving message:
     @PostMapping("/HR4telegram")
     public String postHandler (@RequestBody String content){
+        Gson gson = new Gson();
+        SendMessage sendMessage = new SendMessage();
 //        do WebhookUpdate object from JSON
         System.out.println(content);
         WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class);
 //            check if it is callback
         if (update.getCallback_query()!=null){
-            request.sendMessageToChatIdByString("Callback received! T: "
+            sendMessage.setChat_id(5580797031L);
+            sendMessage.setText("Callback received! T: "
                     + Utils.getCurrentDateTime()
                     + "FROM: "
                     + update.callback_query.getFrom().getFirst_name()
                     +" "
                     + update.callback_query.getFrom().getLast_name()
                     + " CALLBACK DATA: "
-                    +update.callback_query.getData()
-                    ,5580797031L);
+                    +update.callback_query.getData());
+            sendMessage.sendMessageToChatIdByObject(ReplyKeyboardType.NO);
         }
 //      check if have any message
         if (update.message!=null) {
@@ -41,36 +40,40 @@ public class RequestHandler {
 //        check if incoming message have any and if there is do commands:
                 if (update.message.getText().charAt(0) == '/') {
                     String[] commands = update.message.getText().split(" ");
+
                     switch (commands[0]) {
-                        case "/hi" -> request.sendMessageToChatIdByString("Hello " + update.message.getFrom().getFirst_name() + "!", update.message.getChat().getId());
+                        case "/hi" -> {
+                            sendMessage.setChat_id(update.message.getFrom().getId());
+                            sendMessage.setText("Hello " + update.message.getFrom().getFirst_name() + "!");
+                            sendMessage.sendMessageToChatIdByObject(ReplyKeyboardType.NO);
+                        }
                         case "/sm" -> {
-                            if (commands[1].equalsIgnoreCase("m"))
-                                request.sendMessageToChatIdByString(update.message.getText().substring(6), 5580797031L);
-                            if (commands[1].equalsIgnoreCase("y"))
-                                request.sendMessageToChatIdByString(update.message.getText().substring(6), 566760042L);
+                            if (commands[1].equalsIgnoreCase("m")){
+                                sendMessage.setChat_id(5580797031L);
+                                sendMessage.setText(update.message.getText().substring(6));
+                                sendMessage.sendMessageToChatIdByObject(ReplyKeyboardType.NO);
+                            }
+                            if (commands[1].equalsIgnoreCase("y")) {
+                                sendMessage.setChat_id(566760042L);
+                                sendMessage.setText(update.message.getText().substring(6));
+                                sendMessage.sendMessageToChatIdByObject(ReplyKeyboardType.NO);
+                            }
                         }
-                        case "/inline" -> {
-                            if (commands[1].equalsIgnoreCase("m"))
-                                request.testKochana(gson,5580797031L);
-                            if (commands[1].equalsIgnoreCase("y"))
-                                request.testKochana(gson,566760042L);
-                        }
-//                    case "/test" -> {
-//                        request.
-//                    }
                     }
                 }
+
 //        if not from me, send message to me
                 if (update.message.getFrom().getId() != 5580797031L) {
-                    update.sendUpdateToChatId(request, 5580797031L);
+                    sendMessage.setChat_id(566760042L);
+                    sendMessage.setText(update.message.getText());
+                    sendMessage.sendMessageToChatIdByObject(ReplyKeyboardType.NO);
                 }
-
 //        then print to console
                 update.printUpdateToConsole();
                 return "ok";
             } else {
 //            if no text send me an info
-                update.sendUpdateToChatId(request, 5580797031L);
+                sendMessage.sendUpdateToChatId(update, 5580797031L);
 //            and print to console
                 update.printUpdateToConsole();
                 return "ok";
