@@ -69,6 +69,11 @@ public class RequestHandler {
                                 }
                             }
                         }
+                        case "/removeKeyboard" ->
+                                SendMessage.builder()
+                                        .chat_id(update.message.getFrom().getId())
+                                        .text("Hello " + update.message.getFrom().getFirst_name() + "!")
+                                        .build().sendMessageWithKeyboard(ReplyKeyboardType.NO);
                     }
                 }
 

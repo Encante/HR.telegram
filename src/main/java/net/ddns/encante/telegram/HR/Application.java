@@ -11,14 +11,12 @@ public class Application {
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 
-//		SendMessage botWelcomeMessage =
-				SendMessage.builder().chat_id(5580797031L).text("Bot odpalony T: "+ Utils.getCurrentDateTime()).build().send();
-//		sendMessage.setChat_id(5580797031L);
-//		sendMessage.setText("Bot odpalony T: "+ Utils.getCurrentDateTime());
-//		sendMessage.sendMessageToChatIdByJson(ReplyKeyboardType.NO);
+		SendMessage.builder()
+				.chat_id(5580797031L)
+				.text("Bot odpalony T: "+ Utils.getCurrentDateTime()).build().send();
 		SendMessage.builder().chat_id(5580797031L)
 				.text("So")
 				.build()
-				.send();
+				.sendMessageWithKeyboard(ReplyKeyboardType.INLINE);
 	}
 }
