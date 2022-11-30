@@ -1,6 +1,5 @@
 package net.ddns.encante.telegram.HR;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
@@ -12,11 +11,14 @@ public class Application {
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
 
-		SendMessage sendMessage = new SendMessage();
-		sendMessage.setChat_id(5580797031L);
-		sendMessage.setText("Bot odpalony T: "+ Utils.getCurrentDateTime());
-		sendMessage.sendMessageToChatIdByObject(ReplyKeyboardType.NO);
-		sendMessage.setText("So");
-		sendMessage.sendMessageToChatIdByObject(ReplyKeyboardType.REPLY);
+//		SendMessage botWelcomeMessage =
+				SendMessage.builder().chat_id(5580797031L).text("Bot odpalony T: "+ Utils.getCurrentDateTime()).build().send();
+//		sendMessage.setChat_id(5580797031L);
+//		sendMessage.setText("Bot odpalony T: "+ Utils.getCurrentDateTime());
+//		sendMessage.sendMessageToChatIdByJson(ReplyKeyboardType.NO);
+		SendMessage.builder().chat_id(5580797031L)
+				.text("So")
+				.build()
+				.send();
 	}
 }

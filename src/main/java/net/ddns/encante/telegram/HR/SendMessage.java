@@ -4,20 +4,17 @@ import com.google.gson.Gson;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 
-@Getter @Setter
-@NoArgsConstructor
+@Getter @Builder
 //klasa na obiekty wysyłające dane
 // chat id:
 //    ja:   5580797031L
 //    Yaneczka: 566760042L
 //    private SendMessage messageToSend;
 public class SendMessage {
+    @NotNull
     Long chat_id;
     Long message_thread_id;
     String text;
@@ -29,9 +26,10 @@ public class SendMessage {
     Long reply_to_message_id;
     boolean allow_sending_without_reply;
 
-    public String sendMessageToChatIdByObject(@NotNull ReplyKeyboardType keyboardType){
-        RemoteRequest request = new RemoteRequest();
-        Gson gson = request.gson;
+    private transient final RemoteRequest request = new RemoteRequest();
+    private transient final Gson gson = new Gson();
+
+    public String sendMessageWithKeyboard(@NotNull ReplyKeyboardType keyboardType){
         switch (keyboardType){
             case INLINE -> System.out.println("inline keyboard placeholder");
             case REPLY -> {
@@ -44,15 +42,21 @@ public class SendMessage {
                 String body = gson.toJson(messageToSend);
                 request.sendMessageAsJson(body);
             }
-            case NO -> {
-                SendMessageWithReplyKeyboard messageToSend = new SendMessageWithReplyKeyboard(chat_id,text);
-                String body =gson.toJson(messageToSend);
-                request.sendMessageAsJson(body);
-            }
+            case NO -> send();
         }
         return "send message to chatid by object";
     }
-    void sendUpdateToChatId(WebhookUpdate update,Long chatId){
+    SendMessage sendToMe (){
+        this.chat_id = 5580797031L;
+        send();
+        return this;
+    }
+    SendMessage send(){
+        String body =gson.toJson(this);
+        request.sendMessageAsJson(body);
+        return this;
+    }
+    void sendTextUpdateToChatId(WebhookUpdate update, Long chatId){
         this.chat_id = chatId;
         if (update.message.getText()!= null) {
             this.text = "New message! T: " + Utils.getCurrentDateTime()
@@ -73,10 +77,9 @@ public class SendMessage {
                     + update.message.getFrom().getLast_name()
                     + "  CHAT ID: "
                     + update.message.getChat().getId()
-                    + "  CONTENT: "
-                    + update.message.getText();
+                    + " But it has no text!";
         }
-        sendMessageToChatIdByObject(ReplyKeyboardType.NO);
+        send();
     }
 }
 enum ReplyKeyboardType{

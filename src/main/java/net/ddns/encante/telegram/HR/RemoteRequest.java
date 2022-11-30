@@ -1,18 +1,12 @@
 package net.ddns.encante.telegram.HR;
 
-import com.google.gson.Gson;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
 
 public class RemoteRequest {
-    Gson gson = new Gson();
     private final String botToken = "***REMOVED***";
-    private String sendMessageUrl = "https://api.telegram.org/bot"+ botToken +"/sendMessage?";
+    private final String sendMessageUrl = "https://api.telegram.org/bot"+ botToken +"/sendMessage?";
 
 
 public void sendMessageAsJson(String body){
@@ -22,6 +16,7 @@ public void sendMessageAsJson(String body){
             .asJson();
     System.out.println("BODY to: "+body);
     printResponseJsonToConsole(response);
+//    return this;
 }
 //    public void testKochana(Gson gson,Long chat_id){
 //        InlineKeyboardButton wiemButton = new InlineKeyboardButton(); wiemButton.setCallback_data("Wiem"); wiemButton.setText("Wiem!");
@@ -46,15 +41,15 @@ public void sendMessageAsJson(String body){
 //                .asJson();
 //        printResponseJsonToConsole(response);
 //    }
-void printResponseStringToConsole(HttpResponse<String> response){
-    System.out.println("RESPONSE STATUS: \r\n" + response.getStatus()
-            + " "
-            + response.getStatusText()
-            + "\r\nHEADERS: \r\n" + response.getHeaders().toString()
-            + "\r\nBODY: " + response.getBody());
-}
+//void printResponseStringToConsole(HttpResponse<String> response){
+//    System.out.println("RESPONSE STATUS: \r\n" + response.getStatus()
+//            + " "
+//            + response.getStatusText()
+//            + "\r\nHEADERS: \r\n" + response.getHeaders().toString()
+//            + "\r\nBODY: " + response.getBody());
+//}
 
-void printResponseJsonToConsole(HttpResponse<JsonNode> response){
+private void printResponseJsonToConsole(HttpResponse<JsonNode> response){
     System.out.println("RESPONSE STATUS: \r\n" + response.getStatus()
             + " "
             + response.getStatusText()
