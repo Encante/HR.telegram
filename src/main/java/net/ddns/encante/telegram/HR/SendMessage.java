@@ -1,13 +1,11 @@
 package net.ddns.encante.telegram.HR;
 
 import com.google.gson.Gson;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
+import lombok.Builder;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
 @Getter @Builder
 //klasa na obiekty wysyłające dane
@@ -35,31 +33,32 @@ public class SendMessage {
         switch (keyboardType){
             case INLINE -> {
                 String[] names = {"Inline","she","goes"};
-                sendMessageWithInlineKeyboard(new SendInlineKeyboardMarkup.KeyboardBuilder(3,1,names)
+                CatchedMessage catchedMessage = sendMessageWithInlineKeyboard(new InlineKeyboardMarkup.KeyboardBuilder(3,1,names)
                         .build()).send();
+                System.out.println("MESSAGE ID IS: "+catchedMessage.getResult().getMessage_id());
             }
             case REPLY -> {
                 String[] names = {"Way","she","goes"};
-                sendMessageWithReplyKeyboard(new SendReplyKeyboardMarkup.KeyboardBuilder(3,1,names)
+                sendMessageWithReplyKeyboard(new ReplyKeyboardMarkup.KeyboardBuilder(3,1,names)
                         .build()).send();
             }
             case REMOVE -> {
-                sendMessageWithRemoveKeyboard(new SendReplyKeyboardRemove())
+                sendMessageWithRemoveKeyboard(new ReplyKeyboardRemove())
                         .send();
             }
             case NO -> send();
         }
     }
 
-    SendMessage sendMessageWithInlineKeyboard(SendInlineKeyboardMarkup keyboardMarkup){
+    SendMessage sendMessageWithInlineKeyboard(InlineKeyboardMarkup keyboardMarkup){
         this.reply_markup = keyboardMarkup;
         return this;
     }
-    SendMessage sendMessageWithReplyKeyboard(SendReplyKeyboardMarkup keyboardMarkup){
+    SendMessage sendMessageWithReplyKeyboard(ReplyKeyboardMarkup keyboardMarkup){
         this.reply_markup = keyboardMarkup;
         return this;
     }
-    SendMessage sendMessageWithRemoveKeyboard(SendReplyKeyboardRemove keyboardRemove){
+    SendMessage sendMessageWithRemoveKeyboard(ReplyKeyboardRemove keyboardRemove){
         this.reply_markup = keyboardRemove;
         return this;
     }
@@ -68,10 +67,15 @@ public class SendMessage {
         send();
         return this;
     }
-    SendMessage send(){
+//    SendMessage send(){
+//        String body =gson.toJson(this);
+//        request.sendMessageAsJson(body);
+//        return this;
+//    }
+    CatchedMessage send(){
         String body =gson.toJson(this);
-        request.sendMessageAsJson(body);
-        return this;
+        CatchedMessage response = gson.fromJson(request.sendMessageAsJson(body).getBody().toString(), CatchedMessage.class);
+        return response;
     }
     void sendTextUpdateToChatId(WebhookUpdate update, Long chatId){
         this.chat_id = chatId;
@@ -106,172 +110,7 @@ enum ReplyKeyboardType{
     FORCE,
     NO
 }
-@Getter
-@FieldDefaults(level = AccessLevel.PRIVATE)
-class SendReplyKeyboardMarkup{
-@org.springframework.lang.NonNull
-ArrayList<ArrayList<SendKeyboardButton>> keyboard;
-boolean resize_keyboard;
-boolean one_time_keyboard;
-String input_field_placeholder;
-boolean selective;
-SendReplyKeyboardMarkup(KeyboardBuilder builder){
-    this.keyboard = builder.keyboardLayout;
-    this.resize_keyboard = builder.resize_keyboard;
-    this.one_time_keyboard = builder.one_time_keyboard;
-    this.input_field_placeholder = builder.input_field_placeholder;
-    this.selective = builder.selective;
-}
-    @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class KeyboardBuilder {
-    @org.springframework.lang.NonNull
-    int rows;
-    @org.springframework.lang.NonNull
-    int cols;
-    @NonNull
-    ArrayList<String> names;
-    ArrayList<SendKeyboardButton> rowx;
-    ArrayList<ArrayList<SendKeyboardButton>> keyboardLayout;
-    //        optional
-    boolean resize_keyboard;
-    boolean one_time_keyboard;
-    String input_field_placeholder;
-    boolean selective;
 
-    public KeyboardBuilder(int rows, int cols, String ...namesStream){
-        this.rows=rows;
-        this.cols=cols;
-        this.names=new ArrayList<>();
-        Collections.addAll(this.names, namesStream);
-    }
-    public KeyboardBuilder setResizeKeyboard(boolean resizeKeyboard){
-        this.resize_keyboard = resizeKeyboard;
-        return this;
-    }
-    public KeyboardBuilder setOneTimeKeyboard(boolean oneTimeKeyboard){
-        this.one_time_keyboard = oneTimeKeyboard;
-        return this;
-    }
-    public KeyboardBuilder setInputFieldPlaceholder(String inputFieldPlaceholder){
-        this.input_field_placeholder = inputFieldPlaceholder;
-        return this;
-    }
-    public KeyboardBuilder setSelective(boolean selective){
-        this.selective = selective;
-        return this;
-    }
-    public SendReplyKeyboardMarkup build(){
-        this.rowx=new ArrayList<>();
-        this.keyboardLayout =new ArrayList<>();
-//            check if there is suitable names for all buttons
-        if(rows*cols == names.size()) {
-            for (int i = 0; i < cols; i++) {
-                for (int j = 0; j < rows; j++) {
-                    this.rowx.add(new SendKeyboardButton(this.names.get(0)));
-                    this.names.remove(0);
-                }
-                this.keyboardLayout.add(this.rowx);
-                this.rowx = new ArrayList<>();
-            }
-            return new SendReplyKeyboardMarkup(this);
-        }
-        else{
-            System.out.println("Not enough names for all buttons.");
-        }
-        return new SendReplyKeyboardMarkup(this);
-        }
-    }
-}
-@Getter
-@FieldDefaults(level = AccessLevel.PRIVATE)
-class SendInlineKeyboardMarkup{
-    @org.springframework.lang.NonNull
-    ArrayList<ArrayList<SendInlineKeyboardButton>> inline_keyboard;
-    SendInlineKeyboardMarkup(KeyboardBuilder builder){
-        this.inline_keyboard = builder.keyboardLayout;
-    }
-    SendInlineKeyboardMarkup(ArrayList<ArrayList<SendInlineKeyboardButton>> inline_keyboard){
-        this.inline_keyboard=inline_keyboard;
-    }
-    @FieldDefaults(level = AccessLevel.PRIVATE)
-    public static class KeyboardBuilder {
-        @org.springframework.lang.NonNull
-        int rows;
-        @org.springframework.lang.NonNull
-        int cols;
-        @NonNull
-        ArrayList<String> names;
-        ArrayList<SendInlineKeyboardButton> rowx;
-        ArrayList<ArrayList<SendInlineKeyboardButton>> keyboardLayout;
 
-        public KeyboardBuilder(int rows, int cols, String ...namesStream){
-            this.rows=rows;
-            this.cols=cols;
-            this.names=new ArrayList<>();
-            Collections.addAll(this.names, namesStream);
-        }
-        public SendInlineKeyboardMarkup build(){
-            this.rowx=new ArrayList<>();
-            this.keyboardLayout =new ArrayList<>();
-//            check if there is suitable names for all buttons
-            if(rows*cols == names.size()) {
-                for (int i = 0; i < cols; i++) {
-                    for (int j = 0; j < rows; j++) {
-                        this.rowx.add(new SendInlineKeyboardButton(this.names.get(0)));
-                        this.names.remove(0);
-                    }
-                    this.keyboardLayout.add(this.rowx);
-                    this.rowx = new ArrayList<>();
-                }
-                return new SendInlineKeyboardMarkup(this);
-            }
-            else{
-                System.out.println("Not enough names for all buttons.");
-            }
-            return new SendInlineKeyboardMarkup(this);
-        }
-    }
-}
-@Getter
-@FieldDefaults(level = AccessLevel.PRIVATE)
-class SendReplyKeyboardRemove{
-    boolean remove_keyboard=true;
-    boolean selective;
-}
 
-@Getter @Setter @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
-class SendKeyboardButton{
-    @NonNull
-    String text;
-    boolean request_contact;
-    boolean request_location;
-    KeyboardButtonPollType request_poll;
-    WebAppInfo web_app;
-    public SendKeyboardButton(@NotNull String text){
-        this.text = text;
-    }
-}
-@NoArgsConstructor
-@Getter @Setter
-@FieldDefaults(level = AccessLevel.PRIVATE)
-class SendInlineKeyboardButton {
-    String text;
-    String url;
-    String callback_data;
-    WebAppInfo web_app;
-    LoginUrl login_url;
-    String switch_inline_query;
-    String switch_inline_query_current_chat;
-    CallbackGame callback_game;
-    boolean pay;
 
-    public SendInlineKeyboardButton(String keyText) {
-        this.text = keyText;
-        this.callback_data=text;
-    }
-    public SendInlineKeyboardButton(String keyText, String callbackData){
-        this.text=keyText;
-        this.callback_data=callbackData;
-    }
-}

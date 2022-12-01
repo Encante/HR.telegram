@@ -9,30 +9,15 @@ public class RemoteRequest {
     private final String sendMessageUrl = "https://api.telegram.org/bot"+ botToken +"/sendMessage?";
 
 
-public void sendMessageAsJson(String body){
+public HttpResponse<JsonNode> sendMessageAsJson(String body){
     HttpResponse<JsonNode> response = Unirest.post(sendMessageUrl)
             .header("Content-Type", "application/json")
             .body(body)
             .asJson();
     System.out.println("BODY SENT: "+body);
     printResponseJsonToConsole(response);
-//    return this;
+    return response;
 }
-//    public void testKochana(Gson gson, Long chat_id){
-//        SendInlineKeyboardButton wiemButton = new SendInlineKeyboardButton(); wiemButton.setCallback_data("Wiem"); wiemButton.setText("Wiem!");
-//        SendInlineKeyboardButton oczywiscieButton = new SendInlineKeyboardButton();oczywiscieButton.setCallback_data("Oczywiscie"); oczywiscieButton.setText("Oczywiscie!");
-//        SendInlineKeyboardButton jeszczeJakButton = new SendInlineKeyboardButton();jeszczeJakButton.setCallback_data("Jeszcze jak"); jeszczeJakButton.setText("Jeszcze jak!");
-//        ArrayList<SendInlineKeyboardButton> row1 = new ArrayList<>();
-//        row1.add(wiemButton);
-//        row1.add(oczywiscieButton);
-//        row1.add(jeszczeJakButton);
-//        ArrayList<ArrayList<SendInlineKeyboardButton>> col1 = new ArrayList<>();
-//        col1.add(row1);
-//        SendInlineKeyboardMarkup testInlineKeyboardMarkup = new SendInlineKeyboardMarkup(col1);
-//        SendMessageWithInlineKeyboard message = new SendMessageWithInlineKeyboard(chat_id,"Hej czy wiesz ze jestes najkochansza osoba na swiecie?",testInlineKeyboardMarkup);
-//        String body = gson.toJson(message);
-//        sendMessageAsJson(body);
-//    }
 
 
 private void printResponseJsonToConsole(HttpResponse<JsonNode> response){

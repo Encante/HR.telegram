@@ -11,7 +11,7 @@ public class Application {
 
 		SendMessage.builder()
 				.chat_id(5580797031L)
-				.text("Bot odpalony T: "+ Utils.getCurrentDateTime()).build().send();
+				.text("Bot odpalony T: " + Utils.getCurrentDateTime()).build().send();
 		SendMessage.builder().chat_id(5580797031L)
 				.text("Inline message")
 				.build()
@@ -20,9 +20,5 @@ public class Application {
 				.text("Reply keyboard message")
 				.build()
 				.sendMessageWithKeyboard(ReplyKeyboardType.REPLY);
-		SendMessage.builder().chat_id(5580797031L)
-				.text("Remove keyboard message")
-				.build()
-				.sendMessageWithKeyboard(ReplyKeyboardType.REMOVE);
 	}
 }
