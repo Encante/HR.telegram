@@ -47,6 +47,8 @@ public class SendMessage {
                 messageToSend.send();
             }
             case REMOVE -> {
+                SendMessageWithRemoveKeyboard messageToSend = new SendMessageWithRemoveKeyboard(chat_id,text,new SendReplyKeyboardRemove());
+                messageToSend.send();
             }
             case NO -> send();
         }
@@ -116,20 +118,13 @@ class SendMessageWithReplyKeyboard extends SendMessage{
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class SendMessageWithRemoveKeyboard{
-    @NotNull
-    Long chat_id;
-    Long message_thread_id;
-    @NotNull
-    String text;
-    String parse_mode;
-    ArrayList<MessageEntity> entities;
-    boolean disable_web_page_preview;
-    boolean disable_notification;
-    boolean protect_content;
-    Long reply_to_message_id;
-    boolean allow_sending_without_reply;
-    SendReplyKeyboardMarkup reply_markup;
+class SendMessageWithRemoveKeyboard extends SendMessage{
+    SendReplyKeyboardRemove reply_markup;
+
+    public SendMessageWithRemoveKeyboard(Long chat_id, String text, SendReplyKeyboardRemove keyboard){
+        super(chat_id,null,text,null,null,false,false,false,null,false);
+        this.reply_markup= keyboard;
+    }
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -260,7 +255,7 @@ class SendInlineKeyboardMarkup{
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class SendReplyKeyboardRemove{
-    boolean remove_keyboard;
+    boolean remove_keyboard=true;
     boolean selective;
 }
 

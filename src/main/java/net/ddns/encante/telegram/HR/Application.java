@@ -21,7 +21,7 @@ public class Application {
 				.build()
 				.sendMessageWithKeyboard(ReplyKeyboardType.REPLY);
 		SendMessage.builder().chat_id(5580797031L)
-				.text("TEST keyboard message")
+				.text("Remove keyboard message")
 				.build()
 				.sendMessageWithKeyboard(ReplyKeyboardType.REMOVE);
 	}
