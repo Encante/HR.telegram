@@ -26,6 +26,7 @@ public class SendMessage {
     boolean protect_content;
     Long reply_to_message_id;
     boolean allow_sending_without_reply;
+    Object reply_markup;
 
     transient final RemoteRequest request = new RemoteRequest();
     transient final Gson gson = new Gson();
@@ -34,24 +35,33 @@ public class SendMessage {
         switch (keyboardType){
             case INLINE -> {
                 String[] names = {"Inline","she","goes"};
-                SendMessageWithInlineKeyboard messageToSend = new SendMessageWithInlineKeyboard(chat_id,text,new SendInlineKeyboardMarkup.KeyboardBuilder(3,1,names)
-                        .build());
-                messageToSend.send();
-//                request.testKochana(gson,5580797031L);
+                sendMessageWithInlineKeyboard(new SendInlineKeyboardMarkup.KeyboardBuilder(3,1,names)
+                        .build()).send();
             }
             case REPLY -> {
                 String[] names = {"Way","she","goes"};
-                SendMessageWithReplyKeyboard messageToSend = new SendMessageWithReplyKeyboard(chat_id,text,new SendReplyKeyboardMarkup.KeyboardBuilder(3,1,names)
-                        .setOneTimeKeyboard(true)
-                        .build());
-                messageToSend.send();
+                sendMessageWithReplyKeyboard(new SendReplyKeyboardMarkup.KeyboardBuilder(3,1,names)
+                        .build()).send();
             }
             case REMOVE -> {
-                SendMessageWithRemoveKeyboard messageToSend = new SendMessageWithRemoveKeyboard(chat_id,text,new SendReplyKeyboardRemove());
-                messageToSend.send();
+                sendMessageWithRemoveKeyboard(new SendReplyKeyboardRemove())
+                        .send();
             }
             case NO -> send();
         }
+    }
+
+    SendMessage sendMessageWithInlineKeyboard(SendInlineKeyboardMarkup keyboardMarkup){
+        this.reply_markup = keyboardMarkup;
+        return this;
+    }
+    SendMessage sendMessageWithReplyKeyboard(SendReplyKeyboardMarkup keyboardMarkup){
+        this.reply_markup = keyboardMarkup;
+        return this;
+    }
+    SendMessage sendMessageWithRemoveKeyboard(SendReplyKeyboardRemove keyboardRemove){
+        this.reply_markup = keyboardRemove;
+        return this;
     }
     SendMessage sendToMe (){
         this.chat_id = 5580797031L;
@@ -95,36 +105,6 @@ enum ReplyKeyboardType{
     REMOVE,
     FORCE,
     NO
-}
-
-@Getter @Setter
-@FieldDefaults(level = AccessLevel.PRIVATE)
-class SendMessageWithInlineKeyboard extends SendMessage{
-    SendInlineKeyboardMarkup reply_markup;
-    public SendMessageWithInlineKeyboard (@NotNull Long chat_id, @NotNull String text, SendInlineKeyboardMarkup keyboard){
-        super(chat_id,null,text,null,null,false,false,false,null,false);
-        this.reply_markup = keyboard;
-    }
-}
-@Getter @Setter
-@FieldDefaults(level = AccessLevel.PRIVATE)
-class SendMessageWithReplyKeyboard extends SendMessage{
-
-    SendReplyKeyboardMarkup reply_markup;
-    public SendMessageWithReplyKeyboard (@NotNull Long chat_id, @NotNull String text, SendReplyKeyboardMarkup keyboard){
-        super(chat_id,null,text,null,null,false,false,false,null,false);
-        this.reply_markup = keyboard;
-    }
-}
-@Getter
-@FieldDefaults(level = AccessLevel.PRIVATE)
-class SendMessageWithRemoveKeyboard extends SendMessage{
-    SendReplyKeyboardRemove reply_markup;
-
-    public SendMessageWithRemoveKeyboard(Long chat_id, String text, SendReplyKeyboardRemove keyboard){
-        super(chat_id,null,text,null,null,false,false,false,null,false);
-        this.reply_markup= keyboard;
-    }
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
