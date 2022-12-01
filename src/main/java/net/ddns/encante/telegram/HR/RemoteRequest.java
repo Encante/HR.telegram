@@ -17,7 +17,7 @@ public void sendMessageAsJson(String body){
             .header("Content-Type", "application/json")
             .body(body)
             .asJson();
-    System.out.println("BODY to: "+body);
+    System.out.println("BODY SENT: "+body);
     printResponseJsonToConsole(response);
 //    return this;
 }
@@ -34,19 +34,9 @@ public void sendMessageAsJson(String body){
         SendInlineKeyboardMarkup testInlineKeyboardMarkup = new SendInlineKeyboardMarkup(col1);
         SendMessageWithInlineKeyboard message = new SendMessageWithInlineKeyboard(chat_id,"Hej czy wiesz ze jestes najkochansza osoba na swiecie?",testInlineKeyboardMarkup);
         String body = gson.toJson(message);
-        HttpResponse<JsonNode> response = Unirest.post(sendMessageUrl)
-                .header("Content-Type", "application/json")
-                .body(body)
-                .asJson();
-        printResponseJsonToConsole(response);
+        sendMessageAsJson(body);
     }
-//void printResponseStringToConsole(HttpResponse<String> response){
-//    System.out.println("RESPONSE STATUS: \r\n" + response.getStatus()
-//            + " "
-//            + response.getStatusText()
-//            + "\r\nHEADERS: \r\n" + response.getHeaders().toString()
-//            + "\r\nBODY: " + response.getBody());
-//}
+
 
 private void printResponseJsonToConsole(HttpResponse<JsonNode> response){
     System.out.println("RESPONSE STATUS: \r\n" + response.getStatus()

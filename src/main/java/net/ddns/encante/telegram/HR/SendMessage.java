@@ -12,9 +12,8 @@ import java.util.Collections;
 @Getter @Builder
 //klasa na obiekty wysyłające dane
 // chat id:
-//    ja:   5580797031L
-//    Yaneczka: 566760042L
-//    private SendMessage messageToSend;
+//    M:   5580797031L
+//    Y:   566760042L
 public class SendMessage {
     @NotNull
     Long chat_id;
@@ -31,7 +30,7 @@ public class SendMessage {
     transient final RemoteRequest request = new RemoteRequest();
     transient final Gson gson = new Gson();
 
-    public String sendMessageWithKeyboard(@NotNull ReplyKeyboardType keyboardType){
+    public void sendMessageWithKeyboard(@NotNull ReplyKeyboardType keyboardType){
         switch (keyboardType){
             case INLINE -> {
                 String[] names = {"Inline","she","goes"};
@@ -48,11 +47,9 @@ public class SendMessage {
                 messageToSend.send();
             }
             case REMOVE -> {
-
             }
             case NO -> send();
         }
-        return "send message to chatid by object";
     }
     SendMessage sendToMe (){
         this.chat_id = 5580797031L;
@@ -294,7 +291,12 @@ class SendInlineKeyboardButton {
     CallbackGame callback_game;
     boolean pay;
 
-    public SendInlineKeyboardButton(String text) {
-        this.text = text;
+    public SendInlineKeyboardButton(String keyText) {
+        this.text = keyText;
+        this.callback_data=text;
+    }
+    public SendInlineKeyboardButton(String keyText, String callbackData){
+        this.text=keyText;
+        this.callback_data=callbackData;
     }
 }
