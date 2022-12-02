@@ -1,22 +1,39 @@
 package net.ddns.encante.telegram.HR;
 
+import com.google.gson.Gson;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
+import org.springframework.stereotype.Component;
 
+@Component
 public class RemoteRequest {
-    private final String botToken = "***REMOVED***";
-    private final String sendMessageUrl = "https://api.telegram.org/bot"+ botToken +"/sendMessage?";
-
-
+    private final String BOT_TOKEN = "***REMOVED***";
+    private final String SEND_MESSAGE_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/sendMessage";
+    private final String EDIT_MESSAGE_REPLY_MARKUP_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageReplyMarkup";
+    private final Gson gson = new Gson();
 public HttpResponse<JsonNode> sendMessageAsJson(String body){
-    HttpResponse<JsonNode> response = Unirest.post(sendMessageUrl)
+    HttpResponse<JsonNode> response = Unirest.post(SEND_MESSAGE_URL)
             .header("Content-Type", "application/json")
             .body(body)
             .asJson();
     System.out.println("BODY SENT: "+body);
     printResponseJsonToConsole(response);
     return response;
+}
+
+public HttpResponse<JsonNode> editMessageAsJson(Object message){
+//    switch (message.getClass().getName()) {
+//        case "EditMessageReplyMarkup" -> {
+            HttpResponse<JsonNode> response = Unirest.post(EDIT_MESSAGE_REPLY_MARKUP_URL)
+                    .header("Content-Type", "application/json")
+                    .body(gson.toJson(message))
+                    .asJson();
+            System.out.println("BODY SENT: "+gson.toJson(message));
+            printResponseJsonToConsole(response);
+            System.out.println("MESSAGE EDITED");
+            return response;
+//        }
 }
 
 

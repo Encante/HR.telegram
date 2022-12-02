@@ -42,9 +42,9 @@ public class WebhookUpdate {
         }
     }
 }
-@Getter
+@Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class CatchedMessage{
+class SentMessage {
     boolean ok;
     Message result;
 }

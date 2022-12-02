@@ -19,6 +19,8 @@ public class RequestHandler {
         WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class);
 //            check if it is callback
         if (update.getCallback_query() != null) {
+            new EditMessageReplyMarkup(update.callback_query)
+                    .edit();
             SendMessage.builder()
                     .chat_id(5580797031L)
                     .text("Callback received! T: "
@@ -35,11 +37,10 @@ public class RequestHandler {
 //      check if have any message
         if (update.message != null) {
 //      check if incoming message have any text
-            if (update.message.getText() != null) {
+            if (update.getMessage().getText() != null) {
 //        check if incoming message have any and if there is do commands:
-                if (update.message.getText().charAt(0) == '/') {
+                if (update.getMessage().getText().charAt(0) == '/') {
                     String[] commands = update.message.getText().split(" ");
-
                     switch (commands[0]) {
                         case "/hi" -> SendMessage.builder()
                                 .chat_id(update.message.getFrom().getId())
@@ -48,10 +49,9 @@ public class RequestHandler {
                         case "/sm" -> {
                             if (commands.length < 3) {//command content validation
                                 SendMessage.builder()
-                                        .chat_id(5580797031L)
-                                        .text("Bad command!")
-                                        .build().sendMessageWithKeyboard(ReplyKeyboardType.NO);
-                                System.out.println("WARNING! BAD COMMAND!");
+                                        .text("WARNING! BAD COMMAND!")
+                                        .build()
+                                        .sendToMe();
                             } else {
                                 if (commands[1].equalsIgnoreCase("m")) {
                                     SendMessage.builder()
@@ -67,29 +67,68 @@ public class RequestHandler {
                                 }
                             }
                         }
-//                        case "/rmK" ->
-
+                        case "/smi" -> {
+                            String[] names = {"Inline", "she", "goes"};
+                            SentMessage inline = SendMessage.builder().chat_id(5580797031L)
+                                    .text("Inline message")
+                                    .reply_markup(new InlineKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
+                                    .build().send();
+                        }
+                        case "/rmk" -> {
+                            if (commands.length > 1) {
+                                SentMessage sent = new SentMessage();
+                                Chat chat = new Chat();
+                                chat.setId(5580797031L);
+                                Message msg = new Message();
+                                msg.setMessage_id(Long.parseLong(commands[1]));
+                                msg.setChat(chat);
+                                sent.setResult(msg);
+                                EditMessage edit = new EditMessageReplyMarkup(sent).edit();
+                            } else {
+                                SendMessage.builder()
+                                        .text("WARNING! BAD COMMAND!")
+                                        .build()
+                                        .sendToMe();
+                            }
+                        }
                     }
-
-//        if not from me, send message to me
-                    if (update.message.getFrom().getId() != 5580797031L) {
-                        SendMessage.builder()
-                                .chat_id(5580797031L)
-                                .text(update.message.getText())
-                                .build().send();
-                    }
-//        then print to console
-                    update.printUpdateToConsole();
-                    return "ok";
-                } else {
-//            if no text send me an info
-                    SendMessage.builder().build().sendTextUpdateToChatId(update, 5580797031L);
-//            and print to console
-                    update.printUpdateToConsole();
-                    return "ok";
                 }
+                //        if not from me, send message to me
+                if (update.message.getFrom().getId() != 5580797031L) {
+                    SendMessage.builder()
+                            .text("New message! T: " + Utils.getCurrentDateTime()
+                                    + "  FROM: "
+                                    + update.getMessage().getFrom().getFirst_name()
+                                    + " "
+                                    + update.getMessage().getFrom().getLast_name()
+                                    + "  CHAT ID: "
+                                    + update.getMessage().getChat().getId()
+                                    + "  CONTENT: "
+                                    + update.getMessage().getText())
+                            .build()
+                            .sendToMe();
+                }
+//        then print to console
+                update.printUpdateToConsole();
+                return "ok";
+            }
+            else {
+//            if no text send me an info
+                SendMessage.builder().text("New message! T: " + Utils.getCurrentDateTime()
+                        + "  FROM: "
+                        + update.getMessage().getFrom().getFirst_name()
+                        + " "
+                        + update.getMessage().getFrom().getLast_name()
+                        + "  CHAT ID: "
+                        + update.getMessage().getChat().getId()
+                        + " But it has no text!")
+                        .build()
+                        .sendToMe();
+//            and print to console
+                update.printUpdateToConsole();
+                return "ok";
             }
         }
-            return "nok";
+        else return "nok";
     }
 }

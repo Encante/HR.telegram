@@ -12,10 +12,7 @@ public class Application {
 		SendMessage.builder()
 				.chat_id(5580797031L)
 				.text("Bot odpalony T: " + Utils.getCurrentDateTime()).build().send();
-		SendMessage.builder().chat_id(5580797031L)
-				.text("Inline message")
-				.build()
-				.sendMessageWithKeyboard(ReplyKeyboardType.INLINE);
+
 		SendMessage.builder().chat_id(5580797031L)
 				.text("Reply keyboard message")
 				.build()

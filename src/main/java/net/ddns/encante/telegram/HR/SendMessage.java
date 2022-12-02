@@ -13,7 +13,6 @@ import java.util.ArrayList;
 //    M:   5580797031L
 //    Y:   566760042L
 public class SendMessage {
-    @NotNull
     Long chat_id;
     Long message_thread_id;
     String text;
@@ -33,9 +32,9 @@ public class SendMessage {
         switch (keyboardType){
             case INLINE -> {
                 String[] names = {"Inline","she","goes"};
-                CatchedMessage catchedMessage = sendMessageWithInlineKeyboard(new InlineKeyboardMarkup.KeyboardBuilder(3,1,names)
+                SentMessage sentMessage = sendMessageWithInlineKeyboard(new InlineKeyboardMarkup.KeyboardBuilder(3,1,names)
                         .build()).send();
-                System.out.println("MESSAGE ID IS: "+catchedMessage.getResult().getMessage_id());
+                System.out.println("MESSAGE ID IS: "+ sentMessage.getResult().getMessage_id());
             }
             case REPLY -> {
                 String[] names = {"Way","she","goes"};
@@ -67,16 +66,12 @@ public class SendMessage {
         send();
         return this;
     }
-//    SendMessage send(){
-//        String body =gson.toJson(this);
-//        request.sendMessageAsJson(body);
-//        return this;
-//    }
-    CatchedMessage send(){
+    SentMessage send(){
         String body =gson.toJson(this);
-        CatchedMessage response = gson.fromJson(request.sendMessageAsJson(body).getBody().toString(), CatchedMessage.class);
+        SentMessage response = gson.fromJson(request.sendMessageAsJson(body).getBody().toString(), SentMessage.class);
         return response;
     }
+//    do przerobieniaV
     void sendTextUpdateToChatId(WebhookUpdate update, Long chatId){
         this.chat_id = chatId;
         if (update.message.getText()!= null) {
