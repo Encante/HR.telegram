@@ -3,7 +3,6 @@ package net.ddns.encante.telegram.HR;
 import com.google.gson.Gson;
 import lombok.Builder;
 import lombok.Getter;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -28,26 +27,26 @@ public class SendMessage {
     transient final RemoteRequest request = new RemoteRequest();
     transient final Gson gson = new Gson();
 
-    public void sendMessageWithKeyboard(@NotNull ReplyKeyboardType keyboardType){
-        switch (keyboardType){
-            case INLINE -> {
-                String[] names = {"Inline","she","goes"};
-                SentMessage sentMessage = sendMessageWithInlineKeyboard(new InlineKeyboardMarkup.KeyboardBuilder(3,1,names)
-                        .build()).send();
-                System.out.println("MESSAGE ID IS: "+ sentMessage.getResult().getMessage_id());
-            }
-            case REPLY -> {
-                String[] names = {"Way","she","goes"};
-                sendMessageWithReplyKeyboard(new ReplyKeyboardMarkup.KeyboardBuilder(3,1,names)
-                        .build()).send();
-            }
-            case REMOVE -> {
-                sendMessageWithRemoveKeyboard(new ReplyKeyboardRemove())
-                        .send();
-            }
-            case NO -> send();
-        }
-    }
+//    public void sendMessageWithKeyboard(@NotNull ReplyKeyboardType keyboardType){
+//        switch (keyboardType){
+//            case INLINE -> {
+//                String[] names = {"Inline","she","goes"};
+//                SentMessage sentMessage = sendMessageWithInlineKeyboard(new InlineKeyboardMarkup.KeyboardBuilder(3,1,names)
+//                        .build()).send();
+//                System.out.println("MESSAGE ID IS: "+ sentMessage.getResult().getMessage_id());
+//            }
+//            case REPLY -> {
+//                String[] names = {"Way","she","goes"};
+//                sendMessageWithReplyKeyboard(new ReplyKeyboardMarkup.KeyboardBuilder(3,1,names)
+//                        .build()).send();
+//            }
+//            case REMOVE -> {
+//                sendMessageWithRemoveKeyboard(new ReplyKeyboardRemove())
+//                        .send();
+//            }
+//            case NO -> send();
+//        }
+//    }
 
     SendMessage sendMessageWithInlineKeyboard(InlineKeyboardMarkup keyboardMarkup){
         this.reply_markup = keyboardMarkup;
@@ -68,8 +67,7 @@ public class SendMessage {
     }
     SentMessage send(){
         String body =gson.toJson(this);
-        SentMessage response = gson.fromJson(request.sendMessageAsJson(body).getBody().toString(), SentMessage.class);
-        return response;
+        return gson.fromJson(request.sendMessageAsJson(body).getBody().toString(), SentMessage.class);
     }
 //    do przerobieniaV
     void sendTextUpdateToChatId(WebhookUpdate update, Long chatId){

@@ -13,9 +13,5 @@ public class Application {
 				.chat_id(5580797031L)
 				.text("Bot odpalony T: " + Utils.getCurrentDateTime()).build().send();
 
-		SendMessage.builder().chat_id(5580797031L)
-				.text("Reply keyboard message")
-				.build()
-				.sendMessageWithKeyboard(ReplyKeyboardType.REPLY);
 	}
 }
