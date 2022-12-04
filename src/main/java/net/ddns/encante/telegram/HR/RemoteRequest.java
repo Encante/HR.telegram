@@ -11,7 +11,7 @@ import java.util.ArrayList;
 
 public class RemoteRequest {
     Gson gson = new Gson();
-    private final String botToken = "***REMOVED***";
+    private final String botToken = "<BOT TOKEN>";
     private String sendMessageUrl = "https://api.telegram.org/bot"+ botToken +"/sendMessage?";
 
 
