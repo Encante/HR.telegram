@@ -1,7 +1,6 @@
 package net.ddns.encante.telegram.HR;
 
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
@@ -42,6 +41,12 @@ public class WebhookUpdate {
         System.out.println("Is bot: " + message.getFrom().is_bot());
         }
     }
+}
+@Getter @Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
+class SentMessage {
+    boolean ok;
+    Message result;
 }
 @Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -362,7 +367,7 @@ class WebAppInfo{
 }
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class ReplyKeyboardMarkup{
+class ReplyKeyboardMarkup {
     @NonNull
     ArrayList<ArrayList<KeyboardButton>> keyboard;
     boolean resize_keyboard;
@@ -370,24 +375,23 @@ class ReplyKeyboardMarkup{
     String input_field_placeholder;
     boolean selective;
     ReplyKeyboardMarkup(KeyboardBuilder builder){
-    this.keyboard = builder.keyboardLayout;
-    this.resize_keyboard = builder.resize_keyboard;
-    this.one_time_keyboard = builder.one_time_keyboard;
-    this.input_field_placeholder = builder.input_field_placeholder;
-    this.selective = builder.selective;
+        this.keyboard = builder.keyboardLayout;
+        this.resize_keyboard = builder.resize_keyboard;
+        this.one_time_keyboard = builder.one_time_keyboard;
+        this.input_field_placeholder = builder.input_field_placeholder;
+        this.selective = builder.selective;
     }
     @FieldDefaults(level = AccessLevel.PRIVATE)
     public static class KeyboardBuilder {
-
-        @NonNull
+        @org.springframework.lang.NonNull
         int rows;
-        @NonNull
+        @org.springframework.lang.NonNull
         int cols;
         @NonNull
         ArrayList<String> names;
         ArrayList<KeyboardButton> rowx;
         ArrayList<ArrayList<KeyboardButton>> keyboardLayout;
-//        optional
+        //        optional
         boolean resize_keyboard;
         boolean one_time_keyboard;
         String input_field_placeholder;
@@ -421,7 +425,6 @@ class ReplyKeyboardMarkup{
 //            check if there is suitable names for all buttons
             if(rows*cols == names.size()) {
                 for (int i = 0; i < cols; i++) {
-                    System.out.println("DODAWANIE COLS");
                     for (int j = 0; j < rows; j++) {
                         this.rowx.add(new KeyboardButton(this.names.get(0)));
                         this.names.remove(0);
@@ -435,28 +438,11 @@ class ReplyKeyboardMarkup{
                 System.out.println("Not enough names for all buttons.");
             }
             return new ReplyKeyboardMarkup(this);
-//        public void factory (String ...args)
-//        {
-//            Collections.addAll(this.names, args);
-////            check if there is suitable names for all buttons
-//            if(rows*cols == names.size()) {
-//                for (int i = 0; i < cols; i++) {
-//                    System.out.println("DODAWANIE COLS");
-//                    for (int j = 0; j < rows; j++) {
-//                        this.rowx.add(new KeyboardButton(this.names.get(0)));
-//                        System.out.println("ROWX: "+this.rowx.toString());
-//                        this.names.remove(0);
-//                    }
-//                    this.out.add(this.rowx);
-//                    this.rowx = new ArrayList<>();
-//                }
-//            }
-//            return this.out;
-//        System.out.println("Out na koniec: "+out.toString());
         }
     }
 }
-@Getter @Setter @AllArgsConstructor
+
+@Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class KeyboardButton{
     @NonNull
@@ -474,20 +460,65 @@ class KeyboardButton{
 class KeyboardButtonPollType{
     String text;
 }
-@Getter @Setter
+@Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 class ReplyKeyboardRemove{
-    boolean remove_keyboard;
+    boolean remove_keyboard=true;
     boolean selective;
 }
-@Getter @Setter
+@Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class InlineKeyboardMarkup{
+class InlineKeyboardMarkup {
+    @NonNull
     ArrayList<ArrayList<InlineKeyboardButton>> inline_keyboard;
+    InlineKeyboardMarkup(KeyboardBuilder builder){
+        this.inline_keyboard = builder.keyboardLayout;
+    }
+    InlineKeyboardMarkup(ArrayList<ArrayList<InlineKeyboardButton>> inline_keyboard){
+        this.inline_keyboard=inline_keyboard;
+    }
+    @FieldDefaults(level = AccessLevel.PRIVATE)
+    public static class KeyboardBuilder {
+        @org.springframework.lang.NonNull
+        int rows;
+        @org.springframework.lang.NonNull
+        int cols;
+        @NonNull
+        ArrayList<String> names;
+        ArrayList<InlineKeyboardButton> rowx;
+        ArrayList<ArrayList<InlineKeyboardButton>> keyboardLayout;
+
+        public KeyboardBuilder(int rows, int cols, String ...namesStream){
+            this.rows=rows;
+            this.cols=cols;
+            this.names=new ArrayList<>();
+            Collections.addAll(this.names, namesStream);
+        }
+        public InlineKeyboardMarkup build(){
+            this.rowx=new ArrayList<>();
+            this.keyboardLayout =new ArrayList<>();
+//            check if there is suitable names for all buttons
+            if(rows*cols == names.size()) {
+                for (int i = 0; i < cols; i++) {
+                    for (int j = 0; j < rows; j++) {
+                        this.rowx.add(new InlineKeyboardButton(this.names.get(0)));
+                        this.names.remove(0);
+                    }
+                    this.keyboardLayout.add(this.rowx);
+                    this.rowx = new ArrayList<>();
+                }
+                return new InlineKeyboardMarkup(this);
+            }
+            else{
+                System.out.println("Not enough names for all buttons.");
+            }
+            return new InlineKeyboardMarkup(this);
+        }
+    }
 }
-@Getter @Setter
+@Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-class InlineKeyboardButton{
+class InlineKeyboardButton {
     String text;
     String url;
     String callback_data;
@@ -497,6 +528,15 @@ class InlineKeyboardButton{
     String switch_inline_query_current_chat;
     CallbackGame callback_game;
     boolean pay;
+
+    public InlineKeyboardButton(String keyText) {
+        this.text = keyText;
+        this.callback_data=text;
+    }
+    public InlineKeyboardButton(String keyText, String callbackData){
+        this.text=keyText;
+        this.callback_data=callbackData;
+    }
 }
 @Getter @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
