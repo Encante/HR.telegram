@@ -25,7 +25,7 @@ public class EditMessage {
     }
 
     EditMessage edit(){
-        request.editMessageAsJson(this);
+        request.editMessageAsObject(this);
                 return this;
     }
 }

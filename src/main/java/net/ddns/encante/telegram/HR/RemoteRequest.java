@@ -22,18 +22,14 @@ public HttpResponse<JsonNode> sendMessageAsJson(String body){
     return response;
 }
 
-public HttpResponse<JsonNode> editMessageAsJson(Object message){
-//    switch (message.getClass().getName()) {
-//        case "EditMessageReplyMarkup" -> {
+public HttpResponse<JsonNode> editMessageAsObject(Object message){
             HttpResponse<JsonNode> response = Unirest.post(EDIT_MESSAGE_REPLY_MARKUP_URL)
                     .header("Content-Type", "application/json")
                     .body(gson.toJson(message))
                     .asJson();
             System.out.println("BODY SENT: "+gson.toJson(message));
             printResponseJsonToConsole(response);
-            System.out.println("MESSAGE EDITED");
             return response;
-//        }
 }
 
 
