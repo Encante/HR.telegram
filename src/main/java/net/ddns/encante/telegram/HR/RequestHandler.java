@@ -1,6 +1,8 @@
 package net.ddns.encante.telegram.HR;
 
 import com.google.gson.Gson;
+import net.ddns.encante.telegram.HR.Messages.InlineKeyboardMarkup;
+import net.ddns.encante.telegram.HR.Messages.WebhookUpdate;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;

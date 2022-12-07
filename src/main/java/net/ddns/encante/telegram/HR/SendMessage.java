@@ -3,6 +3,10 @@ package net.ddns.encante.telegram.HR;
 import com.google.gson.Gson;
 import lombok.Builder;
 import lombok.Getter;
+import net.ddns.encante.telegram.HR.Messages.InlineKeyboardMarkup;
+import net.ddns.encante.telegram.HR.Messages.ReplyKeyboardMarkup;
+import net.ddns.encante.telegram.HR.Messages.ReplyKeyboardRemove;
+import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
 
 import java.util.ArrayList;
 
@@ -24,7 +28,7 @@ public class SendMessage {
     boolean allow_sending_without_reply;
     Object reply_markup;
 
-    transient final RemoteRequest request = new RemoteRequest();
+    transient final UnirestRequest request = new UnirestRequest();
     transient final Gson gson = new Gson();
 
 //    public void sendMessageWithKeyboard(@NotNull ReplyKeyboardType keyboardType){
@@ -66,42 +70,8 @@ public class SendMessage {
         return this;
     }
     SentMessage send(){
-        String body =gson.toJson(this);
-        return gson.fromJson(request.sendMessageAsJson(body).getBody().toString(), SentMessage.class);
+        request.sendMessageObject(this);
     }
-//    do przerobieniaV
-    void sendTextUpdateToChatId(WebhookUpdate update, Long chatId){
-        this.chat_id = chatId;
-        if (update.message.getText()!= null) {
-            this.text = "New message! T: " + Utils.getCurrentDateTime()
-                    + "  FROM: "
-                    + update.message.getFrom().getFirst_name()
-                    + " "
-                    + update.message.getFrom().getLast_name()
-                    + "  CHAT ID: "
-                    + update.message.getChat().getId()
-                    + "  CONTENT: "
-                    + update.message.getText();
-        }
-        else {
-            this.text = "New message! T: " + Utils.getCurrentDateTime()
-                    + "  FROM: "
-                    + update.message.getFrom().getFirst_name()
-                    + " "
-                    + update.message.getFrom().getLast_name()
-                    + "  CHAT ID: "
-                    + update.message.getChat().getId()
-                    + " But it has no text!";
-        }
-        send();
-    }
-}
-enum ReplyKeyboardType{
-    INLINE,
-    REPLY,
-    REMOVE,
-    FORCE,
-    NO
 }
 
 

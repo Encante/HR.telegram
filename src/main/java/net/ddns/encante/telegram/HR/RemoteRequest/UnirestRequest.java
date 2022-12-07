@@ -1,39 +1,47 @@
-package net.ddns.encante.telegram.HR;
+package net.ddns.encante.telegram.HR.RemoteRequest;
 
 import com.google.gson.Gson;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
+import net.ddns.encante.telegram.HR.Messages.SentMessage;
+import net.ddns.encante.telegram.HR.SendMessage;
+import net.ddns.encante.telegram.HR.SentMessage;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RemoteRequest {
+public class UnirestRequest implements RemoteRequest{
     private final String BOT_TOKEN = "<BOT_TOKEN>";
     private final String SEND_MESSAGE_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/sendMessage";
     private final String EDIT_MESSAGE_REPLY_MARKUP_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageReplyMarkup";
-    private final Gson gson = new Gson();
-public HttpResponse<JsonNode> sendMessageAsJson(String body){
+    @Autowired
+    final Gson gson;
+
+    public SentMessage sendMessageObject(SendMessage message){
     HttpResponse<JsonNode> response = Unirest.post(SEND_MESSAGE_URL)
             .header("Content-Type", "application/json")
-            .body(body)
+            .body(gson.toJson(message))
             .asJson();
-    System.out.println("BODY SENT: "+body);
-    printResponseJsonToConsole(response);
-    return response;
+    System.out.println("BODY SENT: "+gson.toJson(message));
+    printResponseToConsole(response);
+    SentMessage m =new SentMessage();
+    return m;kla
+//    gson.fromJson(response.getBody().toString(), SentMessage.class);
 }
 
-public HttpResponse<JsonNode> editMessageAsObject(Object message){
+public HttpResponse<JsonNode> editMessageObject(Object message){
             HttpResponse<JsonNode> response = Unirest.post(EDIT_MESSAGE_REPLY_MARKUP_URL)
                     .header("Content-Type", "application/json")
                     .body(gson.toJson(message))
                     .asJson();
             System.out.println("BODY SENT: "+gson.toJson(message));
-            printResponseJsonToConsole(response);
+            printResponseToConsole(response);
             return response;
 }
 
 
-private void printResponseJsonToConsole(HttpResponse<JsonNode> response){
+private void printResponseToConsole(HttpResponse<JsonNode> response){
     System.out.println("RESPONSE STATUS: \r\n" + response.getStatus()
             + " "
             + response.getStatusText()

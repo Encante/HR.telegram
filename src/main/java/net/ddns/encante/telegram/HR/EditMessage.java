@@ -3,13 +3,16 @@ package net.ddns.encante.telegram.HR;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
+import net.ddns.encante.telegram.HR.Messages.CallbackQuery;
+import net.ddns.encante.telegram.HR.Messages.InlineKeyboardMarkup;
+import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
 
 import java.util.ArrayList;
 
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EditMessage {
-    final transient RemoteRequest request=new RemoteRequest();
+    final transient UnirestRequest request=new UnirestRequest();
     Long chat_id;
     Long message_id;
     String inline_message_id;
@@ -25,7 +28,7 @@ public class EditMessage {
     }
 
     EditMessage edit(){
-        request.editMessageAsObject(this);
+        request.editMessageObject(this);
                 return this;
     }
 }
