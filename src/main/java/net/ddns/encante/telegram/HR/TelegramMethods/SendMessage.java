@@ -1,13 +1,17 @@
 package net.ddns.encante.telegram.HR.TelegramMethods;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
 import net.ddns.encante.telegram.HR.TelegramObjects.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 
 @Getter
+@NoArgsConstructor
+@Component
 //klasa na obiekty wysyłające dane
 // chat id:
 //    M:   5580797031L
@@ -24,7 +28,8 @@ public class SendMessage {
     private Long reply_to_message_id;
     private boolean allow_sending_without_reply;
     private Object reply_markup;
-    private transient final UnirestRequest request;
+    @Autowired
+    private transient UnirestRequest request;
 
 //    transient final Gson gson = new Gson();
 
@@ -49,10 +54,10 @@ public class SendMessage {
 //        }
 //    }
 
-@Autowired
-public SendMessage(UnirestRequest request){
-    this.request = request;
-}
+//@Autowired
+//public SendMessage(UnirestRequest request){
+//    this.request = request;
+//}
 
     public SendMessage sendMessageWithInlineKeyboard(InlineKeyboardMarkup keyboardMarkup){
         this.reply_markup = keyboardMarkup;
