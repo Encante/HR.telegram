@@ -17,18 +17,22 @@ public class RequestHandler {
 Gson gson;
 @Autowired
 SendMessage sendMessage;
+@Autowired
+EditMessage editMessage;
 
 //        when receiving message:
     @PostMapping("/HR4telegram")
     public String postHandler(@RequestBody String content) {
 //        do WebhookUpdate object from JSON
-        System.out.println("POST HANDLER");
+        System.out.println("CONTENT OF A WEBHOOK UPDATE BODY:");
         System.out.println(content);
         WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class);
 //            check if it is callback
         if (update.getCallback_query() != null) {
 //            delete keyboard after pressing a key
-            new EditMessageReplyMarkup(update.getCallback_query())
+            editMessage
+                    .setByCallbackQuery(update.getCallback_query())
+                    .clearKeyboard()
                     .edit();
 //            send me a message with callback
             sendMessage

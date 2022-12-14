@@ -21,17 +21,16 @@ public class UnirestRequest implements RemoteRequest{
             .header("Content-Type", "application/json")
             .body(gson.toJson(message))
             .asJson();
-    System.out.println("BODY SENT: "+gson.toJson(message));
+    System.out.println("BODY SENT BY sendMessageObject: "+gson.toJson(message));
     printResponseToConsole();
     return gson.fromJson(response.getBody().toString(),SentMessage.class);
-//    gson.fromJson(response.getBody().toString(), SentMessage.class);
 }
     public HttpResponse<JsonNode> editMessageObject(Object message){
             this.response = Unirest.post(EDIT_MESSAGE_REPLY_MARKUP_URL)
                     .header("Content-Type", "application/json")
                     .body(gson.toJson(message))
                     .asJson();
-            System.out.println("BODY SENT: "+gson.toJson(message));
+            System.out.println("BODY SENT by editMessageObject: "+gson.toJson(message));
             printResponseToConsole();
             return response;
 }
