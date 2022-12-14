@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessageReplyMarkup;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -11,13 +12,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class RequestHandler {
-
+@Autowired
+Gson gson;
+@Autowired
+SendMessage sendMessage;
 //        when receiving message:
     @PostMapping("/HR4telegram")
     public String postHandler(@RequestBody String content) {
-        Gson gson = new Gson();
 //        do WebhookUpdate object from JSON
         System.out.println(content);
+        Gson gson=new Gson();
         WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class);
 //            check if it is callback
         if (update.getCallback_query() != null) {
@@ -25,7 +29,7 @@ public class RequestHandler {
             new EditMessageReplyMarkup(update.getCallback_query())
                     .edit();
 //            send me a message with callback
-            new SendMessage()
+            sendMessage
                     .setText("Callback received! T: "
                             + Utils.getCurrentDateTime()
                             + "FROM: "
@@ -44,23 +48,23 @@ public class RequestHandler {
                 if (update.getMessage().getText().charAt(0) == '/') {
                     String[] commands = update.getMessage().getText().split(" ");
                     switch (commands[0]) {
-                        case "/hi" -> new SendMessage()
+                        case "/hi" -> sendMessage
                                 .setChat_id(update.getMessage().getFrom().getId())
                                 .setText("Hello " + update.getMessage().getFrom().getFirst_name() + "!")
                                 .send();
                         case "/sm" -> {
                             if (commands.length < 3) {//command content validation
-                                new SendMessage()
+                                sendMessage
                                         .setText("WARNING! BAD COMMAND!")
                                         .sendToMe();
                             } else {
                                 if (commands[1].equalsIgnoreCase("m")) {
-                                    new SendMessage()
+                                    sendMessage
                                             .setText(update.getMessage().getText().substring(6))
                                             .sendToMe();
                                 }
                                 if (commands[1].equalsIgnoreCase("y")) {
-                                    new SendMessage()
+                                    sendMessage
                                             .setChat_id(566760042L)
                                             .setText(update.getMessage().getText().substring(6))
                                             .send();
@@ -69,7 +73,7 @@ public class RequestHandler {
                         }
                         case "/smi" -> {
                             String[] names = {"Inline", "she", "goes"};
-                            new SendMessage()
+                            sendMessage
                                     .setText("Inline message")
                                     .setReply_markup(new InlineKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
                                     .sendToMe();
@@ -85,7 +89,7 @@ public class RequestHandler {
                                 sent.setResult(msg);
                                 new EditMessageReplyMarkup(sent).edit();
                             } else {
-                                new SendMessage()
+                                sendMessage
                                         .setText("WARNING! BAD COMMAND!")
                                         .sendToMe();
                             }
@@ -94,7 +98,7 @@ public class RequestHandler {
                 }
                 //        if not from me, send message to me
                 if (update.getMessage().getFrom().getId() != 5580797031L) {
-                    new SendMessage()
+                    sendMessage
                             .setText("New message! T: " + Utils.getCurrentDateTime()
                                     + "  FROM: "
                                     + update.getMessage().getFrom().getFirst_name()
@@ -112,7 +116,7 @@ public class RequestHandler {
             }
             else {
 //            if no text send me an info
-                new SendMessage().setText("New message! T: " + Utils.getCurrentDateTime()
+                sendMessage.setText("New message! T: " + Utils.getCurrentDateTime()
                         + "  FROM: "
                         + update.getMessage().getFrom().getFirst_name()
                         + " "
@@ -126,6 +130,6 @@ public class RequestHandler {
                 return "ok";
             }
         }
-        else return "nok";
+        else return "ok";
     }
 }

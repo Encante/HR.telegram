@@ -1,20 +1,18 @@
 package net.ddns.encante.telegram.HR;
 
-import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-@SpringBootApplication
+import org.springframework.context.ApplicationContext;
+
+@SpringBootApplication(scanBasePackages = {"net.ddns.encante.telegram.HR.RemoteRequest", "net.ddns.encante.telegram.HR.TelegramObjects","net.ddns.encante.telegram.HR.TelegramMethods"})
 public class Application {
 
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
-		@Autowired
-		SendMessage()
+		ApplicationContext ctx = SpringApplication.run(Application.class, args);
+		SendMessage sendMessage = ctx.getBean(SendMessage.class);
+		sendMessage
 				.setText("Bot odpalony T: " + Utils.getCurrentDateTime())
 				.sendToMe();
-
-
 	}
 }
