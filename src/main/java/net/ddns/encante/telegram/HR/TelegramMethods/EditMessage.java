@@ -2,19 +2,23 @@ package net.ddns.encante.telegram.HR.TelegramMethods;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
 import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.MessageEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 
+@NoArgsConstructor
+@Component
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EditMessage {
     @Autowired
-    transient UnirestRequest request;
+    private transient UnirestRequest request;
     Long chat_id;
     Long message_id;
     String inline_message_id;

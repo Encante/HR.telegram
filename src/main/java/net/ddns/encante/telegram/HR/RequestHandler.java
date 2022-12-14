@@ -1,6 +1,7 @@
 package net.ddns.encante.telegram.HR;
 
 import com.google.gson.Gson;
+import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessageReplyMarkup;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.*;
@@ -16,12 +17,13 @@ public class RequestHandler {
 Gson gson;
 @Autowired
 SendMessage sendMessage;
+
 //        when receiving message:
     @PostMapping("/HR4telegram")
     public String postHandler(@RequestBody String content) {
 //        do WebhookUpdate object from JSON
+        System.out.println("POST HANDLER");
         System.out.println(content);
-        Gson gson=new Gson();
         WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class);
 //            check if it is callback
         if (update.getCallback_query() != null) {
@@ -112,7 +114,7 @@ SendMessage sendMessage;
                 }
 //        then print to console
                 update.printUpdateToConsole();
-                return "ok";
+                return "200";
             }
             else {
 //            if no text send me an info
@@ -127,9 +129,9 @@ SendMessage sendMessage;
                         .sendToMe();
 //            and print to console
                 update.printUpdateToConsole();
-                return "ok";
+                return "200";
             }
         }
-        else return "ok";
+        else return "200";
     }
 }
