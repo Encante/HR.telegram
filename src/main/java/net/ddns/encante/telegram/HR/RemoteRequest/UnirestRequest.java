@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class UnirestRequest implements RemoteRequest{
-    private final String BOT_TOKEN = "***REMOVED***";
+    private final String BOT_TOKEN = "";
     private final String SEND_MESSAGE_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/sendMessage";
     private final String EDIT_MESSAGE_REPLY_MARKUP_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageReplyMarkup";
     private HttpResponse<JsonNode> response;
