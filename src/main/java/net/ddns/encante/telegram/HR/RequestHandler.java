@@ -8,10 +8,13 @@ import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardRemove;
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
+import net.ddns.encante.telegram.HR.service.WebhookUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import javax.annotation.Resource;
 
 @RestController
 public class RequestHandler {
@@ -19,6 +22,8 @@ public class RequestHandler {
 Gson gson;
 @Autowired
 RemoteRequest request;
+@Resource(name = "webhookUpdateService")
+private WebhookUpdateService webhookUpdateService;
 
 //        when receiving message:
     @PostMapping("/HR4telegram")
@@ -27,7 +32,9 @@ RemoteRequest request;
         System.out.println("CONTENT OF A WEBHOOK UPDATE BODY:");
         System.out.println(content);
         WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class);
-//            check if it is callback
+//        store it in the DB
+        webhookUpdateService.saveWebhookUpdate(update);
+        //            check if it is callback
         if (update.getCallback_query() != null) {
 //            delete keyboard after pressing a key
             request.editTelegramMessage(new EditMessage(update.getCallback_query()));

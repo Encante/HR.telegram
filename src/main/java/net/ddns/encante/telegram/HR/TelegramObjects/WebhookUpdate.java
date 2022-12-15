@@ -1,10 +1,15 @@
 package net.ddns.encante.telegram.HR.TelegramObjects;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
+import lombok.experimental.FieldDefaults;
 
 // klasa na updaty wysyłane webhookami
 //i nie tylko
 @Getter
+@Setter
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class WebhookUpdate {
 
         Long update_id;
