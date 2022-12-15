@@ -27,33 +27,6 @@ public class SendMessage {
     private boolean allow_sending_without_reply;
     private Object reply_markup;
 
-//    transient final Gson gson = new Gson();
-
-//    public void sendMessageWithKeyboard(@NotNull ReplyKeyboardType keyboardType){
-//        switch (keyboardType){
-//            case INLINE -> {
-//                String[] names = {"Inline","she","goes"};
-//                SentMessage sentMessage = sendMessageWithInlineKeyboard(new InlineKeyboardMarkup.KeyboardBuilder(3,1,names)
-//                        .build()).send();
-//                System.out.println("MESSAGE ID IS: "+ sentMessage.getResult().getMessage_id());
-//            }
-//            case REPLY -> {
-//                String[] names = {"Way","she","goes"};
-//                sendMessageWithReplyKeyboard(new ReplyKeyboardMarkup.KeyboardBuilder(3,1,names)
-//                        .build()).send();
-//            }
-//            case REMOVE -> {
-//                sendMessageWithRemoveKeyboard(new ReplyKeyboardRemove())
-//                        .send();
-//            }
-//            case NO -> send();
-//        }
-//    }
-
-//@Autowired
-//public SendMessage(UnirestRequest request){
-//    this.request = request;
-//}
 
     public SendMessage sendMessageWithInlineKeyboard(InlineKeyboardMarkup keyboardMarkup){
         this.reply_markup = keyboardMarkup;
