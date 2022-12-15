@@ -2,20 +2,14 @@ package net.ddns.encante.telegram.HR.TelegramMethods;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import net.ddns.encante.telegram.HR.RemoteRequest.RemoteRequest;
-import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
 import net.ddns.encante.telegram.HR.TelegramObjects.CallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.MessageEntity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-
-@NoArgsConstructor
-@Component
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EditMessage {
@@ -36,19 +30,8 @@ public class EditMessage {
         this.message_id = message_id;
     }
 
-    public EditMessage setByCallbackQuery(CallbackQuery callback) {
+    public EditMessage (CallbackQuery callback) {
         this.chat_id = callback.getMessage().getChat().getId();
         this.message_id = callback.getMessage().getMessage_id();
-        return this;
-    }
-
-    public EditMessage clearKeyboard(){
-        this.reply_markup = null;
-        return this;
-    }
-
-    public EditMessage edit(){
-        request.editMessageObject(this);
-                return this;
     }
 }

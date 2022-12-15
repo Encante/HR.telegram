@@ -1,16 +1,15 @@
 package net.ddns.encante.telegram.HR.TelegramMethods;
 
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
-import net.ddns.encante.telegram.HR.TelegramObjects.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
+import net.ddns.encante.telegram.HR.TelegramObjects.MessageEntity;
+import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardMarkup;
+import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardRemove;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 
 @Getter
-@NoArgsConstructor
 @Component
 //klasa na obiekty wysyłające dane
 // chat id:
@@ -28,8 +27,6 @@ public class SendMessage {
     private Long reply_to_message_id;
     private boolean allow_sending_without_reply;
     private Object reply_markup;
-    @Autowired
-    private transient UnirestRequest request;
 
 //    transient final Gson gson = new Gson();
 
@@ -71,14 +68,13 @@ public class SendMessage {
         this.reply_markup = keyboardRemove;
         return this;
     }
-    public SendMessage sendToMe (){
+    public SendMessage toMe(){
         this.chat_id = 5580797031L;
-        send();
         return this;
     }
-    public SentMessage send(){
-        return request.sendMessageObject(this);
-    }
+//    public SentMessage send(){
+//        return request.sendTelegramMessage(this);
+//    }
 
     public SendMessage setChat_id(Long chat_id) {
         this.chat_id = chat_id;

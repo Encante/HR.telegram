@@ -13,6 +13,6 @@ public class Application {
 		SendMessage sendMessage = ctx.getBean(SendMessage.class);
 		sendMessage
 				.setText("Bot odpalony T: " + Utils.getCurrentDateTime())
-				.sendToMe();
+				.toMe();
 	}
 }
