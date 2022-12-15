@@ -6,7 +6,6 @@ import net.ddns.encante.telegram.HR.TelegramObjects.MessageEntity;
 import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardRemove;
 import org.springframework.stereotype.Component;
-
 import java.util.ArrayList;
 
 @Getter

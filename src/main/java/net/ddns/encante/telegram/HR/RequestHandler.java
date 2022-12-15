@@ -3,9 +3,11 @@ package net.ddns.encante.telegram.HR;
 import com.google.gson.Gson;
 import net.ddns.encante.telegram.HR.RemoteRequest.RemoteRequest;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
-import net.ddns.encante.telegram.HR.TelegramMethods.EditMessageReplyMarkup;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
-import net.ddns.encante.telegram.HR.TelegramObjects.*;
+import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
+import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardMarkup;
+import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardRemove;
+import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -75,24 +77,35 @@ RemoteRequest request;
                             request.sendTelegramMessage(new SendMessage()
                                     .setText("Inline message")
                                     .setReply_markup(new InlineKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
-                                    .toMe());
+                                    .setChat_id(update.getMessage().getChat().getId()));
+                        }
+                        case "/smk" -> {
+                            String[] names = {"Inline", "she", "goes"};
+                            request.sendTelegramMessage(new SendMessage()
+                                    .setText("Message with keyboard")
+                                    .setReply_markup(new ReplyKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
+                                    .setChat_id(update.getMessage().getChat().getId()));
                         }
                         case "/rmk" -> {
-                            if (commands.length > 1) {
-                                SentMessage sent = new SentMessage();
-                                Chat chat = new Chat();
-                                chat.setId(5580797031L);
-                                Message msg = new Message();
-                                msg.setMessage_id(Long.parseLong(commands[1]));
-                                msg.setChat(chat);
-                                sent.setResult(msg);
-                                request.editTelegramMessage(new EditMessageReplyMarkup(sent));
-                            } else {
-                                request.sendTelegramMessage(new SendMessage()
-                                        .setText("WARNING! BAD COMMAND!")
-                                        .toMe());
-                            }
+                            request.sendTelegramMessage(new SendMessage()
+                                    .setText("Keyboard removed! Have fun you little shmuck ;)")
+                                    .setChat_id(update.getMessage().getChat().getId())
+                                    .setReply_markup(new ReplyKeyboardRemove()));
                         }
+//                            if (commands.length > 1) {
+//                                SentMessage sent = new SentMessage();
+//                                Chat chat = new Chat();
+//                                chat.setId(5580797031L);
+//                                Message msg = new Message();
+//                                msg.setMessage_id(Long.parseLong(commands[1]));
+//                                msg.setChat(chat);
+//                                sent.setResult(msg);
+//                                request.editTelegramMessage(new EditMessageReplyMarkup(sent));
+//                            } else {
+//                                request.sendTelegramMessage(new SendMessage()
+//                                        .setText("WARNING! BAD COMMAND!")
+//                                        .toMe());
+//                            }
                     }
                 }
                 //        if not from me, send message to me
@@ -112,24 +125,24 @@ RemoteRequest request;
 //        then print to console
                 update.printUpdateToConsole();
                 return "200";
-            }
-            else {
+            } else {
 //            if no text send me an info
                 request.sendTelegramMessage(new SendMessage()
-                .setText("New message! T: " + Utils.getCurrentDateTime()
-                        + "  FROM: "
-                        + update.getMessage().getFrom().getFirst_name()
-                        + " "
-                        + update.getMessage().getFrom().getLast_name()
-                        + "  CHAT ID: "
-                        + update.getMessage().getChat().getId()
-                        + " But it has no text!")
+                        .setText("New message! T: " + Utils.getCurrentDateTime()
+                                + "  FROM: "
+                                + update.getMessage().getFrom().getFirst_name()
+                                + " "
+                                + update.getMessage().getFrom().getLast_name()
+                                + "  CHAT ID: "
+                                + update.getMessage().getChat().getId()
+                                + " But it has no text!")
                         .toMe());
 //            and print to console
                 update.printUpdateToConsole();
                 return "200";
             }
         }
+//        update not contains message object
         else return "nok";
     }
 }

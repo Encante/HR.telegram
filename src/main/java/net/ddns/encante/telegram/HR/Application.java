@@ -1,5 +1,6 @@
 package net.ddns.encante.telegram.HR;
 
+import net.ddns.encante.telegram.HR.RemoteRequest.RemoteRequest;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,9 +11,9 @@ public class Application {
 
 	public static void main(String[] args) {
 		ApplicationContext ctx = SpringApplication.run(Application.class, args);
-		SendMessage sendMessage = ctx.getBean(SendMessage.class);
-		sendMessage
+		RemoteRequest request = ctx.getBean(RemoteRequest.class);
+		request.sendTelegramMessage(new SendMessage()
 				.setText("Bot odpalony T: " + Utils.getCurrentDateTime())
-				.toMe();
+				.toMe());
 	}
 }
