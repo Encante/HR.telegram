@@ -8,7 +8,7 @@ import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardRemove;
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
-import net.ddns.encante.telegram.HR.service.WebhookUpdateService;
+import net.ddns.encante.telegram.HR.persistence.service.WebhookUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

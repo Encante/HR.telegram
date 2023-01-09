@@ -10,8 +10,8 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CallbackQuery{
     String id;
-    User from;
-    Message message;
+    User from; //sender
+    Message message; //Optional. Message with the callback button that originated the query. Note that message content and message date will not be available if the message is too old
     String inline_message_id;
     String chat_instance;
     String data;

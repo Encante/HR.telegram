@@ -1,4 +1,4 @@
-package net.ddns.encante.telegram.HR.service;
+package net.ddns.encante.telegram.HR.persistence.service;
 
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
 

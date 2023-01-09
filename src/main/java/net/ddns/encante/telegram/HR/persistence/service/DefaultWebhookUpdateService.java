@@ -1,8 +1,8 @@
-package net.ddns.encante.telegram.HR.service;
+package net.ddns.encante.telegram.HR.persistence.service;
 
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
 import net.ddns.encante.telegram.HR.data.WebhookUpdateEntity;
-import net.ddns.encante.telegram.HR.repository.WebhookUpdateRepository;
+import net.ddns.encante.telegram.HR.persistence.repository.WebhookUpdateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

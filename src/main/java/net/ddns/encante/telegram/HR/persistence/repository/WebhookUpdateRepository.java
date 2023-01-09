@@ -1,4 +1,4 @@
-package net.ddns.encante.telegram.HR.repository;
+package net.ddns.encante.telegram.HR.persistence.repository;
 
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
 import org.springframework.data.jpa.repository.JpaRepository;
