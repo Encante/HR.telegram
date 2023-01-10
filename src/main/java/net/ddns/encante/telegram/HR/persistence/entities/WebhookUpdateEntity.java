@@ -22,9 +22,8 @@ public class WebhookUpdateEntity {
     Long updateId;
     @Column(name = "message_id")
     Long messageId;
-    @Column(name = "reply_to_message_id")
-    Long replyToMessageId;
-    @Column(name = "reply_to_message_from_id")
-    Long replyToMessageFromId;
-    @Column(name = "reply_to_message_")
+    @Column(name = "callback_query")
+    @OneToOne(cascade = CascadeType.ALL,orphanRemoval = true)
+    @JoinColumn(name = "callback_querry_key", referencedColumnName = "key_id")
+    CallbackQueryEntity callbackQuery;
 }
