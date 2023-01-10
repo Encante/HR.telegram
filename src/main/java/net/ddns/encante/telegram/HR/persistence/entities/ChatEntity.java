@@ -7,25 +7,18 @@ import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
 
-@Entity
-@Table(name = "Users")
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class UserEntity {
+@Entity
+@Table(name = "Chats")
+public class ChatEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "key_id")
     Long keyId;
-
-    @Column(name = "user_id")
-    Long userId;
-    @Column(name = "is_bot")
-    boolean isBot;
-    @Column(name = "first_name")
-    String firstName;
-    @Column(name = "last_name")
-    String lastName;
-    @Column(name = "username")
-    String username;
+    @Column(name = "chat_id")
+    Long chatId;
+    @Column(name = "type")
+    String chatType;
 }

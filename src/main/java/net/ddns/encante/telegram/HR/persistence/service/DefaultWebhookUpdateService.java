@@ -1,7 +1,7 @@
 package net.ddns.encante.telegram.HR.persistence.service;
 
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
-import net.ddns.encante.telegram.HR.data.WebhookUpdateEntity;
+import net.ddns.encante.telegram.HR.persistence.entities.WebhookUpdateEntity;
 import net.ddns.encante.telegram.HR.persistence.repository.WebhookUpdateRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -37,9 +37,7 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
     }
     private WebhookUpdateEntity populateWebhookUpdateEntity(WebhookUpdate update){
         WebhookUpdateEntity entity = new WebhookUpdateEntity();
-        entity.setUpdate_id(update.getUpdate_id());
-        entity.setMessage(update.getMessage());
-        entity.setCallback_query(update.getCallback_query());
+        //TODO
         return entity;
     }
 }
