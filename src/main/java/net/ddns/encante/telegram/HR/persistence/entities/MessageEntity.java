@@ -21,7 +21,7 @@ public class MessageEntity {
     @Column(name = "message_id")
     Long messageId;
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "user_key", referencedColumnName = "key_id")
+    @JoinColumn(name = "from_key", referencedColumnName = "key_id")
     UserEntity from;
     @Column(name = "date")
     Long date;

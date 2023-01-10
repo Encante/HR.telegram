@@ -17,8 +17,9 @@ public class ChatEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "key_id")
     Long keyId;
+
     @Column(name = "chat_id")
     Long chatId;
     @Column(name = "type")
-    String chatType;
+    String type;
 }

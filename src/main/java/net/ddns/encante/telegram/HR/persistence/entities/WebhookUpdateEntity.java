@@ -20,9 +20,9 @@ public class WebhookUpdateEntity {
 
     @Column(name = "update_id")
     Long updateId;
-    @Column(name = "message_id")
-    Long messageId;
-    @Column(name = "callback_query")
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "message_key", referencedColumnName = "key_id")
+    MessageEntity message;
     @OneToOne(cascade = CascadeType.ALL,orphanRemoval = true)
     @JoinColumn(name = "callback_querry_key", referencedColumnName = "key_id")
     CallbackQueryEntity callbackQuery;

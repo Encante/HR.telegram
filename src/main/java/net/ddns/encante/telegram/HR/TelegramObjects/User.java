@@ -13,5 +13,11 @@ public class User {
     boolean is_bot;
     String first_name;
     String last_name;
+    String username;
     String language_code;
+    boolean is_premium;
+    boolean added_to_attachment_menu;
+    boolean can_join_groups;
+    boolean can_read_all_group_messages;
+    boolean support_inline_queries;
 }
