@@ -17,7 +17,7 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
     @Override
     public WebhookUpdate saveWebhookUpdate (WebhookUpdate update){
         WebhookUpdateEntity entity = convertWebhookUpdateObjToEntity(update);
-        return updateRepository.save(update);
+        return convertWebhookUpdateEntityToObj(updateRepository.save(entity));
     }
     @Override
     public boolean deleteWebhookUpdate(Long updateId){
@@ -26,7 +26,7 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
     }
     @Override
     public WebhookUpdate getWebhookUpdateById(Long updateId){
-        return updateRepository.findById(updateId).orElseThrow(() -> new EntityNotFoundException("Webhook update not found"));
+        return convertWebhookUpdateEntityToObj(updateRepository.findById(updateId).orElseThrow(() -> new EntityNotFoundException("Webhook update not found")));
     }
 
     private WebhookUpdate convertWebhookUpdateEntityToObj(WebhookUpdateEntity entity){
@@ -108,7 +108,8 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
         CallbackQueryEntity entityQuery = new CallbackQueryEntity();
         entityQuery.setCallbackId(query.getId());
         entityQuery.setFrom(convertUserObjToEntity(query.getFrom()));
-        entityQuery.setMessage(query.getMessage());
+        entityQuery.setMessage(convertMessageObjToEntity(query.getMessage()));
         entityQuery.setInlineMessageId(query.getInline_message_id());
+        return entityQuery;
     }
 }

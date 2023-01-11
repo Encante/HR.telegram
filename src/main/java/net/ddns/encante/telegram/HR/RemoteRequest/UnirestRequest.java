@@ -26,7 +26,7 @@ public class UnirestRequest implements RemoteRequest{
                 .header("Content-Type", "application/json")
                 .body(gson.toJson(answer))
                 .asJson();
-        System.out.println("BODY SENT BY sendMessageObject: "+gson.toJson(message));
+        System.out.println("BODY SENT BY sendMessageObject: "+gson.toJson(answer));
         printResponseToConsole();
     }
     public SentMessage sendTelegramMessage(SendMessage message){
