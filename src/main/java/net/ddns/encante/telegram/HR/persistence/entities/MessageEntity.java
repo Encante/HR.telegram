@@ -29,7 +29,7 @@ public class MessageEntity {
     @JoinColumn(name = "chat_key",referencedColumnName = "key_id")
     ChatEntity chat;
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @Column(name = "reply_to_message")
+    @JoinColumn(name = "reply_to_message_key", referencedColumnName = "key_id")
     MessageEntity replyToMessage;
     @Column(name = "edit_date")
     Long editDate;

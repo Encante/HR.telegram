@@ -16,6 +16,7 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
 
     @Override
     public WebhookUpdate saveWebhookUpdate (WebhookUpdate update){
+
         WebhookUpdateEntity entity = convertWebhookUpdateObjToEntity(update);
         return convertWebhookUpdateEntityToObj(updateRepository.save(entity));
     }
@@ -32,7 +33,9 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
     private WebhookUpdate convertWebhookUpdateEntityToObj(WebhookUpdateEntity entity){
         WebhookUpdate updateObj = new WebhookUpdate();
         updateObj.setUpdate_id(entity.getUpdateId());
+        if (entity.getMessage() != null)
         updateObj.setMessage(convertMessageEntityToObj(entity.getMessage()));
+        if (entity.getCallbackQuery() != null)
         updateObj.setCallback_query(converCallbackQueryEntityToObj(entity.getCallbackQuery()));
         return updateObj;
     }
@@ -40,18 +43,24 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
         CallbackQuery queryObj = new CallbackQuery();
         queryObj.setId(queryEntity.getCallbackId());
         queryObj.setFrom(convertUserEntityToObj(queryEntity.getFrom()));
+        if (queryEntity.getMessage() != null)
         queryObj.setMessage(convertMessageEntityToObj(queryEntity.getMessage()));
+        if (queryEntity.getCallbackId() != null)
         queryObj.setInline_message_id(queryEntity.getCallbackId());
         return queryObj;
     }
     private Message convertMessageEntityToObj(MessageEntity messageEntity){
         Message messageObj = new Message();
         messageObj.setMessage_id(messageEntity.getMessageId());
+        if (messageEntity.getFrom() != null)
         messageObj.setFrom(convertUserEntityToObj(messageEntity.getFrom()));
         messageObj.setDate(messageEntity.getDate());
         messageObj.setChat(convertChatEntityToObj(messageEntity.getChat()));
+        if (messageEntity.getReplyToMessage() != null)
         messageObj.setReply_to_message(convertMessageEntityToObj(messageEntity.getReplyToMessage()));
+        if (messageEntity.getEditDate() != null)
         messageObj.setEdit_date(messageEntity.getEditDate());
+        if (messageEntity.getText() != null)
         messageObj.setText(messageEntity.getText());
         return messageObj;
     }
@@ -66,14 +75,18 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
         userObj.setId(userEntity.getUserId());
         userObj.set_bot(userEntity.isBot());
         userObj.setFirst_name(userEntity.getFirstName());
+        if (userEntity.getLastName() != null)
         userObj.setLast_name(userEntity.getLastName());
+        if (userEntity.getUsername() != null)
         userObj.setUsername(userEntity.getUsername());
         return userObj;
     }
     private WebhookUpdateEntity convertWebhookUpdateObjToEntity(WebhookUpdate update){
         WebhookUpdateEntity entity = new WebhookUpdateEntity();
         entity.setUpdateId(update.getUpdate_id());
+        if (update.getMessage() != null)
         entity.setMessage(convertMessageObjToEntity(update.getMessage()));
+        if (update.getCallback_query() != null)
         entity.setCallbackQuery(convertCallbackQueryObjToEntity(update.getCallback_query()));
         return entity;
     }
@@ -81,11 +94,15 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
     private MessageEntity convertMessageObjToEntity(Message message){
         MessageEntity entityMessage = new MessageEntity();
         entityMessage.setMessageId(message.getMessage_id());
+        if (message.getFrom() != null)
         entityMessage.setFrom(convertUserObjToEntity(message.getFrom()));
         entityMessage.setDate(message.getDate());
         entityMessage.setChat(convertChatObjToEntity(message.getChat()));
+        if (message.getReply_to_message()!= null)
         entityMessage.setReplyToMessage(convertMessageObjToEntity(message.getReply_to_message()));
+        if (message.getEdit_date() != null)
         entityMessage.setEditDate(message.getEdit_date());
+        if (message.getText() != null)
         entityMessage.setText(message.getText());
         return entityMessage;
     }
@@ -94,7 +111,9 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
         entityUser.setUserId(user.getId());
         entityUser.setBot(user.is_bot());
         entityUser.setFirstName(user.getFirst_name());
-        entityUser.setLastName(user.getLast_name());
+        if (user.getLast_name() != null)
+            entityUser.setLastName(user.getLast_name());
+        if (user.getUsername() != null)
         entityUser.setUsername(user.getUsername());
         return entityUser;
     }
@@ -108,7 +127,9 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
         CallbackQueryEntity entityQuery = new CallbackQueryEntity();
         entityQuery.setCallbackId(query.getId());
         entityQuery.setFrom(convertUserObjToEntity(query.getFrom()));
+        if (query.getMessage()!= null)
         entityQuery.setMessage(convertMessageObjToEntity(query.getMessage()));
+        if (query.getInline_message_id() != null)
         entityQuery.setInlineMessageId(query.getInline_message_id());
         return entityQuery;
     }
