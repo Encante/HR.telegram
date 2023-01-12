@@ -8,6 +8,7 @@ import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardRemove;
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
+import net.ddns.encante.telegram.HR.persistence.repository.WebhookUpdateRepository;
 import net.ddns.encante.telegram.HR.persistence.service.WebhookUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,8 +25,10 @@ Gson gson;
 RemoteRequest request;
 @Resource(name = "webhookUpdateService")
 private WebhookUpdateService webhookUpdateService;
+    @Autowired
+    private WebhookUpdateRepository webhookUpdateRepository;
 
-//        when receiving message:
+    //        when receiving message:
     @PostMapping("/HR4telegram")
     public String postHandler(@RequestBody String content) {
 //        do WebhookUpdate object from JSON
@@ -99,20 +102,18 @@ private WebhookUpdateService webhookUpdateService;
                                     .setChat_id(update.getMessage().getChat().getId())
                                     .setReply_markup(new ReplyKeyboardRemove()));
                         }
-//                            if (commands.length > 1) {
-//                                SentMessage sent = new SentMessage();
-//                                Chat chat = new Chat();
-//                                chat.setId(5580797031L);
-//                                Message msg = new Message();
-//                                msg.setMessage_id(Long.parseLong(commands[1]));
-//                                msg.setChat(chat);
-//                                sent.setResult(msg);
-//                                request.editTelegramMessage(new EditMessageReplyMarkup(sent));
-//                            } else {
-//                                request.sendTelegramMessage(new SendMessage()
-//                                        .setText("WARNING! BAD COMMAND!")
-//                                        .toMe());
-//                            }
+                        case "/searchUserById" -> {
+                            if (commands.length > 1){
+                                if (webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])) != null) {
+                                    request.sendTelegramMessage(new SendMessage()
+                                            .setChat_id(update.getMessage().getFrom().getId())
+                                            .setText(("To " + webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])).getFirstName())));
+                                }
+                                else request.sendTelegramMessage(new SendMessage()
+                                        .setChat_id(update.getMessage().getFrom().getId())
+                                        .setText("User with id " + commands[1] + " not in DB!"));
+                            }
+                        }
                     }
                 }
                 //        if not from me, send message to me

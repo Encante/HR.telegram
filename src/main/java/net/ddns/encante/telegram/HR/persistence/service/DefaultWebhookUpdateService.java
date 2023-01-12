@@ -16,9 +16,13 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
 
     @Override
     public WebhookUpdate saveWebhookUpdate (WebhookUpdate update){
-
-        WebhookUpdateEntity entity = convertWebhookUpdateObjToEntity(update);
-        return convertWebhookUpdateEntityToObj(updateRepository.save(entity));
+        WebhookUpdateEntity updateEntity = convertWebhookUpdateObjToEntity(update);
+//        check if user or chat exist already in db
+        if (updateRepository.findChatEntityByChatId(updateEntity.getMessage().getChat().getChatId()) != null)
+            updateEntity.getMessage().setChat(updateRepository.findChatEntityByChatId(updateEntity.getMessage().getChat().getChatId()));
+        if (updateRepository.findUserEntityByUserId(updateEntity.getMessage().getFrom().getUserId()) != null)
+            updateEntity.getMessage().setFrom(updateRepository.findUserEntityByUserId(updateEntity.getMessage().getChat().getChatId()));
+        return convertWebhookUpdateEntityToObj(updateRepository.save(updateEntity));
     }
     @Override
     public boolean deleteWebhookUpdate(Long updateId){
@@ -28,6 +32,12 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
     @Override
     public WebhookUpdate getWebhookUpdateById(Long updateId){
         return convertWebhookUpdateEntityToObj(updateRepository.findById(updateId).orElseThrow(() -> new EntityNotFoundException("Webhook update not found")));
+    }
+    public UserEntity getUserEntityByUser_id(Long user_id){
+        if (updateRepository.findUserEntityByUserId(user_id) != null){
+            return updateRepository.findUserEntityByUserId(user_id);
+        }
+        else throw new EntityNotFoundException("No user with such id");
     }
 
     private WebhookUpdate convertWebhookUpdateEntityToObj(WebhookUpdateEntity entity){
