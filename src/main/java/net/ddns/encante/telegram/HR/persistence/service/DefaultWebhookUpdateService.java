@@ -17,7 +17,11 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
     @Override
     public WebhookUpdate saveWebhookUpdate (WebhookUpdate update){
         WebhookUpdateEntity updateEntity = convertWebhookUpdateObjToEntity(update);
-//        check if user or chat exist already in db
+//        check if update or user or chat or message exist already in db
+        if (updateRepository.findWebhookUpdateEntityByEntityId(updateEntity.getUpdateId()) != null)
+            updateEntity = updateRepository.findWebhookUpdateEntityByEntityId(updateEntity.getUpdateId());
+        if (updateRepository.findMessageEntityByMessageId(updateEntity.getMessage().getMessageId()) != null)
+            updateEntity.setMessage(updateRepository.findMessageEntityByMessageId(updateEntity.getMessage().getMessageId()));
         if (updateRepository.findChatEntityByChatId(updateEntity.getMessage().getChat().getChatId()) != null)
             updateEntity.getMessage().setChat(updateRepository.findChatEntityByChatId(updateEntity.getMessage().getChat().getChatId()));
         if (updateRepository.findUserEntityByUserId(updateEntity.getMessage().getFrom().getUserId()) != null)
