@@ -1,9 +1,6 @@
 package net.ddns.encante.telegram.HR.persistence.repository;
 
-import net.ddns.encante.telegram.HR.persistence.entities.ChatEntity;
-import net.ddns.encante.telegram.HR.persistence.entities.MessageEntity;
-import net.ddns.encante.telegram.HR.persistence.entities.UserEntity;
-import net.ddns.encante.telegram.HR.persistence.entities.WebhookUpdateEntity;
+import net.ddns.encante.telegram.HR.persistence.entities.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,4 +16,6 @@ public interface WebhookUpdateRepository extends JpaRepository<WebhookUpdateEnti
     MessageEntity findMessageEntityByMessageId(@Param("messageId") Long messageId);
     @Query("SELECT w FROM WebhookUpdateEntity w WHERE w.updateId = :updateId")
     WebhookUpdateEntity findWebhookUpdateEntityByEntityId(@Param("updateId") Long updateId);
+    @Query("SELECT cb FROM CallbackQueryEntity cb WHERE cb.callbackId = :callbackId")
+    CallbackQueryEntity findCallbackQueryEntityByCallbackId(@Param("callbackId") String callbackId);
 }

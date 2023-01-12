@@ -21,12 +21,12 @@ public class UnirestRequest implements RemoteRequest{
     @Autowired
     Gson gson;
 
-    public void answerCallbackQuerry(AnswerCallbackQuery answer){
+    public void answerCallbackQuery(AnswerCallbackQuery answer){
         this.response = Unirest.post(API_URL+"/answerCallbackQuery")
                 .header("Content-Type", "application/json")
                 .body(gson.toJson(answer))
                 .asJson();
-        System.out.println("BODY SENT BY sendMessageObject: "+gson.toJson(answer));
+        System.out.println("BODY SENT BY answerCallbackQuery : "+gson.toJson(answer));
         printResponseToConsole();
     }
     public SentMessage sendTelegramMessage(SendMessage message){
@@ -53,8 +53,5 @@ public void printResponseToConsole(){
             + response.getStatusText()
             + "\r\nHEADERS: \r\n" + response.getHeaders().toString()
             + "\r\nBODY: " + response.getBody().toPrettyString());
-}
-public void putResponseDetailsInDb(){
-        System.out.println("exported to db");
 }
 }

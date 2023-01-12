@@ -13,9 +13,8 @@ public class AnswerCallbackQuery {
     String url;
     Long cache_time;
 
-    public AnswerCallbackQuery answerCallbackQueryByText(String callbackQueryId, String text){
+    public AnswerCallbackQuery (String callbackQueryId, String text){
         this.callback_query_id = callbackQueryId;
         this.text = text;
-        return this;
     }
 }

@@ -2,6 +2,7 @@ package net.ddns.encante.telegram.HR;
 
 import com.google.gson.Gson;
 import net.ddns.encante.telegram.HR.RemoteRequest.RemoteRequest;
+import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
@@ -39,6 +40,7 @@ private WebhookUpdateService webhookUpdateService;
         webhookUpdateService.saveWebhookUpdate(update);
         //            check if it is callback
         if (update.getCallback_query() != null) {
+            request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(),"Callback Answer!"));
 //            delete keyboard after pressing a key
             request.editTelegramMessage(new EditMessage(update.getCallback_query()));
 //            send me a message with callback
