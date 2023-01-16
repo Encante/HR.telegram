@@ -50,6 +50,7 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
             if (messageEntity.getReplyToMessage() != null)
                 messageEntity.setReplyToMessage(checkDbForExistingMessages(messageEntity.getReplyToMessage()));
             messageEntity.setFrom(checkDbForExistingUsers(messageEntity.getFrom()));
+            messageEntity.setChat(checkDbForExistingChats(messageEntity.getChat()));
             return messageEntity;
         }
     }
