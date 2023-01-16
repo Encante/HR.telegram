@@ -19,19 +19,6 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
         WebhookUpdateEntity updateEntity = convertWebhookUpdateObjToEntity(update);
 //        check if update or user or chat or message exist already in db
         updateEntity = checkDbForExistingWebhookUpdates(updateEntity);
-        if (updateEntity.getMessage() != null) {
-            updateEntity.setMessage(checkDbForExistingMessages(updateEntity.getMessage().getMessageId()));
-            updateEntity.getMessage().setChat(checkDbForExistingChats(updateEntity.getMessage().getChat().getChatId()));
-
-//            work in progress
-            if (updateRepository.findUserEntityByUserId(updateEntity.getMessage().getFrom().getUserId()) != null)
-                updateEntity.getMessage().setFrom(updateRepository.findUserEntityByUserId(updateEntity.getMessage().getChat().getChatId()));
-        }
-        if (updateEntity.getCallbackQuery() != null){
-            if (updateRepository.findCallbackQueryEntityByCallbackId(updateEntity.getCallbackQuery().getCallbackId()) != null)
-                updateEntity.setCallbackQuery(updateRepository.findCallbackQueryEntityByCallbackId(updateEntity.getCallbackQuery().getCallbackId()));
-            if
-        }
         return convertWebhookUpdateEntityToObj(updateRepository.save(updateEntity));
     }
     @Override
@@ -47,12 +34,24 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
     private WebhookUpdateEntity checkDbForExistingWebhookUpdates (WebhookUpdateEntity update){
         if (updateRepository.findWebhookUpdateEntityByEntityId(update.getUpdateId()) != null)
             return updateRepository.findWebhookUpdateEntityByEntityId(update.getUpdateId());
-        else return update;
+        else {
+            if (update.getMessage() != null) update.setMessage(checkDbForExistingMessages(update.getMessage()));
+            if (update.getCallbackQuery() != null) update.setCallbackQuery(checkDbForExistingCallbackQueries(update.getCallbackQuery()));
+            return update;
+        }
     }
     private MessageEntity checkDbForExistingMessages (MessageEntity messageEntity){
-        if (updateRepository.findMessageEntityByMessageId(messageEntity.getMessageId()) != null)
+        if (updateRepository.findMessageEntityByMessageId(messageEntity.getMessageId()) != null){
             return updateRepository.findMessageEntityByMessageId(messageEntity.getMessageId());
-        else return messageEntity;
+        }
+        else {
+            if (messageEntity.getFrom() != null)
+                messageEntity.setFrom(checkDbForExistingUsers(messageEntity.getFrom()));
+            if (messageEntity.getReplyToMessage() != null)
+                messageEntity.setReplyToMessage(checkDbForExistingMessages(messageEntity.getReplyToMessage()));
+            messageEntity.setFrom(checkDbForExistingUsers(messageEntity.getFrom()));
+            return messageEntity;
+        }
     }
     private ChatEntity checkDbForExistingChats (ChatEntity chat){
         if (updateRepository.findChatEntityByChatId(chat.getChatId()) != null)
@@ -67,7 +66,11 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
     private CallbackQueryEntity checkDbForExistingCallbackQueries (CallbackQueryEntity cbq){
         if (updateRepository.findCallbackQueryEntityByCallbackId(cbq.getCallbackId()) != null)
             return updateRepository.findCallbackQueryEntityByCallbackId(cbq.getCallbackId());
-        else return cbq;
+        else {
+            if (cbq.getMessage() != null) cbq.setMessage(checkDbForExistingMessages(cbq.getMessage()));
+            cbq.setFrom(checkDbForExistingUsers(cbq.getFrom()));
+            return cbq;
+        }
     }
 
 
