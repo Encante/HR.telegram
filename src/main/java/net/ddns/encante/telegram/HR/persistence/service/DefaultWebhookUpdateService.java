@@ -22,6 +22,7 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
         if (updateEntity.getMessage() != null) {
             updateEntity.setMessage(checkDbForExistingMessages(updateEntity.getMessage().getMessageId()));
             updateEntity.getMessage().setChat(checkDbForExistingChats(updateEntity.getMessage().getChat().getChatId()));
+
 //            work in progress
             if (updateRepository.findUserEntityByUserId(updateEntity.getMessage().getFrom().getUserId()) != null)
                 updateEntity.getMessage().setFrom(updateRepository.findUserEntityByUserId(updateEntity.getMessage().getChat().getChatId()));
