@@ -90,8 +90,10 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
         queryObj.setFrom(convertUserEntityToObj(queryEntity.getFrom()));
         if (queryEntity.getMessage() != null)
         queryObj.setMessage(convertMessageEntityToObj(queryEntity.getMessage()));
-        if (queryEntity.getCallbackId() != null)
-        queryObj.setInline_message_id(queryEntity.getCallbackId());
+        if (queryEntity.getInlineMessageId() != null)
+        queryObj.setInline_message_id(queryEntity.getInlineMessageId());
+        if (queryEntity.getData() != null)
+            queryObj.setData(queryEntity.getData());
         return queryObj;
     }
     private Message convertMessageEntityToObj(MessageEntity messageEntity){
@@ -172,10 +174,12 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
         CallbackQueryEntity entityQuery = new CallbackQueryEntity();
         entityQuery.setCallbackId(query.getId());
         entityQuery.setFrom(convertUserObjToEntity(query.getFrom()));
-        if (query.getMessage()!= null)
+        if (query.getMessage() != null)
         entityQuery.setMessage(convertMessageObjToEntity(query.getMessage()));
         if (query.getInline_message_id() != null)
         entityQuery.setInlineMessageId(query.getInline_message_id());
+        if (query.getData() != null)
+            entityQuery.setData(query.getData());
         return entityQuery;
     }
 }

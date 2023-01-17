@@ -40,6 +40,7 @@ private WebhookUpdateService webhookUpdateService;
         webhookUpdateService.saveWebhookUpdate(update);
         //            check if it is callback
         if (update.getCallback_query() != null) {
+//            answer callback query
             request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(),"Callback Answer!"));
 //            delete keyboard after pressing a key
             request.editTelegramMessage(new EditMessage(update.getCallback_query()));

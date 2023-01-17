@@ -25,4 +25,6 @@ public class  CallbackQueryEntity {
     MessageEntity message;
     @Column(name = "inline_message_id")
     String inlineMessageId;
+    @Column(name = "data")
+    String data;
 }
