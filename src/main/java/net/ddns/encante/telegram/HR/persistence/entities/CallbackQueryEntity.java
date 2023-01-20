@@ -19,10 +19,10 @@ public class  CallbackQueryEntity {
     String callbackId;
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "from_key", referencedColumnName = "key_id")
-    UserEntity from;
+    UserEntity from;//many to one
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "message_key", referencedColumnName = "key_id")
-    MessageEntity message;
+    MessageEntity message;//many to one
     @Column(name = "inline_message_id")
     String inlineMessageId;
     @Column(name = "data")

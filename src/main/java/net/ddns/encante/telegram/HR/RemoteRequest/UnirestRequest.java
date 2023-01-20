@@ -34,7 +34,7 @@ public class UnirestRequest implements RemoteRequest{
             .header("Content-Type", "application/json")
             .body(gson.toJson(message))
             .asJson();
-    System.out.println("BODY SENT BY sendMessageObject: "+gson.toJson(message));
+    System.out.println("BODY SENT BY sendTelegramMessage: "+gson.toJson(message));
     printResponseToConsole();
     return gson.fromJson(response.getBody().toString(),SentMessage.class);
 }
@@ -43,7 +43,7 @@ public class UnirestRequest implements RemoteRequest{
                     .header("Content-Type", "application/json")
                     .body(gson.toJson(message))
                     .asJson();
-            System.out.println("BODY SENT by editMessageObject: "+gson.toJson(message));
+            System.out.println("BODY SENT by editTelegramMessage: "+gson.toJson(message));
             printResponseToConsole();
         return gson.fromJson(response.getBody().toString(),SentMessage.class);
 }

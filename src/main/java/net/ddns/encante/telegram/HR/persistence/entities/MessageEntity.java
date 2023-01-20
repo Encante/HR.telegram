@@ -22,15 +22,15 @@ public class MessageEntity {
     Long messageId;
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "from_key", referencedColumnName = "key_id")
-    UserEntity from;
+    UserEntity from;//many to one
     @Column(name = "date")
     Long date;
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "chat_key",referencedColumnName = "key_id")
-    ChatEntity chat;
+    ChatEntity chat;//many to one
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "reply_to_message_key", referencedColumnName = "key_id")
-    MessageEntity replyToMessage;
+    MessageEntity replyToMessage;//many to one
     @Column(name = "edit_date")
     Long editDate;
     @Column(name = "text")

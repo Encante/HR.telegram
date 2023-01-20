@@ -93,7 +93,7 @@ private WebhookUpdateService webhookUpdateService;
                                     .setChat_id(update.getMessage().getChat().getId()));
                         }
                         case "/smk" -> {
-                            String[] names = {"Inline", "she", "goes"};
+                            String[] names = {"Reply", "she", "goes"};
                             request.sendTelegramMessage(new SendMessage()
                                     .setText("Message with keyboard")
                                     .setReply_markup(new ReplyKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
