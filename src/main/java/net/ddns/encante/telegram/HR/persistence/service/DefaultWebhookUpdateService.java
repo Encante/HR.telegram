@@ -151,6 +151,8 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
         entityMessage.setEditDate(message.getEdit_date());
         if (message.getText() != null)
         entityMessage.setText(message.getText());
+        if (message.getReply_markup() != null)
+            //sdfkjbngvijudfngvjkin
         return entityMessage;
     }
     private UserEntity convertUserObjToEntity(User user){
