@@ -22,7 +22,7 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
         return convertWebhookUpdateEntityToObj(updateRepository.save(updateEntity));
     }
     @Override
-    public boolean deleteWebhookUpdate(Long updateId){
+    public boolean deleteWebhookUpdateById(Long updateId){
         updateRepository.deleteById(updateId);
         return true;
     }
@@ -30,7 +30,9 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
     public WebhookUpdate getWebhookUpdateById(Long updateId){
         return convertWebhookUpdateEntityToObj(updateRepository.findById(updateId).orElseThrow(() -> new EntityNotFoundException("Webhook update not found")));
     }
-
+//
+//    CHECK DB FOR EXISTING RECORDS METHODS
+//
     private WebhookUpdateEntity checkDbForExistingWebhookUpdates (WebhookUpdateEntity update){
         if (updateRepository.findWebhookUpdateEntityByEntityId(update.getUpdateId()) != null)
             return updateRepository.findWebhookUpdateEntityByEntityId(update.getUpdateId());
@@ -73,8 +75,9 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
             return cbq;
         }
     }
-
-
+//
+//    CONVERT ENTITIES TO OBJ
+//
     private WebhookUpdate convertWebhookUpdateEntityToObj(WebhookUpdateEntity entity){
         WebhookUpdate updateObj = new WebhookUpdate();
         updateObj.setUpdate_id(entity.getUpdateId());
@@ -128,6 +131,10 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
         userObj.setUsername(userEntity.getUsername());
         return userObj;
     }
+
+//
+//    CONVERT OBJ TO ENTITIES
+//
     private WebhookUpdateEntity convertWebhookUpdateObjToEntity(WebhookUpdate update){
         WebhookUpdateEntity entity = new WebhookUpdateEntity();
         entity.setUpdateId(update.getUpdate_id());
@@ -151,8 +158,6 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
         entityMessage.setEditDate(message.getEdit_date());
         if (message.getText() != null)
         entityMessage.setText(message.getText());
-        if (message.getReply_markup() != null)
-            //sdfkjbngvijudfngvjkin
         return entityMessage;
     }
     private UserEntity convertUserObjToEntity(User user){
