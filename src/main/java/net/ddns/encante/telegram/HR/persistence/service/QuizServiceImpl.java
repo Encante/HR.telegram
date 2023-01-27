@@ -4,6 +4,9 @@ import net.ddns.encante.telegram.HR.Quiz.Quiz;
 import net.ddns.encante.telegram.HR.persistence.entities.QuizEntity;
 import net.ddns.encante.telegram.HR.persistence.repository.QuizRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service("quizService")
 
 public class QuizServiceImpl implements QuizService {
     @Autowired
@@ -24,17 +27,12 @@ public class QuizServiceImpl implements QuizService {
 //      CONVERT ENTITIES TO OBJECTS
 //
     private Quiz convertQuizEntityToObj(QuizEntity entity) {
-        Quiz obj = new Quiz();
+        Quiz obj = new Quiz(entity.getQuestion(),entity.getOptA(),entity.getOptB(),entity.getOptC(),entity.getOptD(),entity.getCorrectAnswer());
         if(entity.getKeyId() != null)
             obj.setQuizId(entity.getKeyId());
         obj.setQuestion(entity.getQuestion());
         if (entity.getWord() != null)
             obj.setWord(entity.getWord());
-        obj.setOptA(entity.getOptA());
-        obj.setOptB(entity.getOptB());
-        obj.setOptC(entity.getOptC());
-        obj.setOptD(entity.getOptD());
-        obj.setCorrectAnswer(entity.getCorrectAnswer());
         if(entity.getAnswer() != null)
             obj.setAnswer(entity.getAnswer());
         obj.setSuccess(entity.isSuccess());

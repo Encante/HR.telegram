@@ -1,6 +1,7 @@
 package net.ddns.encante.telegram.HR;
 
 import com.google.gson.Gson;
+import net.ddns.encante.telegram.HR.Quiz.Quiz;
 import net.ddns.encante.telegram.HR.RemoteRequest.RemoteRequest;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
@@ -10,6 +11,7 @@ import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardRemove;
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
 import net.ddns.encante.telegram.HR.persistence.repository.WebhookUpdateRepository;
+import net.ddns.encante.telegram.HR.persistence.service.QuizService;
 import net.ddns.encante.telegram.HR.persistence.service.WebhookUpdateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +28,8 @@ Gson gson;
 RemoteRequest request;
 @Resource(name = "webhookUpdateService")
 private WebhookUpdateService webhookUpdateService;
+@Resource(name = "quizService")
+private QuizService quizService;
     @Autowired
     private WebhookUpdateRepository webhookUpdateRepository;
 
@@ -91,6 +95,12 @@ private WebhookUpdateService webhookUpdateService;
                                     .setText("Inline message")
                                     .setReply_markup(new InlineKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
                                     .setChat_id(update.getMessage().getChat().getId()));
+                        }
+                        case "/smq" -> {
+                            String[] names = {commands[2],commands[3],commands[4],commands[5]};
+                            Quiz quiz = new Quiz("Quiz test",commands[2],commands[3],commands[4],commands[5], commands[2]);
+                            quizService.saveQuiz(quiz);
+                            request.sendTelegramMessage(quiz.createQuizMessageFromCommand(update));
                         }
                         case "/smk" -> {
                             String[] names = {"Reply", "she", "goes"};
