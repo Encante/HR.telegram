@@ -40,9 +40,11 @@ public class QuizEntity {
     @Column (name = "answer")
     String answer;
     @Column (name = "success")
-    boolean success;
+    Boolean success;
     @Column (name = "date_sent")
     Long dateSent;
     @Column (name = "date_answered")
     Long dateAnswered;
+    @Column (name = "message_id")
+    Long messageId;
 }

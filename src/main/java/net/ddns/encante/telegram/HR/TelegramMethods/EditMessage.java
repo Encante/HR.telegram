@@ -34,4 +34,9 @@ public class EditMessage {
         this.chat_id = callback.getMessage().getChat().getId();
         this.message_id = callback.getMessage().getMessage_id();
     }
+    public EditMessage (CallbackQuery callback, String text){
+        this.chat_id = callback.getMessage().getChat().getId();
+        this.message_id = callback.getMessage().getMessage_id();
+        this.text = text;
+    }
 }

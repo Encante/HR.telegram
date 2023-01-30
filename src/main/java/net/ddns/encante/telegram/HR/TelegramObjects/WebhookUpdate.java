@@ -25,7 +25,7 @@ public class WebhookUpdate {
         System.out.println("From: " + message.getFrom().getFirst_name());
         if (message.getFrom().getLast_name() != null)
             System.out.println(message.getFrom().getLast_name());
-        System.out.println("Is bot: " + message.getFrom().is_bot());
+        System.out.println("Is bot: " + message.getFrom().getIs_bot());
         }
     else {
         System.out.println("Not a text message!");
@@ -35,7 +35,7 @@ public class WebhookUpdate {
         System.out.println("From: " + message.getFrom().getFirst_name());
         if (message.getFrom().getLast_name() != null)
             System.out.println(message.getFrom().getLast_name());
-        System.out.println("Is bot: " + message.getFrom().is_bot());
+        System.out.println("Is bot: " + message.getFrom().getIs_bot());
         }
     }
 }

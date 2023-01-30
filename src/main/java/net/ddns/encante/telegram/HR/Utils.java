@@ -1,5 +1,6 @@
 package net.ddns.encante.telegram.HR;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -11,4 +12,7 @@ public class Utils {
         return localDateTime.format(formatter);
     }
 
+    public static Long getCurrentUnixTime(){
+        return Instant.now().getEpochSecond();
+    }
 }

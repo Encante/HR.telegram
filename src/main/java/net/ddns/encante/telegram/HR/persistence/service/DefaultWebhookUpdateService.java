@@ -123,7 +123,7 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
     private User convertUserEntityToObj(UserEntity userEntity){
         User userObj = new User();
         userObj.setId(userEntity.getUserId());
-        userObj.set_bot(userEntity.isBot());
+        userObj.setIs_bot(userEntity.getIsBot());
         userObj.setFirst_name(userEntity.getFirstName());
         if (userEntity.getLastName() != null)
         userObj.setLast_name(userEntity.getLastName());
@@ -163,7 +163,7 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
     private UserEntity convertUserObjToEntity(User user){
         UserEntity entityUser = new UserEntity();
         entityUser.setUserId(user.getId());
-        entityUser.setBot(user.is_bot());
+        entityUser.setIsBot(user.getIs_bot());
         entityUser.setFirstName(user.getFirst_name());
         if (user.getLast_name() != null)
             entityUser.setLastName(user.getLast_name());

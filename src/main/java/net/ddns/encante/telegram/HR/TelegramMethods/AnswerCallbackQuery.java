@@ -9,12 +9,13 @@ import lombok.experimental.FieldDefaults;
 public class AnswerCallbackQuery {
     String callback_query_id;
     String text;
-    boolean show_alert;
+    Boolean show_alert;
     String url;
     Long cache_time;
 
-    public AnswerCallbackQuery (String callbackQueryId, String text){
+    public AnswerCallbackQuery (String callbackQueryId, String text, Boolean showAlert){
         this.callback_query_id = callbackQueryId;
         this.text = text;
+        this.show_alert = showAlert;
     }
 }

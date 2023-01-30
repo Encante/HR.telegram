@@ -23,7 +23,28 @@ public class QuizServiceImpl implements QuizService {
         quizRepository.deleteById(quizId);
         return true;
     }
-    //
+    @Override
+    public Quiz getFirstQuizFromDb(){
+        if(quizRepository.count()<1){
+            throw new RuntimeException("No entries in db");
+        }
+        else {
+            return convertQuizEntityToObj(quizRepository.findFirstByOrderByKeyIdAsc());
+        }
+    }
+    @Override
+    public Quiz getQuizByMessageId(final Long messageId){
+        return convertQuizEntityToObj(quizRepository.findByMessageId(messageId));
+    }
+    @Override
+    public Quiz getFirstNotSentQuizFromDb(){
+        if(quizRepository.findAllNotSentQuiz().size()>0)
+            return convertQuizEntityToObj(quizRepository.findAllNotSentQuiz().get(0));
+        else {
+            throw new RuntimeException("No entries in db");
+        }
+    }
+//
 //      CONVERT ENTITIES TO OBJECTS
 //
     private Quiz convertQuizEntityToObj(QuizEntity entity) {
@@ -35,11 +56,13 @@ public class QuizServiceImpl implements QuizService {
             obj.setWord(entity.getWord());
         if(entity.getAnswer() != null)
             obj.setAnswer(entity.getAnswer());
-        obj.setSuccess(entity.isSuccess());
+        obj.setSuccess(entity.getSuccess());
         if(entity.getDateSent()!=null)
             obj.setDateSent(entity.getDateSent());
         if(entity.getDateAnswered()!=null)
             obj.setDateAnswered(entity.getDateAnswered());
+        if(entity.getMessageId()!=null)
+            obj.setMessageId(entity.getMessageId());
         return obj;
     }
 //
@@ -59,11 +82,13 @@ public class QuizServiceImpl implements QuizService {
         entity.setCorrectAnswer(obj.getCorrectAnswer());
         if(obj.getAnswer()!=null)
             entity.setAnswer(obj.getAnswer());
-        entity.setSuccess(obj.isSuccess());
+        entity.setSuccess(obj.getSuccess());
         if (obj.getDateSent()!=null)
             entity.setDateSent(obj.getDateSent());
         if(obj.getDateAnswered()!=null)
             entity.setDateAnswered(obj.getDateAnswered());
+        if(obj.getMessageId()!=null)
+            entity.setMessageId(obj.getMessageId());
         return entity;
     }
 

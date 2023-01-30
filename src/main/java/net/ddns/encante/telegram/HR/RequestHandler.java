@@ -6,10 +6,7 @@ import net.ddns.encante.telegram.HR.RemoteRequest.RemoteRequest;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
-import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
-import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardMarkup;
-import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardRemove;
-import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
+import net.ddns.encante.telegram.HR.TelegramObjects.*;
 import net.ddns.encante.telegram.HR.persistence.repository.WebhookUpdateRepository;
 import net.ddns.encante.telegram.HR.persistence.service.QuizService;
 import net.ddns.encante.telegram.HR.persistence.service.WebhookUpdateService;
@@ -44,22 +41,43 @@ private QuizService quizService;
         webhookUpdateService.saveWebhookUpdate(update);
         //            check if it is callback
         if (update.getCallback_query() != null) {
+            if(quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id())!=null){
+                Quiz quiz = quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id());
+                quizService.saveQuiz(quiz.resolveAnswer(update));
+                request.editTelegramMessage(new EditMessage(update.getCallback_query(), update.getCallback_query().getMessage().getText() + " Twoja odpowiedź: "+quiz.getAnswer()));
+                if (quiz.getSuccess() == true){
+                    request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(),"Bardzo dobrze!",true));
+                    request.sendTelegramMessage(new SendMessage()
+                            .setText("Dobra odpowiedź! ;)")
+                            .setChat_id(update.getCallback_query().getMessage().getChat().getId()));
+                }
+                else if (quiz.getSuccess() == false){
+                    request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(),"Zła odpowiedź!",true));
+                    request.sendTelegramMessage(new SendMessage()
+                            .setText("Niestety nie udało się :(")
+                            .setChat_id(update.getCallback_query().getMessage().getChat().getId()));
+                }
+            }
+            else {
 //            answer callback query
-            request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(),"Callback Answer!"));
+                request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(), "Callback Answer!", false));
 //            delete keyboard after pressing a key
-            request.editTelegramMessage(new EditMessage(update.getCallback_query()));
+                request.editTelegramMessage(new EditMessage(update.getCallback_query()));
 //            send me a message with callback
-            request.sendTelegramMessage(new SendMessage()
-                    .setText("Callback received! T: "
-                            + Utils.getCurrentDateTime()
-                            + "FROM: "
-                            + update.getCallback_query().getFrom().getFirst_name()
-                            + " "
-                            + update.getCallback_query().getFrom().getLast_name()
-                            + " CALLBACK DATA: "
-                            + update.getCallback_query().getData())
-                    .toMe());
+//            request.sendTelegramMessage(new SendMessage()
+//                    .setText("Callback received! T: "
+//                            + Utils.getCurrentDateTime()
+//                            + "FROM: "
+//                            + update.getCallback_query().getFrom().getFirst_name()
+//                            + " "
+//                            + update.getCallback_query().getFrom().getLast_name()
+//                            + " CALLBACK DATA: "
+//                            + update.getCallback_query().getData())
+//                    .toMe());
+            }
         }
+
+
 //      check if have any message
         if (update.getMessage() != null) {
 //      check if incoming message have any text
@@ -97,10 +115,24 @@ private QuizService quizService;
                                     .setChat_id(update.getMessage().getChat().getId()));
                         }
                         case "/smq" -> {
-                            String[] names = {commands[2],commands[3],commands[4],commands[5]};
-                            Quiz quiz = new Quiz("Quiz test",commands[2],commands[3],commands[4],commands[5], commands[2]);
+                            if (commands.length<6){
+                                request.sendTelegramMessage(new SendMessage()
+                                        .setText("WARNING! BAD COMMAND!")
+                                        .toMe());
+                            }
+                            else {
+                                String[] names = {commands[2], commands[3], commands[4], commands[5]};
+                                Quiz quiz = new Quiz("Command line Quiz test", commands[2], commands[3], commands[4], commands[5], commands[2]);
+                                quizService.saveQuiz(quiz);
+                                request.sendTelegramMessage(quiz.createQuizMessageFromCommand(update));
+                            }
+                        }
+                        case "/smqdb" ->{
+                            Quiz quiz = quizService.getFirstNotSentQuizFromDb();
+                            SentMessage sentQuizMessage = request.sendTelegramMessage(quiz.createMessage(update.getMessage().getChat()));
+                            quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
+                            quiz.setDateSent(sentQuizMessage.getResult().getDate());
                             quizService.saveQuiz(quiz);
-                            request.sendTelegramMessage(quiz.createQuizMessageFromCommand(update));
                         }
                         case "/smk" -> {
                             String[] names = {"Reply", "she", "goes"};

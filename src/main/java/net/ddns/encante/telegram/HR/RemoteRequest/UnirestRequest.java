@@ -39,7 +39,7 @@ public class UnirestRequest implements RemoteRequest{
     return gson.fromJson(response.getBody().toString(),SentMessage.class);
 }
     public SentMessage editTelegramMessage(EditMessage message){
-            this.response = Unirest.post(EDIT_MESSAGE_REPLY_MARKUP_URL)
+            this.response = Unirest.post("https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageText")
                     .header("Content-Type", "application/json")
                     .body(gson.toJson(message))
                     .asJson();

@@ -21,7 +21,7 @@ public class UserEntity {
     @Column(name = "user_id")
     Long userId;
     @Column(name = "is_bot")
-    boolean isBot;
+    Boolean isBot;
     @Column(name = "first_name")
     String firstName;
     @Column(name = "last_name")
