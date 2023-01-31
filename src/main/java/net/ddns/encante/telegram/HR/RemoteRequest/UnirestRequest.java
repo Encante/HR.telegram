@@ -1,6 +1,7 @@
 package net.ddns.encante.telegram.HR.RemoteRequest;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
@@ -10,7 +11,6 @@ import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.SentMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,8 +21,7 @@ public class UnirestRequest implements RemoteRequest{
     private final String SEND_MESSAGE_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/sendMessage";
     private final String EDIT_MESSAGE_REPLY_MARKUP_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageReplyMarkup";
     private HttpResponse<JsonNode> response;
-    @Autowired
-    Gson gson;
+    Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public void answerCallbackQuery(AnswerCallbackQuery answer){
         this.response = Unirest.post(API_URL+"/answerCallbackQuery")
@@ -30,7 +29,7 @@ public class UnirestRequest implements RemoteRequest{
                 .body(gson.toJson(answer))
                 .asJson();
         log.debug("BODY SENT BY answerCallbackQuery : "+gson.toJson(answer));
-        log.debug(printResponse());
+        log.debug(printResponse("answerCallbackQuery"));
     }
     public SentMessage sendTelegramMessage(SendMessage message){
     this.response = Unirest.post(SEND_MESSAGE_URL)
@@ -38,7 +37,7 @@ public class UnirestRequest implements RemoteRequest{
             .body(gson.toJson(message))
             .asJson();
     log.debug("BODY SENT BY sendTelegramMessage: "+gson.toJson(message));
-    log.debug(printResponse());
+    log.debug(printResponse("sendTelegramMessage"));
     return gson.fromJson(response.getBody().toString(),SentMessage.class);
 }
     public SentMessage editTelegramMessage(EditMessage message){
@@ -47,11 +46,11 @@ public class UnirestRequest implements RemoteRequest{
                     .body(gson.toJson(message))
                     .asJson();
             log.debug("BODY SENT by editTelegramMessage: "+gson.toJson(message));
-            log.debug(printResponse());
+            log.debug(printResponse("editTelegramMessage"));
         return gson.fromJson(response.getBody().toString(),SentMessage.class);
 }
-    private String printResponse(){
-        return "RESPONSE STATUS: \r\n" + response.getStatus()
+    private String printResponse(String invoker){
+        return invoker+" RESPONSE STATUS: \r\n" + response.getStatus()
                 + " "
                 + response.getStatusText()
                 + "\r\nHEADERS: \r\n" + response.getHeaders().toString()
