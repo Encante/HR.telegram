@@ -1,6 +1,8 @@
 package net.ddns.encante.telegram.HR;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParser;
 import net.ddns.encante.telegram.HR.Quiz.Quiz;
 import net.ddns.encante.telegram.HR.RemoteRequest.RemoteRequest;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
@@ -10,6 +12,8 @@ import net.ddns.encante.telegram.HR.TelegramObjects.*;
 import net.ddns.encante.telegram.HR.persistence.repository.WebhookUpdateRepository;
 import net.ddns.encante.telegram.HR.persistence.service.QuizService;
 import net.ddns.encante.telegram.HR.persistence.service.WebhookUpdateService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,23 +23,24 @@ import javax.annotation.Resource;
 
 @RestController
 public class RequestHandler {
-@Autowired
-Gson gson;
+Gson gson = new GsonBuilder().setPrettyPrinting().create();
 @Autowired
 RemoteRequest request;
 @Resource(name = "webhookUpdateService")
 private WebhookUpdateService webhookUpdateService;
 @Resource(name = "quizService")
 private QuizService quizService;
-    @Autowired
-    private WebhookUpdateRepository webhookUpdateRepository;
+@Autowired
+private WebhookUpdateRepository webhookUpdateRepository;
+private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 
-    //        when receiving message:
+//        when receiving message:
     @PostMapping("/HR4telegram")
     public String postHandler(@RequestBody String content) {
+//        log incoming update
+        log.debug("INCOMING WEBHOOK UPDATE BODY:");
+        log.debug(gson.toJson(JsonParser.parseString(content)));
 //        do WebhookUpdate object from JSON
-        System.out.println("CONTENT OF A WEBHOOK UPDATE BODY:");
-        System.out.println(content);
         WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class);
 //        store it in the DB
         webhookUpdateService.saveWebhookUpdate(update);
@@ -177,7 +182,7 @@ private QuizService quizService;
                             .toMe());
                 }
 //        then print to console
-                update.printUpdateToConsole();
+//                update.printUpdateToConsole();
                 return "200";
             } else {
 //            if no text send me an info
@@ -192,7 +197,7 @@ private QuizService quizService;
                                 + " But it has no text!")
                         .toMe());
 //            and print to console
-                update.printUpdateToConsole();
+//                update.printUpdateToConsole();
                 return "200";
             }
         }

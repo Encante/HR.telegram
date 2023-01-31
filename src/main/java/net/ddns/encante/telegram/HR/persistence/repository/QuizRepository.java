@@ -11,7 +11,7 @@ import java.util.List;
 public interface QuizRepository extends JpaRepository<QuizEntity, Long> {
 //    @Query("SELECT q FROM QuizEntity q ")
     QuizEntity findFirstByOrderByKeyIdAsc();
-    @Query("SELECT q FROM QuizEntity q WHERE q.messageId IS NULL")
+    @Query("SELECT q FROM QuizEntity q WHERE q.success IS NULL OR q.success IS NULL")
     List<QuizEntity> findAllNotSentQuiz();
     QuizEntity findByMessageId(Long messageId);
 }
