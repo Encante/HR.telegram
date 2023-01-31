@@ -34,7 +34,11 @@ public class QuizServiceImpl implements QuizService {
     }
     @Override
     public Quiz getQuizByMessageId(final Long messageId){
+        if (quizRepository.findByMessageId(messageId)!= null)
         return convertQuizEntityToObj(quizRepository.findByMessageId(messageId));
+        else {
+            return null;
+        }
     }
     @Override
     public Quiz getFirstNotSentQuizFromDb(){

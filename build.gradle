@@ -31,6 +31,10 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	implementation 'com.konghq:unirest-java:3.13.12'
 	implementation 'com.google.code.gson:gson:2.10'
+	compileOnly 'ch.qos.logback:logback-classic:1.4.5'
+	compileOnly 'ch.qos.logback:logback-core:1.4.5'
+	compileOnly 'ch.qos.logback:logback-examples:1.2.11'
+	compileOnly 'org.slf4j:slf4j-api:2.0.5'
 }
 
 //tasks.named('test') {

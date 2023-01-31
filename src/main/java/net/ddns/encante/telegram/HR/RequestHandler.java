@@ -41,6 +41,7 @@ private QuizService quizService;
         webhookUpdateService.saveWebhookUpdate(update);
         //            check if it is callback
         if (update.getCallback_query() != null) {
+//            check if it is a quiz message callback
             if(quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id())!=null){
                 Quiz quiz = quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id());
                 quizService.saveQuiz(quiz.resolveAnswer(update));

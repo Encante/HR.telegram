@@ -3,18 +3,14 @@ package net.ddns.encante.telegram.HR.TelegramMethods;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.experimental.FieldDefaults;
-import net.ddns.encante.telegram.HR.RemoteRequest.RemoteRequest;
 import net.ddns.encante.telegram.HR.TelegramObjects.CallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.MessageEntity;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EditMessage {
-    @Autowired
-    private transient RemoteRequest request;
     Long chat_id;
     Long message_id;
     String inline_message_id;
@@ -29,10 +25,11 @@ public class EditMessage {
         this.chat_id = chat_id;
         this.message_id = message_id;
     }
-
+//    deleting keyboard from message
     public EditMessage (CallbackQuery callback) {
         this.chat_id = callback.getMessage().getChat().getId();
         this.message_id = callback.getMessage().getMessage_id();
+        this.text = callback.getMessage().getText();
     }
     public EditMessage (CallbackQuery callback, String text){
         this.chat_id = callback.getMessage().getChat().getId();

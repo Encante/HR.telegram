@@ -8,11 +8,14 @@ import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.SentMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Component
 public class UnirestRequest implements RemoteRequest{
+    private static final Logger log = LoggerFactory.getLogger(UnirestRequest.class);
     private final String BOT_TOKEN = "XXX";
     private final String API_URL = "https://api.telegram.org/bot"+ BOT_TOKEN;
     private final String SEND_MESSAGE_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/sendMessage";
@@ -27,15 +30,17 @@ public class UnirestRequest implements RemoteRequest{
                 .body(gson.toJson(answer))
                 .asJson();
         System.out.println("BODY SENT BY answerCallbackQuery : "+gson.toJson(answer));
-        printResponseToConsole();
+        printResponse();
     }
     public SentMessage sendTelegramMessage(SendMessage message){
     this.response = Unirest.post(SEND_MESSAGE_URL)
             .header("Content-Type", "application/json")
             .body(gson.toJson(message))
             .asJson();
+    log.debug("BODY SENT BY sendTelegramMessage: "+gson.toJson(message));
+    log.debug(printResponse());
     System.out.println("BODY SENT BY sendTelegramMessage: "+gson.toJson(message));
-    printResponseToConsole();
+        System.out.println(printResponse());
     return gson.fromJson(response.getBody().toString(),SentMessage.class);
 }
     public SentMessage editTelegramMessage(EditMessage message){
@@ -44,14 +49,14 @@ public class UnirestRequest implements RemoteRequest{
                     .body(gson.toJson(message))
                     .asJson();
             System.out.println("BODY SENT by editTelegramMessage: "+gson.toJson(message));
-            printResponseToConsole();
+            printResponse();
         return gson.fromJson(response.getBody().toString(),SentMessage.class);
 }
-public void printResponseToConsole(){
-    System.out.println("RESPONSE STATUS: \r\n" + response.getStatus()
-            + " "
-            + response.getStatusText()
-            + "\r\nHEADERS: \r\n" + response.getHeaders().toString()
-            + "\r\nBODY: " + response.getBody().toPrettyString());
-}
+    private String printResponse(){
+        return "RESPONSE STATUS: \r\n" + response.getStatus()
+                + " "
+                + response.getStatusText()
+                + "\r\nHEADERS: \r\n" + response.getHeaders().toString()
+                + "\r\nBODY: " + response.getBody().toPrettyString();
+    }
 }
