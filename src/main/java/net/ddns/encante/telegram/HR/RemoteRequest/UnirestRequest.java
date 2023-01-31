@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class UnirestRequest implements RemoteRequest{
-    private static final Logger log = LoggerFactory.getLogger(UnirestRequest.class);
+    private static final Logger log = LoggerFactory.getLogger("net.ddns.encante.telegram.HR.RemoteRequest");
     private final String BOT_TOKEN = "XXX";
     private final String API_URL = "https://api.telegram.org/bot"+ BOT_TOKEN;
     private final String SEND_MESSAGE_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/sendMessage";
@@ -29,8 +29,8 @@ public class UnirestRequest implements RemoteRequest{
                 .header("Content-Type", "application/json")
                 .body(gson.toJson(answer))
                 .asJson();
-        System.out.println("BODY SENT BY answerCallbackQuery : "+gson.toJson(answer));
-        printResponse();
+        log.debug("BODY SENT BY answerCallbackQuery : "+gson.toJson(answer));
+        log.debug(printResponse());
     }
     public SentMessage sendTelegramMessage(SendMessage message){
     this.response = Unirest.post(SEND_MESSAGE_URL)
@@ -39,8 +39,6 @@ public class UnirestRequest implements RemoteRequest{
             .asJson();
     log.debug("BODY SENT BY sendTelegramMessage: "+gson.toJson(message));
     log.debug(printResponse());
-    System.out.println("BODY SENT BY sendTelegramMessage: "+gson.toJson(message));
-        System.out.println(printResponse());
     return gson.fromJson(response.getBody().toString(),SentMessage.class);
 }
     public SentMessage editTelegramMessage(EditMessage message){
@@ -48,8 +46,8 @@ public class UnirestRequest implements RemoteRequest{
                     .header("Content-Type", "application/json")
                     .body(gson.toJson(message))
                     .asJson();
-            System.out.println("BODY SENT by editTelegramMessage: "+gson.toJson(message));
-            printResponse();
+            log.debug("BODY SENT by editTelegramMessage: "+gson.toJson(message));
+            log.debug(printResponse());
         return gson.fromJson(response.getBody().toString(),SentMessage.class);
 }
     private String printResponse(){
