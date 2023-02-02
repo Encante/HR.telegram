@@ -53,15 +53,11 @@ private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
                 request.editTelegramMessage(new EditMessage(update.getCallback_query(), update.getCallback_query().getMessage().getText() + " Twoja odpowiedź: "+quiz.getAnswer()));
                 if (quiz.getSuccess() == true){
                     request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(),"Bardzo dobrze!",true));
-                    request.sendTelegramMessage(new SendMessage()
-                            .setText("Dobra odpowiedź! ;)")
-                            .setChat_id(update.getCallback_query().getMessage().getChat().getId()));
+                    sendTelegramTextMessage("Dobra odpowiedź! ;)",update.getCallback_query().getMessage().getChat().getId());
                 }
                 else if (quiz.getSuccess() == false){
                     request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(),"Zła odpowiedź!",true));
-                    request.sendTelegramMessage(new SendMessage()
-                            .setText("Niestety nie udało się :(")
-                            .setChat_id(update.getCallback_query().getMessage().getChat().getId()));
+                    sendTelegramTextMessage("Niestety zła odpowiedź :(",update.getCallback_query().getMessage().getChat().getId());
                 }
             }
             else {
@@ -92,24 +88,16 @@ private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
                 if (update.getMessage().getText().charAt(0) == '/') {
                     String[] commands = update.getMessage().getText().split(" ");
                     switch (commands[0]) {
-                        case "/hi" -> request.sendTelegramMessage(new SendMessage()
-                                .setChat_id(update.getMessage().getFrom().getId())
-                                .setText("Hello " + update.getMessage().getFrom().getFirst_name() + "!"));
+                        case "/hi" -> sendTelegramTextMessage("Hello " + update.getMessage().getFrom().getFirst_name() + "!", update.getMessage().getFrom().getId());
                         case "/sm" -> {
                             if (commands.length < 3) {//command content validation
-                                request.sendTelegramMessage(new SendMessage()
-                                        .setText("WARNING! BAD COMMAND!")
-                                        .toMe());
+                                sendBadCommandWarning();
                             } else {
                                 if (commands[1].equalsIgnoreCase("m")) {
-                                    request.sendTelegramMessage(new SendMessage()
-                                            .setText(update.getMessage().getText().substring(6))
-                                            .toMe());
+                                    sendTelegramTextMessage(update.getMessage().getText().substring(6),5580797031L);
                                 }
                                 if (commands[1].equalsIgnoreCase("y")) {
-                                    request.sendTelegramMessage(new SendMessage()
-                                            .setChat_id(566760042L)
-                                            .setText(update.getMessage().getText().substring(6)));
+                                    sendTelegramTextMessage(update.getMessage().getText().substring(6), 566760042L);
                                 }
                             }
                         }
@@ -122,12 +110,9 @@ private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
                         }
                         case "/smq" -> {
                             if (commands.length<6){
-                                request.sendTelegramMessage(new SendMessage()
-                                        .setText("WARNING! BAD COMMAND!")
-                                        .toMe());
+                                sendBadCommandWarning();
                             }
                             else {
-                                String[] names = {commands[2], commands[3], commands[4], commands[5]};
                                 Quiz quiz = new Quiz("Command line Quiz test", commands[2], commands[3], commands[4], commands[5], commands[2]);
                                 quizService.saveQuiz(quiz);
                                 request.sendTelegramMessage(quiz.createQuizMessageFromCommand(update));
@@ -156,52 +141,49 @@ private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
                         case "/searchUserById" -> {
                             if (commands.length > 1){
                                 if (webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])) != null) {
-                                    request.sendTelegramMessage(new SendMessage()
-                                            .setChat_id(update.getMessage().getFrom().getId())
-                                            .setText(("To " + webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])).getFirstName())));
+                                    sendTelegramTextMessage("To " + webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])).getFirstName(),update.getMessage().getFrom().getId());
                                 }
-                                else request.sendTelegramMessage(new SendMessage()
-                                        .setChat_id(update.getMessage().getFrom().getId())
-                                        .setText("User with id " + commands[1] + " not in DB!"));
+                                else sendTelegramTextMessage("User with id " + commands[1] + " not in DB!",update.getMessage().getFrom().getId());
                             }
                         }
                     }
                 }
                 //        if not from me, send message to me
                 if (update.getMessage().getFrom().getId() != 5580797031L) {
-                    request.sendTelegramMessage(new SendMessage()
-                            .setText("New message! T: " + Utils.getCurrentDateTime()
-                                    + "  FROM: "
-                                    + update.getMessage().getFrom().getFirst_name()
-                                    + " "
-                                    + update.getMessage().getFrom().getLast_name()
-                                    + "  CHAT ID: "
-                                    + update.getMessage().getChat().getId()
-                                    + "  CONTENT: "
-                                    + update.getMessage().getText())
-                            .toMe());
+                    sendTelegramTextMessage("New message! T: " + Utils.getCurrentDateTime()
+                            + "  FROM: "
+                            + update.getMessage().getFrom().getFirst_name()
+                            + " "
+                            + update.getMessage().getFrom().getLast_name()
+                            + "  CHAT ID: "
+                            + update.getMessage().getChat().getId()
+                            + "  CONTENT: "
+                            + update.getMessage().getText(),5580797031L);
                 }
-//        then print to console
-//                update.printUpdateToConsole();
                 return "200";
             } else {
 //            if no text send me an info
-                request.sendTelegramMessage(new SendMessage()
-                        .setText("New message! T: " + Utils.getCurrentDateTime()
-                                + "  FROM: "
-                                + update.getMessage().getFrom().getFirst_name()
-                                + " "
-                                + update.getMessage().getFrom().getLast_name()
-                                + "  CHAT ID: "
-                                + update.getMessage().getChat().getId()
-                                + " But it has no text!")
-                        .toMe());
-//            and print to console
-//                update.printUpdateToConsole();
+                sendTelegramTextMessage("New message! T: " + Utils.getCurrentDateTime()
+                        + "  FROM: "
+                        + update.getMessage().getFrom().getFirst_name()
+                        + " "
+                        + update.getMessage().getFrom().getLast_name()
+                        + "  CHAT ID: "
+                        + update.getMessage().getChat().getId()
+                        + " But it has no text!", 5580797031L);
                 return "200";
             }
         }
 //        update not contains message object
-        else return "nok";
+        else return "not a message";
+    }
+
+    private SentMessage sendTelegramTextMessage (String text, Long chatId){
+        return request.sendTelegramMessage(new SendMessage()
+                .setText(text)
+                .setChat_id(chatId));
+    }
+    private SentMessage sendBadCommandWarning (){
+        return sendTelegramTextMessage("WARNING! BAD COMMAND!", 5580797031L);
     }
 }
