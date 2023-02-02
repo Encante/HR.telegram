@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
-import net.ddns.encante.telegram.HR.TelegramObjects.Chat;
 import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
 import net.ddns.encante.telegram.HR.Utils;
@@ -47,13 +46,13 @@ public class Quiz {
                     .setChat_id(update.getMessage().getChat().getId());
     }
 
-    public SendMessage createMessage (Chat chat){
+    public SendMessage createMessage (Long chatId){
         String[] keys = {this.optA,this.optB,this.optC,this.optD};
         return new SendMessage()
                 .setText(this.question)
                 .setReply_markup(new InlineKeyboardMarkup
                         .KeyboardBuilder(1,4,keys).build())
-                .setChat_id(chat.getId());
+                .setChat_id(chatId);
     }
     public Quiz resolveAnswer (WebhookUpdate update){
         this.dateAnswered = Utils.getCurrentUnixTime();

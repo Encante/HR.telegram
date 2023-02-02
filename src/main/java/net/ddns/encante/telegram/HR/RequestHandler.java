@@ -15,6 +15,8 @@ import net.ddns.encante.telegram.HR.persistence.service.WebhookUpdateService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -119,10 +121,15 @@ private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
                             }
                         }
                         case "/smqdb" ->{
-                            Quiz quiz = quizService.getFirstNotSentQuizFromDb();
-                            SentMessage sentQuizMessage = request.sendTelegramMessage(quiz.createMessage(update.getMessage().getChat()));
+//                            get next not sent quiz from db
+                            Quiz quiz = quizService.getNextQuizToSendFromDb();
+//                            send quiz message
+                            SentMessage sentQuizMessage = request.sendTelegramMessage(quiz.createMessage(update.getMessage().getChat().getId()));
+//                            update quiz obj
                             quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
                             quiz.setDateSent(sentQuizMessage.getResult().getDate());
+                            quiz.setAnswer(null);
+//                            save updated quiz to db
                             quizService.saveQuiz(quiz);
                         }
                         case "/smk" -> {
@@ -176,6 +183,25 @@ private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
         }
 //        update not contains message object
         else return "not a message";
+    }
+//
+//    sending Quiz on schedule
+//
+    @Async
+    @Scheduled(cron = "0 0 8-18 ? * *")
+    public void sendQuizToYasia(){
+
+//                            get next not sent quiz from db
+        Quiz quiz = quizService.getNextQuizToSendFromDb();
+//                            send quiz message
+        SentMessage sentQuizMessage = request.sendTelegramMessage(quiz.createMessage(566760042L));
+//                            update quiz obj
+        quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
+        quiz.setDateSent(sentQuizMessage.getResult().getDate());
+        quiz.setAnswer(null);
+//                            save updated quiz to db
+        quizService.saveQuiz(quiz);
+        log.debug("Quiz "+quiz.getQuizId()+ "wyslany do Yasi!");
     }
 
     private SentMessage sendTelegramTextMessage (String text, Long chatId){

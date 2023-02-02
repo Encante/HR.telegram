@@ -40,10 +40,11 @@ public class QuizServiceImpl implements QuizService {
             return null;
         }
     }
+//    gets next quiz from db to send, checks if quiz is not already sent but unanswered
     @Override
-    public Quiz getFirstNotSentQuizFromDb(){
-        if(quizRepository.findAllNotSentQuiz().size()>0)
-            return convertQuizEntityToObj(quizRepository.findAllNotSentQuiz().get(0));
+    public Quiz getNextQuizToSendFromDb(){
+        if(quizRepository.findAllQuizEntitiesToSend().size()>0)
+            return convertQuizEntityToObj(quizRepository.findAllQuizEntitiesToSend().get(0));
         else {
             throw new RuntimeException("No entries in db");
         }

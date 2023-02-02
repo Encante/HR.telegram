@@ -68,31 +68,31 @@
 <!--        <appender-ref ref="Console" />-->
 <!--    </logger>-->
     <logger name="com.zaxxer.hikari" level="error" additivity="false">
-    <appender-ref ref="Console" />
+<!--    <appender-ref ref="Console" />-->
     <appender-ref ref="RollingFile" />
     </logger>
     <logger name="org.apache.http.impl.conn.PoolingHttpClientConnectionManager" level="error" additivity="false">
-        <appender-ref ref="Console" />
+<!--        <appender-ref ref="Console" />-->
         <appender-ref ref="RollingFile" />
     </logger>
     <logger name="org.springframework.boot.availability.ApplicationAvailabilityBean" level="error" additivity="false">
-        <appender-ref ref="Console" />
+<!--        <appender-ref ref="Console" />-->
         <appender-ref ref="RollingFile" />
     </logger>
     <logger name="org.springframework.boot.autoconfigure.logging.ConditionEvaluationReportLoggingListener" level="error" additivity="false">
-        <appender-ref ref="Console" />
+<!--        <appender-ref ref="Console" />-->
         <appender-ref ref="RollingFile" />
     </logger>
     <logger name="org.springframework.context.support.DefaultLifecycleProcessor" level="error" additivity="false">
-        <appender-ref ref="Console" />
+<!--        <appender-ref ref="Console" />-->
         <appender-ref ref="RollingFile" />
     </logger>
     <logger name="org.springframework.beans" level="error" additivity="false">
-        <appender-ref ref="Console" />
+<!--        <appender-ref ref="Console" />-->
         <appender-ref ref="RollingFile" />
     </logger>
     <logger name="org.hibernate" level="error" additivity="false">
-        <appender-ref ref="Console" />
+<!--        <appender-ref ref="Console" />-->
         <appender-ref ref="RollingFile" />
     </logger>
 <!--    <logger name="org.hibernate.engine.jdbc.spi.SqlStatementLogger" level="debug" additivity="false">-->
@@ -100,11 +100,11 @@
 <!--    </logger>-->
 <!--    hibernate SQL logging-->
     <logger name="org.hibernate.SQL" level="DEBUG" additivity="false">
-    <appender-ref ref="ConsoleHibernate" />
+<!--    <appender-ref ref="ConsoleHibernate" />-->
     <appender-ref ref="RollingFile" />
     </logger>
     <logger name="org.hibernate.type" level="TRACE" additivity="false">
-        <appender-ref ref="ConsoleHibernate" />
+<!--        <appender-ref ref="ConsoleHibernate" />-->
         <appender-ref ref="RollingFile" />
     </logger>
 </configuration>
