@@ -35,6 +35,8 @@ private QuizService quizService;
 @Autowired
 private WebhookUpdateRepository webhookUpdateRepository;
 private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
+private final Long JA = 5580797031L;
+private final Long YASIA = 566760042L;
 
 //        when receiving message:
     @PostMapping("/HR4telegram")
@@ -56,10 +58,14 @@ private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
                 if (quiz.getSuccess() == true){
                     request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(),"Bardzo dobrze!",true));
                     sendTelegramTextMessage("Dobra odpowiedź! ;)",update.getCallback_query().getMessage().getChat().getId());
+//                    send me an info about quiz
+                    sendTelegramTextMessage("Dobra odpowiedź w quizie: " + quiz.getQuestion(),JA);
                 }
                 else if (quiz.getSuccess() == false){
                     request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(),"Zła odpowiedź!",true));
                     sendTelegramTextMessage("Niestety zła odpowiedź :(",update.getCallback_query().getMessage().getChat().getId());
+                    //                    send me an info about quiz
+                    sendTelegramTextMessage("Zła odpowiedź w quizie: " + quiz.getQuestion()+" odpowiedź: "+quiz.getAnswer(),JA);
                 }
             }
             else {
@@ -120,17 +126,11 @@ private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
                                 request.sendTelegramMessage(quiz.createQuizMessageFromCommand(update));
                             }
                         }
-                        case "/smqdb" ->{
-//                            get next not sent quiz from db
-                            Quiz quiz = quizService.getNextQuizToSendFromDb();
-//                            send quiz message
-                            SentMessage sentQuizMessage = request.sendTelegramMessage(quiz.createMessage(update.getMessage().getChat().getId()));
-//                            update quiz obj
-                            quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
-                            quiz.setDateSent(sentQuizMessage.getResult().getDate());
-                            quiz.setAnswer(null);
-//                            save updated quiz to db
-                            quizService.saveQuiz(quiz);
+                        case "/testq" ->{
+                            sendQuizToMe();
+                        }
+                        case "/testqy" ->{
+                            sendQuizToYasia();
                         }
                         case "/smk" -> {
                             String[] names = {"Reply", "she", "goes"};
@@ -156,7 +156,10 @@ private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
                     }
                 }
                 //        if not from me, send message to me
-                if (update.getMessage().getFrom().getId() != 5580797031L) {
+                if (update.getMessage().getFrom().getId().equals(JA)) {
+                    log.debug("Wiadomość ode mnie.");
+                }
+                else {
                     sendTelegramTextMessage("New message! T: " + Utils.getCurrentDateTime()
                             + "  FROM: "
                             + update.getMessage().getFrom().getFirst_name()
@@ -165,7 +168,7 @@ private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
                             + "  CHAT ID: "
                             + update.getMessage().getChat().getId()
                             + "  CONTENT: "
-                            + update.getMessage().getText(),5580797031L);
+                            + update.getMessage().getText(),JA);
                 }
                 return "200";
             } else {
@@ -177,7 +180,7 @@ private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
                         + update.getMessage().getFrom().getLast_name()
                         + "  CHAT ID: "
                         + update.getMessage().getChat().getId()
-                        + " But it has no text!", 5580797031L);
+                        + " But it has no text!", JA);
                 return "200";
             }
         }
@@ -194,14 +197,29 @@ private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 //                            get next not sent quiz from db
         Quiz quiz = quizService.getNextQuizToSendFromDb();
 //                            send quiz message
-        SentMessage sentQuizMessage = request.sendTelegramMessage(quiz.createMessage(566760042L));
+        SentMessage sentQuizMessage = request.sendTelegramMessage(quiz.createMessage(YASIA));
 //                            update quiz obj
         quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
         quiz.setDateSent(sentQuizMessage.getResult().getDate());
         quiz.setAnswer(null);
 //                            save updated quiz to db
         quizService.saveQuiz(quiz);
-        log.debug("Quiz "+quiz.getQuizId()+ "wyslany do Yasi!");
+        sendTelegramTextMessage("Quiz "+ quiz.getQuestion() +"wysłany", JA);
+        log.debug("Quiz "+quiz.getQuizId()+ " wyslany do Yasi!<<<<<<<<<");
+    }
+
+    public void sendQuizToMe(){
+        //                            get next not sent quiz from db
+        Quiz quiz = quizService.getNextQuizToSendFromDb();
+//                            send quiz message
+        SentMessage sentQuizMessage = request.sendTelegramMessage(quiz.createMessage(JA));
+//                            update quiz obj
+        quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
+        quiz.setDateSent(sentQuizMessage.getResult().getDate());
+        quiz.setAnswer(null);
+//                            save updated quiz to db
+        quizService.saveQuiz(quiz);
+        log.debug("Quiz "+quiz.getQuizId()+ " wyslany do mnie!<<<<<<");
     }
 
     private SentMessage sendTelegramTextMessage (String text, Long chatId){
