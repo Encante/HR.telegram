@@ -2,13 +2,13 @@ package net.ddns.encante.telegram.HR;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonParser;
 import net.ddns.encante.telegram.HR.Quiz.Quiz;
 import net.ddns.encante.telegram.HR.RemoteRequest.RemoteRequest;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.*;
+import net.ddns.encante.telegram.HR.persistence.repository.QuizRepository;
 import net.ddns.encante.telegram.HR.persistence.repository.WebhookUpdateRepository;
 import net.ddns.encante.telegram.HR.persistence.service.QuizService;
 import net.ddns.encante.telegram.HR.persistence.service.WebhookUpdateService;
@@ -37,15 +37,19 @@ private WebhookUpdateRepository webhookUpdateRepository;
 private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 private final Long JA = 5580797031L;
 private final Long YASIA = 566760042L;
+    @Autowired
+    private QuizRepository quizRepository;
 
-//        when receiving message:
+    //        when receiving message:
     @PostMapping("/HR4telegram")
-    public String postHandler(@RequestBody String content) {
+    public String postHandler(@RequestBody WebhookUpdate update) {
+//    public String postHandler(@RequestBody String content) {
 //        log incoming update
         log.debug("INCOMING WEBHOOK UPDATE BODY:");
-        log.debug(gson.toJson(JsonParser.parseString(content)));
+//        log.debug(gson.toJson(JsonParser.parseString(content)));
+        log.debug(gson.toJson(update));
 //        do WebhookUpdate object from JSON
-        WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class);
+//        WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class);
 //        store it in the DB
         webhookUpdateService.saveWebhookUpdate(update);
         //            check if it is callback
@@ -126,12 +130,11 @@ private final Long YASIA = 566760042L;
                                 request.sendTelegramMessage(quiz.createQuizMessageFromCommand(update));
                             }
                         }
-                        case "/testq" ->{
-                            sendQuizToMe();
-                        }
-                        case "/testqy" ->{
-                            sendQuizToYasia();
-                        }
+                        case "/testq" -> sendQuizToMe();
+
+                        case "/testqy" -> sendQuizToYasia();
+
+                        case "/hmql" -> sendTelegramTextMessage("Zostało "+quizRepository.findAllQuizEntitiesToSend().size()+" pytań.",JA);
                         case "/smk" -> {
                             String[] names = {"Reply", "she", "goes"};
                             request.sendTelegramMessage(new SendMessage()

@@ -2,6 +2,8 @@ package net.ddns.encante.telegram.HR.TelegramObjects;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import org.springframework.lang.NonNull;
 
@@ -9,9 +11,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 @Getter
+@Setter
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class InlineKeyboardMarkup {
-    @NonNull
     ArrayList<ArrayList<InlineKeyboardButton>> inline_keyboard;
     InlineKeyboardMarkup(KeyboardBuilder builder){
         this.inline_keyboard = builder.keyboardLayout;
