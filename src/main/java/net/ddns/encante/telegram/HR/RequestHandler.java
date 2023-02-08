@@ -2,6 +2,7 @@ package net.ddns.encante.telegram.HR;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParser;
 import net.ddns.encante.telegram.HR.Quiz.Quiz;
 import net.ddns.encante.telegram.HR.RemoteRequest.RemoteRequest;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
@@ -39,12 +40,12 @@ private final Long YASIA = 566760042L;
 
 //        when receiving message:
     @PostMapping("/HR4telegram")
-    public String postHandler(@RequestBody WebhookUpdate update) {
+    public String postHandler(@RequestBody String content) {
 //        log incoming update
         log.debug("INCOMING WEBHOOK UPDATE BODY:");
-        log.debug(gson.toJson(update));
+        log.debug(gson.toJson(JsonParser.parseString(content)));
 //        do WebhookUpdate object from JSON
-//        WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class);
+        WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class);
 //        store it in the DB
         webhookUpdateService.saveWebhookUpdate(update);
         //            check if it is callback
