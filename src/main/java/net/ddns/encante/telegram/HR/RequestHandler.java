@@ -214,6 +214,7 @@ private final Long YASIA = 566760042L;
     public void sendQuizToMe(){
         //                            get next not sent quiz from db
         Quiz quiz = quizService.getNextQuizToSendFromDb();
+        log.warn(quiz.getQuestion());
 //                            send quiz message
         SentMessage sentQuizMessage = request.sendTelegramMessage(quiz.createMessage(JA));
 //                            update quiz obj

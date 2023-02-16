@@ -3,6 +3,7 @@ package net.ddns.encante.telegram.HR.persistence.service;
 import net.ddns.encante.telegram.HR.Quiz.Quiz;
 import net.ddns.encante.telegram.HR.persistence.entities.QuizEntity;
 import net.ddns.encante.telegram.HR.persistence.repository.QuizRepository;
+import org.apache.commons.text.StringEscapeUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,7 +54,7 @@ public class QuizServiceImpl implements QuizService {
 //      CONVERT ENTITIES TO OBJECTS
 //
     private Quiz convertQuizEntityToObj(QuizEntity entity) {
-        Quiz obj = new Quiz(entity.getQuestion(),entity.getOptA(),entity.getOptB(),entity.getOptC(),entity.getOptD(),entity.getCorrectAnswer());
+        Quiz obj = new Quiz(StringEscapeUtils.escapeJava(entity.getQuestion()),entity.getOptA(),entity.getOptB(),entity.getOptC(),entity.getOptD(),entity.getCorrectAnswer());
         if(entity.getKeyId() != null)
             obj.setQuizId(entity.getKeyId());
         obj.setQuestion(entity.getQuestion());
@@ -77,7 +78,7 @@ public class QuizServiceImpl implements QuizService {
         QuizEntity entity = new QuizEntity();
         if(obj.getQuizId()!=null)
         entity.setKeyId(obj.getQuizId());
-        entity.setQuestion(obj.getQuestion());
+        entity.setQuestion(StringEscapeUtils.unescapeJava(obj.getQuestion()));
         if (obj.getWord() != null)
             entity.setWord(obj.getWord());
         entity.setOptA(obj.getOptA());
