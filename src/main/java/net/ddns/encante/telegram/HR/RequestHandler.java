@@ -100,14 +100,18 @@ private final Long YASIA = 566760042L;
                 if (update.getMessage().getText().charAt(0) == '/') {
                     String[] commands = update.getMessage().getText().split(" ");
                     switch (commands[0]) {
+//                        basic command to check if bot is running
                         case "/hi" -> sendTelegramTextMessage("Hello " + update.getMessage().getFrom().getFirst_name() + "!", update.getMessage().getFrom().getId());
+//                        send message through bot
                         case "/sm" -> {
                             if (commands.length < 3) {//command content validation
                                 sendBadCommandWarning();
                             } else {
+//                                send message to me - checking purposes
                                 if (commands[1].equalsIgnoreCase("m")) {
                                     sendTelegramTextMessage(update.getMessage().getText().substring(6),5580797031L);
                                 }
+//                                send message to Yas
                                 if (commands[1].equalsIgnoreCase("y")) {
                                     sendTelegramTextMessage(update.getMessage().getText().substring(6), 566760042L);
                                 }
