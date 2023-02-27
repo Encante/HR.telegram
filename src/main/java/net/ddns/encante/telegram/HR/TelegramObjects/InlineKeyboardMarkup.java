@@ -43,7 +43,7 @@ public class InlineKeyboardMarkup {
             this.rowx=new ArrayList<>();
             this.keyboardLayout =new ArrayList<>();
 //            check if there is suitable names for all buttons
-            if(rows*cols == names.size()) {
+            if(rows*cols <= names.size()) {
                 for (int i = 0; i < cols; i++) {
                     for (int j = 0; j < rows; j++) {
                         this.rowx.add(new InlineKeyboardButton(this.names.get(0)));

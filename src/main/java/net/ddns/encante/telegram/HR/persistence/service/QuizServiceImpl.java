@@ -58,10 +58,10 @@ public class QuizServiceImpl implements QuizService {
         if(entity.getKeyId() != null)
             obj.setQuizId(entity.getKeyId());
         obj.setQuestion(entity.getQuestion());
-        if (entity.getWord() != null)
-            obj.setWord(entity.getWord());
-        if(entity.getAnswer() != null)
-            obj.setAnswer(entity.getAnswer());
+        obj.setRetriesCount(entity.getRetriesCount());
+        obj.setAnswersLeft(entity.getAnswersLeft());
+        if(entity.getLastAnswer() != null)
+            obj.setLastAnswer(entity.getLastAnswer());
         obj.setSuccess(entity.getSuccess());
         if(entity.getDateSent()!=null)
             obj.setDateSent(entity.getDateSent());
@@ -79,15 +79,15 @@ public class QuizServiceImpl implements QuizService {
         if(obj.getQuizId()!=null)
         entity.setKeyId(obj.getQuizId());
         entity.setQuestion(StringEscapeUtils.unescapeJava(obj.getQuestion()));
-        if (obj.getWord() != null)
-            entity.setWord(obj.getWord());
+        entity.setRetriesCount(obj.getRetriesCount());
+        entity.setAnswersLeft(obj.getAnswersLeft());
         entity.setOptA(obj.getOptA());
         entity.setOptB(obj.getOptB());
         entity.setOptC(obj.getOptC());
         entity.setOptD(obj.getOptD());
         entity.setCorrectAnswer(obj.getCorrectAnswer());
-        if(obj.getAnswer()!=null)
-            entity.setAnswer(obj.getAnswer());
+        if(obj.getLastAnswer()!=null)
+            entity.setLastAnswer(obj.getLastAnswer());
         entity.setSuccess(obj.getSuccess());
         if (obj.getDateSent()!=null)
             entity.setDateSent(obj.getDateSent());

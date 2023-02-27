@@ -23,9 +23,12 @@ public class QuizEntity {
 //for persisting text content of each sent question
     @Column (name = "question")
     String question;
-//    for persisting/retrieving words to translate
-    @Column (name = "word")
-    String word;
+//    for counting wrong answers
+    @Column (name = "retries_count")
+    Integer retriesCount = 0;
+//    for building quizes with less answers to choose from
+    @Column (name = "answers_left")
+    Integer answersLeft = 4;
 //    options to choose from
     @Column (name = "opt_a")
     String optA;
@@ -37,8 +40,8 @@ public class QuizEntity {
     String optD;
     @Column (name = "correct_answer")
     String correctAnswer;
-    @Column (name = "answer")
-    String answer;
+    @Column (name = "last_answer")
+    String lastAnswer;
     @Column (name = "success")
     Boolean success;
     @Column (name = "date_sent")

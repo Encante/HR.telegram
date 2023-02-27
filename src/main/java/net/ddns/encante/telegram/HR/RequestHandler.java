@@ -35,7 +35,7 @@ private QuizService quizService;
 @Autowired
 private WebhookUpdateRepository webhookUpdateRepository;
 private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
-private final Long JA = 5580797031L;
+private final Long ME = 5580797031L;
 private final Long YASIA = 566760042L;
     @Autowired
     private QuizRepository quizRepository;
@@ -54,23 +54,30 @@ private final Long YASIA = 566760042L;
         webhookUpdateService.saveWebhookUpdate(update);
         //            check if it is callback
         if (update.getCallback_query() != null) {
-//            check if it is a quiz message callback
+            //        just little helpful var with chatID of who send msg
+            Long backToSender = update.getCallback_query().getMessage().getChat().getId();
+//            check if it is a quiz message callback and resolve quiz
             if(quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id())!=null){
                 Quiz quiz = quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id());
+
                 quizService.saveQuiz(quiz.resolveAnswer(update));
-                request.editTelegramMessage(new EditMessage(update.getCallback_query(), update.getCallback_query().getMessage().getText() + " Twoja odpowiedź: "+quiz.getAnswer()));
+
+                request.editTelegramMessage(new EditMessage(update.getCallback_query(), update.getCallback_query().getMessage().getText() + " Twoja odpowiedź: "+quiz.getLastAnswer()));
                 if (quiz.getSuccess() == true){
                     request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(),"Bardzo dobrze!",true));
-                    sendTelegramTextMessage("Dobra odpowiedź! ;)",update.getCallback_query().getMessage().getChat().getId());
-//                    send me an info about quiz
-                    sendTelegramTextMessage("Dobra odpowiedź w quizie: " + quiz.getQuestion(),JA);
+                    sendTelegramTextMessage("Dobra odpowiedź! ;)",backToSender);
                 }
                 else if (quiz.getSuccess() == false){
                     request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(),"Zła odpowiedź!",true));
-                    sendTelegramTextMessage("Niestety zła odpowiedź :(",update.getCallback_query().getMessage().getChat().getId());
+                        if (quiz.getAnswersLeft()<2) {
+                            sendTelegramTextMessage("Niestety zła odpowiedź :( Prawidłowa odpowiedź to: "+ quiz.getCorrectAnswer(), backToSender);
+                        }
+                        else {
+                            sendTelegramTextMessage("Niestety zła odpowiedź :(",backToSender);
+                        }
+                    }
                     //                    send me an info about quiz
-                    sendTelegramTextMessage("Zła odpowiedź w quizie: " + quiz.getQuestion()+" odpowiedź: "+quiz.getAnswer(),JA);
-                }
+                    sendQuizResultInfo(quiz,ME);
             }
             else {
 //            answer callback query
@@ -94,6 +101,8 @@ private final Long YASIA = 566760042L;
 
 //      check if have any message
         if (update.getMessage() != null) {
+            //        just little helpful var with chatID of who send msg
+            Long backToSender = update.getMessage().getChat().getId();
 //      check if incoming message have any text
             if (update.getMessage().getText() != null) {
 //        check if incoming message have any and if there is do commands:
@@ -122,7 +131,7 @@ private final Long YASIA = 566760042L;
                             request.sendTelegramMessage(new SendMessage()
                                     .setText("Inline message")
                                     .setReply_markup(new InlineKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
-                                    .setChat_id(update.getMessage().getChat().getId()));
+                                    .setChat_id(backToSender));
                         }
                         case "/smq" -> {
                             if (commands.length<6){
@@ -138,18 +147,18 @@ private final Long YASIA = 566760042L;
 
                         case "/testqy" -> sendQuizToYasia();
 
-                        case "/hmql" -> sendTelegramTextMessage("Zostało "+quizRepository.findAllQuizEntitiesToSend().size()+" pytań.",JA);
+                        case "/hmql" -> sendTelegramTextMessage("Zostało "+quizRepository.findAllQuizEntitiesToSend().size()+" pytań.", ME);
                         case "/smk" -> {
                             String[] names = {"Reply", "she", "goes"};
                             request.sendTelegramMessage(new SendMessage()
                                     .setText("Message with keyboard")
                                     .setReply_markup(new ReplyKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
-                                    .setChat_id(update.getMessage().getChat().getId()));
+                                    .setChat_id(backToSender));
                         }
                         case "/rmk" -> {
                             request.sendTelegramMessage(new SendMessage()
                                     .setText("Keyboard removed! Have fun you little shmuck ;)")
-                                    .setChat_id(update.getMessage().getChat().getId())
+                                    .setChat_id(backToSender)
                                     .setReply_markup(new ReplyKeyboardRemove()));
                         }
                         case "/searchUserById" -> {
@@ -163,7 +172,7 @@ private final Long YASIA = 566760042L;
                     }
                 }
                 //        if not from me, send message to me
-                if (update.getMessage().getFrom().getId().equals(JA)) {
+                if (update.getMessage().getFrom().getId().equals(ME)) {
                     log.debug("Wiadomość ode mnie.");
                 }
                 else {
@@ -173,9 +182,9 @@ private final Long YASIA = 566760042L;
                             + " "
                             + update.getMessage().getFrom().getLast_name()
                             + "  CHAT ID: "
-                            + update.getMessage().getChat().getId()
+                            + backToSender
                             + "  CONTENT: "
-                            + update.getMessage().getText(),JA);
+                            + update.getMessage().getText(), ME);
                 }
                 return "200";
             } else {
@@ -186,8 +195,8 @@ private final Long YASIA = 566760042L;
                         + " "
                         + update.getMessage().getFrom().getLast_name()
                         + "  CHAT ID: "
-                        + update.getMessage().getChat().getId()
-                        + " But it has no text!", JA);
+                        + backToSender
+                        + " But it has no text!", ME);
                 return "200";
             }
         }
@@ -208,28 +217,29 @@ private final Long YASIA = 566760042L;
 //                            update quiz obj
         quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
         quiz.setDateSent(sentQuizMessage.getResult().getDate());
-        quiz.setAnswer(null);
+        quiz.setLastAnswer(null);
 //                            save updated quiz to db
         quizService.saveQuiz(quiz);
-        sendTelegramTextMessage("Quiz "+ quiz.getQuestion() +"wysłany", JA);
+        sendTelegramTextMessage("Quiz "+ quiz.getQuestion() +"wysłany", ME);
         log.debug("Quiz "+quiz.getQuizId()+ " wyslany do Yasi!<<<<<<<<<");
     }
 
     public void sendQuizToMe(){
         //                            get next not sent quiz from db
         Quiz quiz = quizService.getNextQuizToSendFromDb();
-        log.warn(quiz.getQuestion());
 //                            send quiz message
-        SentMessage sentQuizMessage = request.sendTelegramMessage(quiz.createMessage(JA));
+        SentMessage sentQuizMessage = request.sendTelegramMessage(quiz.createMessage(ME));
 //                            update quiz obj
         quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
         quiz.setDateSent(sentQuizMessage.getResult().getDate());
-        quiz.setAnswer(null);
+        quiz.setLastAnswer(null);
 //                            save updated quiz to db
         quizService.saveQuiz(quiz);
         log.debug("Quiz "+quiz.getQuizId()+ " wyslany do mnie!<<<<<<");
     }
-
+//
+//
+//
     private SentMessage sendTelegramTextMessage (String text, Long chatId){
         return request.sendTelegramMessage(new SendMessage()
                 .setText(text)
@@ -237,5 +247,14 @@ private final Long YASIA = 566760042L;
     }
     private SentMessage sendBadCommandWarning (){
         return sendTelegramTextMessage("WARNING! BAD COMMAND!", 5580797031L);
+    }
+    private void sendQuizResultInfo(Quiz quiz, Long whoTo){
+        if (quiz.getSuccess() == true){
+//            String msg = "Dobra odpowiedź"
+//            sendTelegramTextMessage(StringEscapeUtils.escapeJava()"Dobra odpowiedź!")
+            sendTelegramTextMessage("Dobra odpowiedź na pytanie: " + quiz.getQuestion(), whoTo);
+        } else if (quiz.getSuccess() == false) {
+            sendTelegramTextMessage("Zła odpowiedź na pytanie: " + quiz.getQuestion() + " Odpowiedź: " + quiz.getLastAnswer(),whoTo);
+        }
     }
 }
