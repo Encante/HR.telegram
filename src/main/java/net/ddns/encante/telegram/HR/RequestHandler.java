@@ -59,24 +59,15 @@ private final Long YASIA = 566760042L;
 //            check if it is a quiz message callback and resolve quiz
             if(quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id())!=null){
                 Quiz quiz = quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id());
-
+//              actually resolve answer
                 quizService.saveQuiz(quiz.resolveAnswer(update));
-
-                request.editTelegramMessage(new EditMessage(update.getCallback_query(), update.getCallback_query().getMessage().getText() + " Twoja odpowiedź: "+quiz.getLastAnswer()));
-                if (quiz.getSuccess() == true){
-                    request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(),"Bardzo dobrze!",true));
-                    sendTelegramTextMessage("Dobra odpowiedź! ;)",backToSender);
-                }
-                else if (quiz.getSuccess() == false){
-                    request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(),"Zła odpowiedź!",true));
-                        if (quiz.getAnswersLeft()<2) {
-                            sendTelegramTextMessage("Niestety zła odpowiedź :( Prawidłowa odpowiedź to: "+ quiz.getCorrectAnswer(), backToSender);
-                        }
-                        else {
-                            sendTelegramTextMessage("Niestety zła odpowiedź :(",backToSender);
-                        }
-                    }
-                    //                    send me an info about quiz
+//              edit message: add answer
+                request.editTelegramMessage(new EditMessage(update.getCallback_query(), update.getCallback_query().getMessage().getText() +" Twoja odpowiedź: "+quiz.getLastAnswer()));
+//                add popup message with response to answer
+                request.answerCallbackQuery(quiz.getReactionForAnswerCallback());
+//                send reply to message with answer
+                request.sendTelegramMessage(quiz.getReactionForAnswerMessage());
+//                    send me an info about quiz
                     sendQuizResultInfo(quiz,ME);
             }
             else {
@@ -220,7 +211,7 @@ private final Long YASIA = 566760042L;
         quiz.setLastAnswer(null);
 //                            save updated quiz to db
         quizService.saveQuiz(quiz);
-        sendTelegramTextMessage("Quiz "+ quiz.getQuestion() +"wysłany", ME);
+        sendTelegramTextMessage("Quiz "+ quiz.getQuestion() +" wysłany", ME);
         log.debug("Quiz "+quiz.getQuizId()+ " wyslany do Yasi!<<<<<<<<<");
     }
 

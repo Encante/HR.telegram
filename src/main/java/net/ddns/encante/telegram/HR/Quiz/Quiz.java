@@ -4,6 +4,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
@@ -32,6 +33,9 @@ public class Quiz {
     Long dateSent;
     Long dateAnswered;
     Long messageId;
+//    for resolving answer only, wont be saved to db
+    AnswerCallbackQuery reactionForAnswerCallback;
+    SendMessage reactionForAnswerMessage;
 
     public Quiz (String question, String optA, String optB, String optC, String optD, String correctAnswer){
         this.question = question;
@@ -80,12 +84,21 @@ public class Quiz {
         this.lastAnswer = update.getCallback_query().getData();
 
 //        actual check
-        if (this.lastAnswer.equals(this.correctAnswer))
+        if (this.lastAnswer.equals(this.correctAnswer)){
                 this.success = true;
+//                react for answer
+                this.reactionForAnswerCallback = new AnswerCallbackQuery(update.getCallback_query().getId(),"Bardzo dobrze!",true);
+                this.reactionForAnswerMessage = new SendMessage()
+                        .setText("Dobra odpowiedź! ;)")
+                        .setReply_to_message_id(update.getCallback_query().getMessage().getMessage_id())
+                        .setChat_id(update.getCallback_query().getMessage().getChat().getId());
+        }
         else {
             this.success = false;
             this.answersLeft--;
             this.retriesCount++;
+            this.reactionForAnswerCallback = new AnswerCallbackQuery(update.getCallback_query().getId(),"Zła odpowiedź!",true);
+
 //            check if it isn't last answer
             if (this.answersLeft>1) {
 //                randomize answers and set used on last places
@@ -111,6 +124,18 @@ public class Quiz {
                 this.optB = answers.get(1);
                 this.optC = answers.get(2);
                 this.optD = answers.get(3);
+//
+//                react for answer
+                this.reactionForAnswerMessage = new SendMessage()
+                        .setText("Niestety zła odpowiedź :(")
+                        .setReply_to_message_id(update.getCallback_query().getMessage().getMessage_id())
+                        .setChat_id(update.getCallback_query().getMessage().getChat().getId());
+            }
+            else {
+                this.reactionForAnswerMessage = new SendMessage()
+                        .setText("Niestety zła odpowiedź :( Prawidłowa odpowiedź to: "+ this.correctAnswer)
+                        .setReply_to_message_id(update.getCallback_query().getMessage().getMessage_id())
+                        .setChat_id(update.getCallback_query().getMessage().getChat().getId());
             }
         }
         return this;
