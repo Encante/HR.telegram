@@ -10,6 +10,7 @@ import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.*;
 import net.ddns.encante.telegram.HR.persistence.repository.QuizRepository;
 import net.ddns.encante.telegram.HR.persistence.repository.WebhookUpdateRepository;
+import net.ddns.encante.telegram.HR.persistence.service.HueTokensService;
 import net.ddns.encante.telegram.HR.persistence.service.QuizService;
 import net.ddns.encante.telegram.HR.persistence.service.WebhookUpdateService;
 import org.slf4j.Logger;
@@ -17,9 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 
@@ -32,18 +31,20 @@ RemoteRequest request;
 private WebhookUpdateService webhookUpdateService;
 @Resource(name = "quizService")
 private QuizService quizService;
+@Resource(name = "hueTokensService")
+private HueTokensService hueTokensService;
 @Autowired
 private WebhookUpdateRepository webhookUpdateRepository;
+@Autowired
+private QuizRepository quizRepository;
 private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 private final Long ME = 5580797031L;
 private final Long YASIA = 566760042L;
-    @Autowired
-    private QuizRepository quizRepository;
+
 
     //        when receiving message:
     @PostMapping("/HR4telegram")
     public String postHandler(@RequestBody WebhookUpdate update) {
-//    public String postHandler(@RequestBody String content) {
 //        log incoming update
         log.debug("INCOMING WEBHOOK UPDATE BODY:");
 //        log.debug(gson.toJson(JsonParser.parseString(content)));
@@ -102,7 +103,7 @@ private final Long YASIA = 566760042L;
                     switch (commands[0]) {
 //                        basic command to check if bot is running
                         case "/hi" -> greet(update.getMessage().getFrom());
-                        case "/start" -> greetFirst(update.getMessage().getFrom());
+                        case "/start" -> greetFirstTime(update.getMessage().getFrom());
 //                        send message through bot
                         case "/sm" -> {
                             if (commands.length < 3) {//command content validation
@@ -167,6 +168,7 @@ private final Long YASIA = 566760042L;
                                 else sendTelegramTextMessage("User with id " + commands[1] + " not in DB!",update.getMessage().getFrom().getId());
                             }
                         }
+
                     }
                 }
                 //        if not from me, send message to me
@@ -200,6 +202,13 @@ private final Long YASIA = 566760042L;
         }
 //        update not contains message object
         else return "not a message";
+    }
+
+    @GetMapping("/hue/code")
+    public void hueTokensCreator(@RequestParam String code){
+        log.debug("New Hue code retrieved: "+code);
+        sendTelegramTextMessage("New Hue code retrieved: "+code, ME);
+        request.
     }
 //
 //    sending Quiz on schedule
@@ -251,7 +260,7 @@ private final Long YASIA = 566760042L;
 //
 //
 //
-    private SentMessage greetFirst (User whoToGreet){
+    private SentMessage greetFirstTime(User whoToGreet){
         if (whoToGreet.getLast_name() != null){
             return sendTelegramTextMessage("Hello "+ whoToGreet.getFirst_name() + " " + whoToGreet.getLast_name() + "! Nice to see you! Hope You'll have a good time =]", whoToGreet.getId());
         }

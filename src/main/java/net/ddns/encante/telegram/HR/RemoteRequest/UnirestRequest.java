@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
+import net.ddns.encante.telegram.HR.Hue.HueAuthorization;
+import net.ddns.encante.telegram.HR.Hue.HueTokens;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
@@ -23,14 +25,6 @@ public class UnirestRequest implements RemoteRequest{
     private HttpResponse<JsonNode> response;
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    public void answerCallbackQuery(AnswerCallbackQuery answer){
-        this.response = Unirest.post(API_URL+"/answerCallbackQuery")
-                .header("Content-Type", "application/json")
-                .body(gson.toJson(answer))
-                .asJson();
-        log.debug("BODY SENT BY answerCallbackQuery : "+gson.toJson(answer));
-        log.debug(printResponse("answerCallbackQuery"));
-    }
     public SentMessage sendTelegramMessage(SendMessage message){
     this.response = Unirest.post(SEND_MESSAGE_URL)
             .header("Content-Type", "application/json")
@@ -48,7 +42,16 @@ public class UnirestRequest implements RemoteRequest{
             log.debug("BODY SENT by editTelegramMessage: "+gson.toJson(message));
             log.debug(printResponse("editTelegramMessage"));
         return gson.fromJson(response.getBody().toString(),SentMessage.class);
-}
+    }
+    public void answerCallbackQuery(AnswerCallbackQuery answer){
+        this.response = Unirest.post(API_URL+"/answerCallbackQuery")
+                .header("Content-Type", "application/json")
+                .body(gson.toJson(answer))
+                .asJson();
+        log.debug("BODY SENT BY answerCallbackQuery : "+gson.toJson(answer));
+        log.debug(printResponse("answerCallbackQuery"));
+    }
+    public HueTokens getHueTokens (HueAuthorization authorization)
     private String printResponse(String invoker){
         return invoker+" RESPONSE STATUS: \r\n" + response.getStatus()
                 + " "
