@@ -101,7 +101,8 @@ private final Long YASIA = 566760042L;
                     String[] commands = update.getMessage().getText().split(" ");
                     switch (commands[0]) {
 //                        basic command to check if bot is running
-                        case "/hi" -> sendTelegramTextMessage("Hello " + update.getMessage().getFrom().getFirst_name() + "!", update.getMessage().getFrom().getId());
+                        case "/hi" -> greet(update.getMessage().getFrom());
+                        case "/start" -> greetFirst(update.getMessage().getFrom());
 //                        send message through bot
                         case "/sm" -> {
                             if (commands.length < 3) {//command content validation
@@ -109,11 +110,11 @@ private final Long YASIA = 566760042L;
                             } else {
 //                                send message to me - checking purposes
                                 if (commands[1].equalsIgnoreCase("m")) {
-                                    sendTelegramTextMessage(update.getMessage().getText().substring(6),5580797031L);
+                                    sendTelegramTextMessage(update.getMessage().getText().substring(6),ME);
                                 }
 //                                send message to Yas
                                 if (commands[1].equalsIgnoreCase("y")) {
-                                    sendTelegramTextMessage(update.getMessage().getText().substring(6), 566760042L);
+                                    sendTelegramTextMessage(update.getMessage().getText().substring(6), YASIA);
                                 }
                             }
                         }
@@ -134,9 +135,15 @@ private final Long YASIA = 566760042L;
                                 request.sendTelegramMessage(quiz.createQuizMessageFromCommand(update));
                             }
                         }
-                        case "/testq" -> sendQuizToMe();
+                        case "/quizme" -> sendQuizToMe();
 
-                        case "/testqy" -> sendQuizToYasia();
+                        case "/quizyas" -> sendQuizToYasia();
+                        case "/quizid" -> {
+                            if (commands.length < 2) sendBadCommandWarning();
+                            else{
+                                sendQuizToId(Long.decode(commands[1]));
+                            }
+                        }
 
                         case "/hmql" -> sendTelegramTextMessage("Zostało "+quizRepository.findAllQuizEntitiesToSend().size()+" pytań.", ME);
                         case "/smk" -> {
@@ -228,9 +235,38 @@ private final Long YASIA = 566760042L;
         quizService.saveQuiz(quiz);
         log.debug("Quiz "+quiz.getQuizId()+ " wyslany do mnie!<<<<<<");
     }
+    public void sendQuizToId (Long chatId){
+        //                            get next not sent quiz from db
+        Quiz quiz = quizService.getNextQuizToSendFromDb();
+//                            send quiz message
+        SentMessage sentQuizMessage = request.sendTelegramMessage(quiz.createMessage(chatId));
+//                            update quiz obj
+        quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
+        quiz.setDateSent(sentQuizMessage.getResult().getDate());
+        quiz.setLastAnswer(null);
+//                            save updated quiz to db
+        quizService.saveQuiz(quiz);
+        log.debug("Quiz "+quiz.getQuizId()+ " wyslany do chatId "+chatId+" <<<<<<");
+    }
 //
 //
 //
+    private SentMessage greetFirst (User whoToGreet){
+        if (whoToGreet.getLast_name() != null){
+            return sendTelegramTextMessage("Hello "+ whoToGreet.getFirst_name() + " " + whoToGreet.getLast_name() + "! Nice to see you! Hope You'll have a good time =]", whoToGreet.getId());
+        }
+        else {
+            return sendTelegramTextMessage("Hello "+ whoToGreet.getFirst_name() + "! Nice to see you! Hope You'll have a good time =]", whoToGreet.getId());
+        }
+    }
+    private SentMessage greet (User whoToGreet){
+        if (whoToGreet.getLast_name() != null){
+            return sendTelegramTextMessage("Hey "+ whoToGreet.getFirst_name() + " " + whoToGreet.getLast_name() + "! Have a nice day =]", whoToGreet.getId());
+        }
+        else {
+            return sendTelegramTextMessage("Hello "+ whoToGreet.getFirst_name() + "! Have a nice day =]", whoToGreet.getId());
+        }
+    }
     private SentMessage sendTelegramTextMessage (String text, Long chatId){
         return request.sendTelegramMessage(new SendMessage()
                 .setText(text)
