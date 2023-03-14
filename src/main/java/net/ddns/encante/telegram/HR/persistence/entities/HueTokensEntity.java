@@ -1,7 +1,5 @@
 package net.ddns.encante.telegram.HR.persistence.entities;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -28,6 +26,4 @@ public class HueTokensEntity {
     String refreshToken;
     @Column(name = "token_type")
     String tokenType;
-    @Column(name = "bearer")
-    String bearer;
 }
