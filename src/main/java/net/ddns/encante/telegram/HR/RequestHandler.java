@@ -10,7 +10,7 @@ import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.*;
 import net.ddns.encante.telegram.HR.persistence.repository.QuizRepository;
 import net.ddns.encante.telegram.HR.persistence.repository.WebhookUpdateRepository;
-import net.ddns.encante.telegram.HR.persistence.service.HueTokensService;
+import net.ddns.encante.telegram.HR.persistence.service.HueAuthorizationService;
 import net.ddns.encante.telegram.HR.persistence.service.QuizService;
 import net.ddns.encante.telegram.HR.persistence.service.WebhookUpdateService;
 import org.slf4j.Logger;
@@ -32,7 +32,7 @@ private WebhookUpdateService webhookUpdateService;
 @Resource(name = "quizService")
 private QuizService quizService;
 @Resource(name = "hueTokensService")
-private HueTokensService hueTokensService;
+private HueAuthorizationService hueAuthorizationService;
 @Autowired
 private WebhookUpdateRepository webhookUpdateRepository;
 @Autowired
@@ -208,7 +208,7 @@ private final Long YASIA = 566760042L;
     public void hueTokensCreator(@RequestParam String code){
         log.debug("New Hue code retrieved: "+code);
         sendTelegramTextMessage("New Hue code retrieved: "+code, ME);
-        request.
+//        request.
     }
 //
 //    sending Quiz on schedule
