@@ -28,4 +28,11 @@ public class HueAuthorizationServiceImpl implements HueAuthorizationService{
         }
         else return null;
     }
+    @Override
+    public HueAuthorizationEntity getAuthorizationForState(String state){
+        if (repository.findByState(state)!=null){
+            return repository.findByState(state);
+        }
+        else return null;
+    }
 }

@@ -19,10 +19,10 @@ public class HueTokens {
     private String tokenType;
     private String bearer;
 
-    public HueTokens(String accessToken, Long expiresIn, String refreshToken, String tokenType) {
-        this.accessToken = accessToken;
-        this.expiresIn = expiresIn;
-        this.refreshToken = refreshToken;
-        this.tokenType = tokenType;
-    }
+//    public HueTokens(String accessToken, Long expiresIn, String refreshToken, String tokenType) {
+//        this.accessToken = accessToken;
+//        this.expiresIn = expiresIn;
+//        this.refreshToken = refreshToken;
+//        this.tokenType = tokenType;
+//    }
 }

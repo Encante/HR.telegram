@@ -8,7 +8,7 @@ import lombok.experimental.FieldDefaults;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "Hue_Tokens")
+@Table(name = "hue_tokens")
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)

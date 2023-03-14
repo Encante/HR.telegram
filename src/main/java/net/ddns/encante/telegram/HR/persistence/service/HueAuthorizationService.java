@@ -6,4 +6,6 @@ public interface HueAuthorizationService {
     HueAuthorizationEntity saveAuthorization(HueAuthorizationEntity authorization);
     HueAuthorizationEntity getAuthorization();
     HueAuthorizationEntity getAuthorizationForDisplayName(String displayName);
+    HueAuthorizationEntity getAuthorizationForState(String state);
+
 }

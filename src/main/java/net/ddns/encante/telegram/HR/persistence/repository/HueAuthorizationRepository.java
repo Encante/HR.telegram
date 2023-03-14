@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository;
 public interface HueAuthorizationRepository extends JpaRepository<HueAuthorizationEntity, Long> {
     HueAuthorizationEntity findFirstByOrderByKeyIdAsc();
     HueAuthorizationEntity findByDisplayName(String displayName);
+    HueAuthorizationEntity findByState(String state);
 }

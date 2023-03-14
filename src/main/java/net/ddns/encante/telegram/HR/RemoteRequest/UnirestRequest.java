@@ -5,12 +5,12 @@ import com.google.gson.GsonBuilder;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
-import net.ddns.encante.telegram.HR.Hue.HueAuthorization;
 import net.ddns.encante.telegram.HR.Hue.HueTokens;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.SentMessage;
+import net.ddns.encante.telegram.HR.persistence.entities.HueAuthorizationEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -51,7 +51,7 @@ public class UnirestRequest implements RemoteRequest{
         log.debug("BODY SENT BY answerCallbackQuery : "+gson.toJson(answer));
         log.debug(printResponse("answerCallbackQuery"));
     }
-    public HueTokens getHueTokens (HueAuthorization authorization)
+//    public HueTokens getHueTokens (HueAuthorizationEntity authorization)
     private String printResponse(String invoker){
         return invoker+" RESPONSE STATUS: \r\n" + response.getStatus()
                 + " "

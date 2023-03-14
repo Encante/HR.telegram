@@ -8,6 +8,7 @@ import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.*;
+import net.ddns.encante.telegram.HR.persistence.entities.HueAuthorizationEntity;
 import net.ddns.encante.telegram.HR.persistence.repository.QuizRepository;
 import net.ddns.encante.telegram.HR.persistence.repository.WebhookUpdateRepository;
 import net.ddns.encante.telegram.HR.persistence.service.HueAuthorizationService;
@@ -31,7 +32,7 @@ RemoteRequest request;
 private WebhookUpdateService webhookUpdateService;
 @Resource(name = "quizService")
 private QuizService quizService;
-@Resource(name = "hueTokensService")
+@Resource(name = "hueAuthorizationService")
 private HueAuthorizationService hueAuthorizationService;
 @Autowired
 private WebhookUpdateRepository webhookUpdateRepository;
@@ -40,6 +41,7 @@ private QuizRepository quizRepository;
 private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 private final Long ME = 5580797031L;
 private final Long YASIA = 566760042L;
+private final Long CHOMIK = 6182762959L;
 
 
     //        when receiving message:
@@ -117,6 +119,9 @@ private final Long YASIA = 566760042L;
                                 if (commands[1].equalsIgnoreCase("y")) {
                                     sendTelegramTextMessage(update.getMessage().getText().substring(6), YASIA);
                                 }
+                                if (commands[1].equalsIgnoreCase("c")){
+                                    sendTelegramTextMessage(update.getMessage().getText().substring(6), CHOMIK);
+                                }
                             }
                         }
                         case "/smi" -> {
@@ -168,7 +173,17 @@ private final Long YASIA = 566760042L;
                                 else sendTelegramTextMessage("User with id " + commands[1] + " not in DB!",update.getMessage().getFrom().getId());
                             }
                         }
-
+                        case "/hue" -> {
+                            if (commands.length > 2) {
+                                if (commands[1].equalsIgnoreCase("link")){
+                                    HueAuthorizationEntity authorization = new HueAuthorizationEntity();
+                                    authorization.setClientId(commands[2]);
+                                    sendTelegramTextMessage(authorization.generateAuthorizationLink(),backToSender);
+                                    hueAuthorizationService.saveAuthorization(authorization);
+                                }
+                            }
+                            else sendBadCommandWarning();
+                        }
                     }
                 }
                 //        if not from me, send message to me
@@ -205,10 +220,13 @@ private final Long YASIA = 566760042L;
     }
 
     @GetMapping("/hue/code")
-    public void hueTokensCreator(@RequestParam String code){
+    public void hueTokensCreator(@RequestParam String code, @RequestParam String state){
         log.debug("New Hue code retrieved: "+code);
         sendTelegramTextMessage("New Hue code retrieved: "+code, ME);
-//        request.
+        HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForState(state);
+        authorization.setCode(code);
+        hueAuthorizationService.saveAuthorization(authorization);
+        sendTelegramTextMessage("Authorization state "+authorization.getState()+" code: "+authorization.getCode()+" clientId: "+authorization.getClientId(), ME);
     }
 //
 //    sending Quiz on schedule
