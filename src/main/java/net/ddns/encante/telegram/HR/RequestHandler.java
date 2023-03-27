@@ -187,7 +187,7 @@ private final Long CHOMIK = 6182762959L;
                                 if (commands[1].equalsIgnoreCase("tokens")) {
                                     if (hueAuthorizationService.getAuthorizationForDisplayName(commands[2]) != null) {
                                         HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
-                                        hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(request.requestHueTokens(authorization));
+                                        hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(request.requestHueAuthentication(authorization));
                                         sendTelegramTextMessage("Tokens retrieved! App " + authorization.getDisplayName() + "authenticated!", backToSender);
                                     }
                                 }
@@ -243,8 +243,9 @@ private final Long CHOMIK = 6182762959L;
         if (hueAuthorizationService.getAuthorizationForState(state)!= null) {
             HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForState(state);
             authorization.setCode(code);
-            hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(request.requestHueTokens(authorization));
+            hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(request.requestHueAuthentication(authorization));
             sendTelegramTextMessage("Tokens retrieved! App " + authorization.getDisplayName() + " authorized!", ME);
+//            Now is the time to press the button message
         }else sendTelegramTextMessage("ERROR! There is no authorization for such state! Try again.",ME);
     }
 //

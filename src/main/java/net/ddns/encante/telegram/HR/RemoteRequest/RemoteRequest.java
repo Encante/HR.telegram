@@ -10,7 +10,8 @@ public interface RemoteRequest {
     SentMessage sendTelegramMessage(SendMessage message);
     SentMessage editTelegramMessage(EditMessage message);
     void answerCallbackQuery(AnswerCallbackQuery answer);
-    HueAuthorizationEntity requestHueTokens (HueAuthorizationEntity authorization);
+    HueAuthorizationEntity requestHueAuthentication(HueAuthorizationEntity authorization);
+    HueAuthorizationEntity finalizeHueAuthorization (HueAuthorizationEntity authorization);
 //    HttpResponse<JsonNode> TESTrequestHueTokens (HueAuthorizationEntity authorization);
 //    HueTokens getHueTokens (HueAuthorizationEntity authorization);
 

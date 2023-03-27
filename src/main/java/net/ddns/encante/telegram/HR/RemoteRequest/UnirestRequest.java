@@ -68,19 +68,56 @@ public class UnirestRequest implements RemoteRequest{
 //                .asJson();
 //        return response;
 //    }
-    public HueAuthorizationEntity requestHueTokens (HueAuthorizationEntity authorization){
-        String credentials = authorization.getClientId()+":"+authorization.getClientSecret();
-        String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
-                this.response = Unirest.post
-                        (HUE_OAUTH_URL+"/token")
-                        .header("Content-Type", "application/x-www-form-urlencoded")
-                        .header("Authorization", "Basic "+encodedCredentials)
-                        .body("grant_type=authorization_code&code="+authorization.getCode())
+    public HueAuthorizationEntity requestHueAuthentication(HueAuthorizationEntity authorization){
+//        first part: we exchange :code, clientId, clientSecret we got in authentication for authentication tokens
+        if (authorization.getClientId() == null || authorization.getClientSecret() == null || authorization.getCode() == null){
+            log.warn("Part of Authorization missing! Check authorization in DB!");
+            throw new RuntimeException("Part of Authorization missing! Check authorization in DB!");
+        }else {
+            String credentials = authorization.getClientId() + ":" + authorization.getClientSecret();
+            String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+            this.response = Unirest.post
+                            (HUE_OAUTH_URL + "/token")
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .header("Authorization", "Basic " + encodedCredentials)
+                    .body("grant_type=authorization_code&code=" + authorization.getCode())
+                    .asJson();
+            HueTokensEntity tokensEntity = gson.fromJson(response.getBody().toString(), HueTokensEntity.class);
+            authorization.setTokens(tokensEntity);
+            if (authorization.getTokens().getAccess_token() != null && authorization.getDisplayName() != null) {
+                this.response = Unirest.put(HUE_API_URL + "/api/0/config")
+                        .header("Authorization", "Bearer " + authorization.getTokens().getAccess_token())
+                        .header("Content-Type", "application/json")
+                        .body("{\"linkbutton\":true}")
                         .asJson();
-                HueTokensEntity tokensEntity = gson.fromJson(response.getBody().toString(), HueTokensEntity.class);
-                authorization.setTokens(tokensEntity);
+                if (response.getStatus()==200){
+                    this.response = Unirest.post(HUE_API_URL+"/api")
+                            .header("Authorization", "Bearer " + authorization.getTokens().getAccess_token())
+                            .header("Content-Type", "application/json")
+                            .body("{\"devicetype\":\""+authorization.getDisplayName()+"\"}")
+                            .asJson();
+//                    obsluzyc JSON[
+//    {
+//        "success": {
+//            "username": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+//        }
+//    }
+//]
+                }
+            } else if (authorization.getTokens().getAccess_token() == null) {
+                log.warn("Authorization token empty!");
+                throw new RuntimeException("Authorization token empty!");
+            } else {
+                log.warn("No display name set for app!");
+                throw new RuntimeException("No display name set for app!");
+            }
+        }
                 return authorization;
     }
+
+    HueAuthorizationEntity finalizeHueAuthorization (HueAuthorizationEntity authorization){
+
+    };
 
 //    public HueTokens getHueTokens (HueAuthorizationEntity authorization)
     private String printResponse(String invoker){

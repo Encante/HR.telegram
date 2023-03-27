@@ -19,6 +19,8 @@ public class HueAuthorizationEntity {
 
     @Column(name = "app_id")
     String appId;
+    @Column(name = "username")
+    String username;
     @Column(name = "client_id")
     String clientId;
     @Column(name = "client_secret")
@@ -49,6 +51,7 @@ public class HueAuthorizationEntity {
                     .toString();
             this.code=null;
             this.tokens = null;
+            this.username = null;
             return "https://api.meethue.com/v2/oauth2/authorize?client_id=" + this.clientId+
             "&response_type=code&state=" + this.state;
         }
@@ -99,6 +102,11 @@ public class HueAuthorizationEntity {
 
     public void setTokens(HueTokensEntity tokens) {
         if (tokens != null)
-        this.tokens = tokens;
+            this.tokens = tokens;
+    }
+
+    public void setUsername(String username) {
+        if (tokens != null)
+            this.username = username;
     }
 }
