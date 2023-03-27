@@ -9,4 +9,5 @@ public interface HueAuthorizationRepository extends JpaRepository<HueAuthorizati
     HueAuthorizationEntity findFirstByOrderByKeyIdAsc();
     HueAuthorizationEntity findByDisplayName(String displayName);
     HueAuthorizationEntity findByState(String state);
+    HueAuthorizationEntity findByClientId (String clientId);
 }

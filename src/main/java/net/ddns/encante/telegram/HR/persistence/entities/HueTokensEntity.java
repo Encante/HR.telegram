@@ -12,18 +12,19 @@ import javax.persistence.*;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
+//@JsonNaming(PropertyNamingStrategy.)
 public class HueTokensEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "key_id")
-    Long keyId;
+    Long key_id;
 
     @Column(name = "access_token")
-    String accessToken;
+    String access_token;
     @Column(name = "expires_in")
-    Long expiresIn;
+    Long expires_in;
     @Column(name = "refresh_token")
-    String refreshToken;
+    String refresh_token;
     @Column(name = "token_type")
-    String tokenType;
+    String token_type;
 }

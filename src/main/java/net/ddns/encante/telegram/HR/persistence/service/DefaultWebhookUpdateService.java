@@ -34,10 +34,13 @@ public class DefaultWebhookUpdateService implements WebhookUpdateService {
 //    CHECK DB FOR EXISTING RECORDS METHODS
 //
     private WebhookUpdateEntity checkDbForExistingWebhookUpdates (WebhookUpdateEntity update){
+//        if there is update with this id in base simply return existing record
         if (updateRepository.findWebhookUpdateEntityByEntityId(update.getUpdateId()) != null)
             return updateRepository.findWebhookUpdateEntityByEntityId(update.getUpdateId());
+//        if not check other parts of update - message
         else {
             if (update.getMessage() != null) update.setMessage(checkDbForExistingMessages(update.getMessage()));
+//        if not check other parts of update - callback query
             if (update.getCallbackQuery() != null) update.setCallbackQuery(checkDbForExistingCallbackQueries(update.getCallbackQuery()));
             return update;
         }

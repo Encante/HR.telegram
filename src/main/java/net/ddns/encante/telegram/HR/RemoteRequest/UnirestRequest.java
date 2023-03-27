@@ -5,21 +5,26 @@ import com.google.gson.GsonBuilder;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
-import net.ddns.encante.telegram.HR.Hue.HueTokens;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.SentMessage;
 import net.ddns.encante.telegram.HR.persistence.entities.HueAuthorizationEntity;
+import net.ddns.encante.telegram.HR.persistence.entities.HueTokensEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 @Component
 public class UnirestRequest implements RemoteRequest{
     private static final Logger log = LoggerFactory.getLogger("net.ddns.encante.telegram.HR.RemoteRequest");
     private final String BOT_TOKEN = "XXX";
-    private final String API_URL = "https://api.telegram.org/bot"+ BOT_TOKEN;
+    private final String HUE_API_URL = "https://api.meethue.com/route";
+    private final String HUE_OAUTH_URL = "https://api.meethue.com/v2/oauth2";
+    private final String TELEGRAM_API_URL = "https://api.telegram.org/bot"+ BOT_TOKEN;
     private final String SEND_MESSAGE_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/sendMessage";
     private final String EDIT_MESSAGE_REPLY_MARKUP_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageReplyMarkup";
     private HttpResponse<JsonNode> response;
@@ -44,13 +49,39 @@ public class UnirestRequest implements RemoteRequest{
         return gson.fromJson(response.getBody().toString(),SentMessage.class);
     }
     public void answerCallbackQuery(AnswerCallbackQuery answer){
-        this.response = Unirest.post(API_URL+"/answerCallbackQuery")
+        this.response = Unirest.post(TELEGRAM_API_URL +"/answerCallbackQuery")
                 .header("Content-Type", "application/json")
                 .body(gson.toJson(answer))
                 .asJson();
         log.debug("BODY SENT BY answerCallbackQuery : "+gson.toJson(answer));
         log.debug(printResponse("answerCallbackQuery"));
     }
+
+//    public HttpResponse<JsonNode> TESTrequestHueTokens (HueAuthorizationEntity authorization){
+//        String credentials = authorization.getClientId()+":"+authorization.getClientSecret();
+//        String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+//        this.response = Unirest.post
+//                        (HUE_OAUTH_URL+"/token")
+//                .header("Content-Type", "application/x-www-form-urlencoded")
+//                .header("Authorization", "Basic "+encodedCredentials)
+//                .body("grant_type=authorization_code&code="+authorization.getCode())
+//                .asJson();
+//        return response;
+//    }
+    public HueAuthorizationEntity requestHueTokens (HueAuthorizationEntity authorization){
+        String credentials = authorization.getClientId()+":"+authorization.getClientSecret();
+        String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+                this.response = Unirest.post
+                        (HUE_OAUTH_URL+"/token")
+                        .header("Content-Type", "application/x-www-form-urlencoded")
+                        .header("Authorization", "Basic "+encodedCredentials)
+                        .body("grant_type=authorization_code&code="+authorization.getCode())
+                        .asJson();
+                HueTokensEntity tokensEntity = gson.fromJson(response.getBody().toString(), HueTokensEntity.class);
+                authorization.setTokens(tokensEntity);
+                return authorization;
+    }
+
 //    public HueTokens getHueTokens (HueAuthorizationEntity authorization)
     private String printResponse(String invoker){
         return invoker+" RESPONSE STATUS: \r\n" + response.getStatus()

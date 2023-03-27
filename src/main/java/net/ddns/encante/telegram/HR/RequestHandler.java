@@ -176,10 +176,28 @@ private final Long CHOMIK = 6182762959L;
                         case "/hue" -> {
                             if (commands.length > 2) {
                                 if (commands[1].equalsIgnoreCase("link")){
+                                    if (hueAuthorizationService.getAuthorizationForDisplayName(commands[2])!= null){
+                                    HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
+                                    sendTelegramTextMessage(authorization.generateAuthorizationLink(),backToSender);
+                                    hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(authorization);
+                                    }else {
+                                        sendTelegramTextMessage("There's no such app in DB. Add app first!",backToSender);
+                                    }
+                                }
+                                if (commands[1].equalsIgnoreCase("tokens")) {
+                                    if (hueAuthorizationService.getAuthorizationForDisplayName(commands[2]) != null) {
+                                        HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
+                                        hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(request.requestHueTokens(authorization));
+                                        sendTelegramTextMessage("Tokens retrieved! App " + authorization.getDisplayName() + "authenticated!", backToSender);
+                                    }
+                                }
+                                if (commands[1].equalsIgnoreCase("addapp") && commands.length > 4){
                                     HueAuthorizationEntity authorization = new HueAuthorizationEntity();
                                     authorization.setClientId(commands[2]);
-                                    sendTelegramTextMessage(authorization.generateAuthorizationLink(),backToSender);
-                                    hueAuthorizationService.saveAuthorization(authorization);
+                                    authorization.setClientSecret(commands[3]);
+                                    authorization.setDisplayName(commands[4]);
+                                    hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(authorization);
+                                    sendTelegramTextMessage("Hue App "+authorization.getDisplayName()+ " added to DB.", backToSender);
                                 }
                             }
                             else sendBadCommandWarning();
@@ -221,12 +239,13 @@ private final Long CHOMIK = 6182762959L;
 
     @GetMapping("/hue/code")
     public void hueTokensCreator(@RequestParam String code, @RequestParam String state){
-        log.debug("New Hue code retrieved: "+code);
-        sendTelegramTextMessage("New Hue code retrieved: "+code, ME);
-        HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForState(state);
-        authorization.setCode(code);
-        hueAuthorizationService.saveAuthorization(authorization);
-        sendTelegramTextMessage("Authorization state "+authorization.getState()+" code: "+authorization.getCode()+" clientId: "+authorization.getClientId(), ME);
+        log.debug("New Hue code retrieved!"+code);
+        if (hueAuthorizationService.getAuthorizationForState(state)!= null) {
+            HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForState(state);
+            authorization.setCode(code);
+            hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(request.requestHueTokens(authorization));
+            sendTelegramTextMessage("Tokens retrieved! App " + authorization.getDisplayName() + " authorized!", ME);
+        }else sendTelegramTextMessage("ERROR! There is no authorization for such state! Try again.",ME);
     }
 //
 //    sending Quiz on schedule
