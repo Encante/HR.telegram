@@ -96,7 +96,12 @@ public class UnirestRequest implements RemoteRequest{
                             .header("Content-Type", "application/json")
                             .body("{\"devicetype\":\""+authorization.getDisplayName()+"\"}")
                             .asJson();
-//                    obsluzyc JSON[
+
+                    private class username {
+
+                    }
+//                    obsluzyc JSON
+//                    [
 //    {
 //        "success": {
 //            "username": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
