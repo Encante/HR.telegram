@@ -100,12 +100,9 @@ public class UnirestRequest implements RemoteRequest{
 //                If 'virtual button press' is ok we need to request our app username to manage our hue system
 //                check if response is ok before creating HueLinkButton obj.
                 if (standardResponseStatusBodyCheck("Virtually press (put) hue button.")){
-                    class HueLinkButtonWrapper{                        HueLinkButton obj;
-                    }
-                    HueLinkButtonWrapper[] hueLinkButtonWrapper = gson.fromJson(response.getBody().toString(),HueLinkButtonWrapper[].class);
-                    HueLinkButton linkButton = hueLinkButtonWrapper[0].obj;
+                    HueLinkButton[] linkButton = gson.fromJson(response.getBody().toString(),HueLinkButton[].class);
 //                    check if button is pressed
-                    if (linkButton.getSuccess()!= null){
+                    if (linkButton[0].getSuccess()!= null){
                         this.response = Unirest.post(HUE_API_URL+"/api")
                                 .header("Authorization", "Bearer " + authorization.getTokens().getAccess_token())
                                 .header("Content-Type", "application/json")
@@ -113,22 +110,19 @@ public class UnirestRequest implements RemoteRequest{
                                 .asJson();
 //                        standard response check
                         if (standardResponseStatusBodyCheck("Hue authentication after button is pressed.")){
-                            class HueUserWrapper{                        HueUser obj;
-                            }
-                            HueUserWrapper[] hueUserWrapper = gson.fromJson(response.getBody().toString(), HueUserWrapper[].class);
-                            HueUser user = hueUserWrapper[0].obj;
-                            if (user.getSuccess() != null) {
-                                authorization.setUsername(user.getSuccess().getUsername());
+                            HueUser[] hueUser = gson.fromJson(response.getBody().toString(), HueUser[].class);
+                            if (hueUser[0].getSuccess() != null) {
+                                authorization.setUsername(hueUser[0].getSuccess().getUsername());
                                 return authorization;
                             }else {
-                                log.warn("HueUser error: "+user.getError().toString());
+                                log.warn("HueUser error: "+hueUser[0].getError().toString());
                                 throw new RuntimeException("HueUser error");
                             }
                         }else{
                             throw new RuntimeException("Hue authentication after button is pressed.");
                         }
                     }else {
-                        log.warn("HueLinkButton fault. Faultstring: "+ linkButton.getFault().getFaultstring()+" errorcode: "+ linkButton.getFault().getDetail().getErrorcode());
+                        log.warn("HueLinkButton fault. Faultstring: "+ linkButton[0].getFault().getFaultstring()+" errorcode: "+ linkButton[0].getFault().getDetail().getErrorcode());
                         throw new RuntimeException("HueLinkButton fault.");
                     }
                 } else {
