@@ -11,7 +11,6 @@ public interface RemoteRequest {
     SentMessage editTelegramMessage(EditMessage message);
     void answerCallbackQuery(AnswerCallbackQuery answer);
     HueAuthorizationEntity requestHueAuthentication(HueAuthorizationEntity authorization);
-    HueAuthorizationEntity finalizeHueAuthorization (HueAuthorizationEntity authorization);
 //    HttpResponse<JsonNode> TESTrequestHueTokens (HueAuthorizationEntity authorization);
 //    HueTokens getHueTokens (HueAuthorizationEntity authorization);
 

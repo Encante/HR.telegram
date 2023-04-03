@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
+import net.ddns.encante.telegram.HR.Hue.HueLinkButton;
+import net.ddns.encante.telegram.HR.Hue.HueUser;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
@@ -82,32 +84,55 @@ public class UnirestRequest implements RemoteRequest{
                     .header("Authorization", "Basic " + encodedCredentials)
                     .body("grant_type=authorization_code&code=" + authorization.getCode())
                     .asJson();
-            HueTokensEntity tokensEntity = gson.fromJson(response.getBody().toString(), HueTokensEntity.class);
-            authorization.setTokens(tokensEntity);
+            if (standardResponseStatusBodyCheck("Code exchange for tokens")){
+                HueTokensEntity tokensEntity = gson.fromJson(response.getBody().toString(), HueTokensEntity.class);
+                authorization.setTokens(tokensEntity);
+            }else {
+                throw new RuntimeException("Code exchange for tokens failed!");
+            }
+//            Now we should have our tokens in object, time to virtually press the button on Hue bridge
             if (authorization.getTokens().getAccess_token() != null && authorization.getDisplayName() != null) {
                 this.response = Unirest.put(HUE_API_URL + "/api/0/config")
                         .header("Authorization", "Bearer " + authorization.getTokens().getAccess_token())
                         .header("Content-Type", "application/json")
                         .body("{\"linkbutton\":true}")
                         .asJson();
-                if (response.getStatus()==200){
-                    this.response = Unirest.post(HUE_API_URL+"/api")
-                            .header("Authorization", "Bearer " + authorization.getTokens().getAccess_token())
-                            .header("Content-Type", "application/json")
-                            .body("{\"devicetype\":\""+authorization.getDisplayName()+"\"}")
-                            .asJson();
-
-                    private class username {
-
+//                If 'virtual button press' is ok we need to request our app username to manage our hue system
+//                check if response is ok before creating HueLinkButton obj.
+                if (standardResponseStatusBodyCheck("Virtually press (put) hue button.")){
+                    class HueLinkButtonWrapper{                        HueLinkButton obj;
                     }
-//                    obsluzyc JSON
-//                    [
-//    {
-//        "success": {
-//            "username": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-//        }
-//    }
-//]
+                    HueLinkButtonWrapper[] hueLinkButtonWrapper = gson.fromJson(response.getBody().toString(),HueLinkButtonWrapper[].class);
+                    HueLinkButton linkButton = hueLinkButtonWrapper[0].obj;
+//                    check if button is pressed
+                    if (linkButton.getSuccess()!= null){
+                        this.response = Unirest.post(HUE_API_URL+"/api")
+                                .header("Authorization", "Bearer " + authorization.getTokens().getAccess_token())
+                                .header("Content-Type", "application/json")
+                                .body("{\"devicetype\":\""+authorization.getDisplayName()+"\"}")
+                                .asJson();
+//                        standard response check
+                        if (standardResponseStatusBodyCheck("Hue authentication after button is pressed.")){
+                            class HueUserWrapper{                        HueUser obj;
+                            }
+                            HueUserWrapper[] hueUserWrapper = gson.fromJson(response.getBody().toString(), HueUserWrapper[].class);
+                            HueUser user = hueUserWrapper[0].obj;
+                            if (user.getSuccess() != null) {
+                                authorization.setUsername(user.getSuccess().getUsername());
+                                return authorization;
+                            }else {
+                                log.warn("HueUser error: "+user.getError().toString());
+                                throw new RuntimeException("HueUser error");
+                            }
+                        }else{
+                            throw new RuntimeException("Hue authentication after button is pressed.");
+                        }
+                    }else {
+                        log.warn("HueLinkButton fault. Faultstring: "+ linkButton.getFault().getFaultstring()+" errorcode: "+ linkButton.getFault().getDetail().getErrorcode());
+                        throw new RuntimeException("HueLinkButton fault.");
+                    }
+                } else {
+                    throw new RuntimeException("Virtually press (put) hue button.");
                 }
             } else if (authorization.getTokens().getAccess_token() == null) {
                 log.warn("Authorization token empty!");
@@ -117,12 +142,7 @@ public class UnirestRequest implements RemoteRequest{
                 throw new RuntimeException("No display name set for app!");
             }
         }
-                return authorization;
     }
-
-    HueAuthorizationEntity finalizeHueAuthorization (HueAuthorizationEntity authorization){
-
-    };
 
 //    public HueTokens getHueTokens (HueAuthorizationEntity authorization)
     private String printResponse(String invoker){
@@ -131,5 +151,17 @@ public class UnirestRequest implements RemoteRequest{
                 + response.getStatusText()
                 + "\r\nHEADERS: \r\n" + response.getHeaders().toString()
                 + "\r\nBODY: " + response.getBody().toPrettyString();
+    }
+
+    private boolean standardResponseStatusBodyCheck(String invoker){
+        if (this.response.getStatus() == 200 && this.response.getBody()!= null) {
+            return true;
+        } else if (this.response.getBody() == null) {
+            log.warn(invoker+" "+printResponse("Response body is null."));
+            return false;
+        }else {
+            log.warn(invoker+" "+printResponse("Response NOK"));
+            return false;
+        }
     }
 }

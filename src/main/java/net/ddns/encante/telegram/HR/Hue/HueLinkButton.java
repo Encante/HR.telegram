@@ -1,7 +1,11 @@
 package net.ddns.encante.telegram.HR.Hue;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class HueLinkButton {
-    public class HueLinkButtonPressed{
-        Boolean /config/linkbutton
-    }
+HueLinkButtonPressed success;
+HueFault fault;
 }
