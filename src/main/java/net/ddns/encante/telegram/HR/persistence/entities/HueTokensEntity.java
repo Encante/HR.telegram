@@ -27,4 +27,6 @@ public class HueTokensEntity {
     String refresh_token;
     @Column(name = "token_type")
     String token_type;
+    @Column(name = "created")
+    Long created;
 }

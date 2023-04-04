@@ -11,6 +11,7 @@ import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.SentMessage;
+import net.ddns.encante.telegram.HR.Utils;
 import net.ddns.encante.telegram.HR.persistence.entities.HueAuthorizationEntity;
 import net.ddns.encante.telegram.HR.persistence.entities.HueTokensEntity;
 import org.slf4j.Logger;
@@ -22,16 +23,17 @@ import java.util.Base64;
 
 @Component
 public class UnirestRequest implements RemoteRequest{
-    private static final Logger log = LoggerFactory.getLogger("net.ddns.encante.telegram.HR.RemoteRequest");
+    private static final Logger log = LoggerFactory.getLogger(UnirestRequest.class);
     private final String BOT_TOKEN = "XXX";
     private final String HUE_API_URL = "https://api.meethue.com/route";
-    private final String HUE_OAUTH_URL = "https://api.meethue.com/v2/oauth2";
+    private final String HUE_OAUTH_URL = "https://api.meethue.com/v2/oauth2/token";
     private final String TELEGRAM_API_URL = "https://api.telegram.org/bot"+ BOT_TOKEN;
     private final String SEND_MESSAGE_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/sendMessage";
     private final String EDIT_MESSAGE_REPLY_MARKUP_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageReplyMarkup";
     private HttpResponse<JsonNode> response;
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
+    @Override
     public SentMessage sendTelegramMessage(SendMessage message){
     this.response = Unirest.post(SEND_MESSAGE_URL)
             .header("Content-Type", "application/json")
@@ -41,6 +43,7 @@ public class UnirestRequest implements RemoteRequest{
     log.debug(printResponse("sendTelegramMessage"));
     return gson.fromJson(response.getBody().toString(),SentMessage.class);
 }
+    @Override
     public SentMessage editTelegramMessage(EditMessage message){
             this.response = Unirest.post("https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageText")
                     .header("Content-Type", "application/json")
@@ -50,6 +53,7 @@ public class UnirestRequest implements RemoteRequest{
             log.debug(printResponse("editTelegramMessage"));
         return gson.fromJson(response.getBody().toString(),SentMessage.class);
     }
+    @Override
     public void answerCallbackQuery(AnswerCallbackQuery answer){
         this.response = Unirest.post(TELEGRAM_API_URL +"/answerCallbackQuery")
                 .header("Content-Type", "application/json")
@@ -59,17 +63,7 @@ public class UnirestRequest implements RemoteRequest{
         log.debug(printResponse("answerCallbackQuery"));
     }
 
-//    public HttpResponse<JsonNode> TESTrequestHueTokens (HueAuthorizationEntity authorization){
-//        String credentials = authorization.getClientId()+":"+authorization.getClientSecret();
-//        String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
-//        this.response = Unirest.post
-//                        (HUE_OAUTH_URL+"/token")
-//                .header("Content-Type", "application/x-www-form-urlencoded")
-//                .header("Authorization", "Basic "+encodedCredentials)
-//                .body("grant_type=authorization_code&code="+authorization.getCode())
-//                .asJson();
-//        return response;
-//    }
+    @Override
     public HueAuthorizationEntity requestHueAuthentication(HueAuthorizationEntity authorization){
 //        first part: we exchange :code, clientId, clientSecret we got in authentication for authentication tokens
         if (authorization.getClientId() == null || authorization.getClientSecret() == null || authorization.getCode() == null){
@@ -79,13 +73,14 @@ public class UnirestRequest implements RemoteRequest{
             String credentials = authorization.getClientId() + ":" + authorization.getClientSecret();
             String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
             this.response = Unirest.post
-                            (HUE_OAUTH_URL + "/token")
+                            (HUE_OAUTH_URL)
                     .header("Content-Type", "application/x-www-form-urlencoded")
                     .header("Authorization", "Basic " + encodedCredentials)
                     .body("grant_type=authorization_code&code=" + authorization.getCode())
                     .asJson();
             if (standardResponseStatusBodyCheck("Code exchange for tokens")){
                 HueTokensEntity tokensEntity = gson.fromJson(response.getBody().toString(), HueTokensEntity.class);
+                tokensEntity.setCreated(Utils.getCurrentUnixTime());
                 authorization.setTokens(tokensEntity);
             }else {
                 throw new RuntimeException("Code exchange for tokens failed!");
@@ -137,8 +132,25 @@ public class UnirestRequest implements RemoteRequest{
             }
         }
     }
-
-//    public HueTokens getHueTokens (HueAuthorizationEntity authorization)
+    @Override
+    public HueTokensEntity refreshHueTokens(HueAuthorizationEntity authorization){
+        String credentials = authorization.getClientId() + ":" + authorization.getClientSecret();
+        String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+        this.response = Unirest.post
+                        (HUE_OAUTH_URL)
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .header("Authorization", "Basic " + encodedCredentials)
+                .body("grant_type=refresh_token&refresh_token=" + authorization.getTokens().getRefresh_token())
+                .asJson();
+        if (standardResponseStatusBodyCheck("Hue Refresh Tokens")){
+            return gson.fromJson(response.getBody().toString(),HueTokensEntity.class);
+        }else {
+            throw new RuntimeException("Hue Refresh Tokens");
+        }
+    }
+//
+//    private methods
+//
     private String printResponse(String invoker){
         return invoker+" RESPONSE STATUS: \r\n" + response.getStatus()
                 + " "

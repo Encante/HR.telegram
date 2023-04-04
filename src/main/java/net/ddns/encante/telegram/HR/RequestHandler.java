@@ -78,17 +78,6 @@ private final Long CHOMIK = 6182762959L;
                 request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(), "Callback Answer!", false));
 //            delete keyboard after pressing a key
                 request.editTelegramMessage(new EditMessage(update.getCallback_query()));
-//            send me a message with callback
-//            request.sendTelegramMessage(new SendMessage()
-//                    .setText("Callback received! T: "
-//                            + Utils.getCurrentDateTime()
-//                            + "FROM: "
-//                            + update.getCallback_query().getFrom().getFirst_name()
-//                            + " "
-//                            + update.getCallback_query().getFrom().getLast_name()
-//                            + " CALLBACK DATA: "
-//                            + update.getCallback_query().getData())
-//                    .toMe());
             }
         }
 
@@ -192,7 +181,25 @@ private final Long CHOMIK = 6182762959L;
 //                                        sendTelegramTextMessage("Tokens retrieved! App " + authorization.getDisplayName() + "authenticated!", backToSender);
 //                                    }
 //                                }
-
+                                if (commands[1].equalsIgnoreCase("checktokens")){
+//                                    command lenght check
+                                    if (commands.length > 3){
+//                                        authorization for display name check
+                                        if (hueAuthorizationService.getAuthorizationForDisplayName(commands[2])!= null){
+                                            HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
+//                                            authorization token and username check
+                                            if (authorization.getTokens().getAccess_token() != null && authorization.getUsername() != null){
+//                                            do GET DEVICES REQUEST TO CHECK ACCESS TOKENS
+                                            }else {
+                                                log.warn("No token or username (app id) found in authentication for app '"+authorization.getDisplayName()+"'");
+                                                sendTelegramTextMessage("No token or username (app id) found in authentication for app '"+authorization.getDisplayName()+"'",backToSender);
+                                            }
+                                        }else {
+                                            log.warn("No authorization found for app name '" + commands[2] + "'.");
+                                            sendTelegramTextMessage("No authorization found for app name '" + commands[2] + "'.", backToSender);
+                                        }
+                                    }else sendBadCommandWarning(backToSender);
+                                }
                                 if (commands[1].equalsIgnoreCase("add")){
                                     if (commands.length > 4){
                                     HueAuthorizationEntity authorization = new HueAuthorizationEntity();
@@ -255,7 +262,10 @@ private final Long CHOMIK = 6182762959L;
             authorization.setCode(code);
             hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(request.requestHueAuthentication(authorization));
             sendTelegramTextMessage("Tokens retrieved! App " + authorization.getDisplayName() + " authorized!", ME);
-        }else sendTelegramTextMessage("ERROR! There is no authorization for such state! Try again.",ME);
+        }else {
+            log.warn("No authorization found for state '" + state + "'.");
+            sendTelegramTextMessage("No authorization found for state '" + state + "'.", ME);
+        }
     }
 //
 //    sending Quiz on schedule
