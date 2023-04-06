@@ -1,5 +1,6 @@
 package net.ddns.encante.telegram.HR.RemoteRequest;
 
+import net.ddns.encante.telegram.HR.Hue.HueDevice;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
@@ -13,4 +14,6 @@ public interface RemoteRequest {
     void answerCallbackQuery(AnswerCallbackQuery answer);
     HueAuthorizationEntity requestHueAuthentication(HueAuthorizationEntity authorization);
     HueTokensEntity refreshHueTokens(HueAuthorizationEntity authorization);
+    HueDevice hueGetResourceDeviceId(HueAuthorizationEntity authorization, String deviceId);
+    HueDevice hueGetResourceDevice(HueAuthorizationEntity authorization);
 }

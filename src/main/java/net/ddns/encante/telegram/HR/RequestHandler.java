@@ -187,9 +187,7 @@ private final Long CHOMIK = 6182762959L;
 //                                        authorization for display name check
                                         if (hueAuthorizationService.getAuthorizationForDisplayName(commands[2])!= null){
                                             HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
-//                                            authorization token and username check
-                                            if (authorization.getTokens().getAccess_token() != null && authorization.getUsername() != null){
-//                                            do GET DEVICES REQUEST TO CHECK ACCESS TOKENS
+
                                             }else {
                                                 log.warn("No token or username (app id) found in authentication for app '"+authorization.getDisplayName()+"'");
                                                 sendTelegramTextMessage("No token or username (app id) found in authentication for app '"+authorization.getDisplayName()+"'",backToSender);
@@ -317,6 +315,16 @@ private final Long CHOMIK = 6182762959L;
 //
 //
 //
+    private Boolean checkAndRefreshHueAuthorization (HueAuthorizationEntity authorization) {
+        //                                            authorization token and username check
+        if (authorization.getTokens().getAccess_token() != null && authorization.getUsername() != null) {
+//                                                check if access token and username is valid
+            if (request.hueGetResourceDevice(authorization) != null && request.hueGetResourceDevice(authorization).getErrors() == null) {
+                log.debug("Tokens for " + authorization.getDisplayName() + " checked and valid.");
+            } else
+//                                            do GET DEVICES REQUEST TO CHECK ACCESS TOKENS
+        }
+    }
     private SentMessage greetFirstTime(User whoToGreet){
         if (whoToGreet.getLast_name() != null){
             return sendTelegramTextMessage("Hello "+ whoToGreet.getFirst_name() + " " + whoToGreet.getLast_name() + "! Nice to see you! Hope You'll have a good time =]", whoToGreet.getId());

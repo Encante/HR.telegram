@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
+import net.ddns.encante.telegram.HR.Hue.HueDevice;
 import net.ddns.encante.telegram.HR.Hue.HueLinkButton;
 import net.ddns.encante.telegram.HR.Hue.HueUser;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
@@ -147,6 +148,26 @@ public class UnirestRequest implements RemoteRequest{
             throw new RuntimeException("Hue Refresh Tokens");
         }
     }
+    public HueDevice hueGetResourceDeviceId(HueAuthorizationEntity authorization, String deviceId){
+        this.response = Unirest.get(HUE_API_URL+"/clip/v2/resource/device/"+deviceId)
+                .header("Authorization", "Bearer "+authorization.getTokens().getAccess_token())
+                .header("hue-application-key", authorization.getUsername())
+                .asJson();
+        if (standardResponseStatusBodyCheck("hueGetResourceDeviceId")){
+            return gson.fromJson(response.getBody().toString(),HueDevice.class)
+        }else return null;
+    }
+
+    public HueDevice hueGetResourceDevice(HueAuthorizationEntity authorization){
+        this.response = Unirest.get(HUE_API_URL+"/clip/v2/resource/device/")
+                .header("Authorization", "Bearer "+authorization.getTokens().getAccess_token())
+                .header("hue-application-key", authorization.getUsername())
+                .asJson();
+        if (standardResponseStatusBodyCheck("hueGetResourceDeviceId")){
+            return gson.fromJson(response.getBody().toString(),HueDevice.class)
+        }else return null;
+    }
+
 //
 //    private methods
 //
