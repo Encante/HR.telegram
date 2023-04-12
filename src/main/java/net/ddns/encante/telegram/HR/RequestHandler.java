@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.ddns.encante.telegram.HR.Quiz.Quiz;
 import net.ddns.encante.telegram.HR.RemoteRequest.RemoteRequest;
+import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
@@ -27,7 +28,7 @@ import javax.annotation.Resource;
 public class RequestHandler {
 Gson gson = new GsonBuilder().setPrettyPrinting().create();
 @Autowired
-RemoteRequest request;
+UnirestRequest request;
 @Resource(name = "webhookUpdateService")
 private WebhookUpdateService webhookUpdateService;
 @Resource(name = "quizService")
@@ -98,9 +99,7 @@ private final Long CHOMIK = 6182762959L;
                         case "/start" -> greetFirstTime(update.getMessage().getFrom());
 //                        send message through bot
                         case "/sm" -> {
-                            if (commands.length < 3) {//command content validation
-                                sendBadCommandWarning(backToSender);
-                            } else {
+                            if (checkCommandLenght(3, commands, "/sm", backToSender)) {
 //                                send message to me - checking purposes
                                 if (commands[1].equalsIgnoreCase("m")) {
                                     sendTelegramTextMessage(update.getMessage().getText().substring(6),ME);
@@ -109,6 +108,7 @@ private final Long CHOMIK = 6182762959L;
                                 if (commands[1].equalsIgnoreCase("y")) {
                                     sendTelegramTextMessage(update.getMessage().getText().substring(6), YASIA);
                                 }
+//                                send msg to chom
                                 if (commands[1].equalsIgnoreCase("c")){
                                     sendTelegramTextMessage(update.getMessage().getText().substring(6), CHOMIK);
                                 }
@@ -122,10 +122,7 @@ private final Long CHOMIK = 6182762959L;
                                     .setChat_id(backToSender));
                         }
                         case "/smq" -> {
-                            if (commands.length<6){
-                                sendBadCommandWarning(backToSender);
-                            }
-                            else {
+                            if (checkCommandLenght(6, commands, "/smq",backToSender)){
                                 Quiz quiz = new Quiz("Command line Quiz test", commands[2], commands[3], commands[4], commands[5], commands[2]);
                                 quizService.saveQuiz(quiz);
                                 request.sendTelegramMessage(quiz.createQuizMessageFromCommand(update));
@@ -135,8 +132,7 @@ private final Long CHOMIK = 6182762959L;
 
                         case "/quizyas" -> sendQuizToYasia();
                         case "/quizid" -> {
-                            if (commands.length < 2) sendBadCommandWarning(backToSender);
-                            else{
+                            if (checkCommandLenght(2, commands,"/quizid",backToSender)){
                                 sendQuizToId(Long.decode(commands[1]));
                             }
                         }
@@ -156,7 +152,7 @@ private final Long CHOMIK = 6182762959L;
                                     .setReply_markup(new ReplyKeyboardRemove()));
                         }
                         case "/searchUserById" -> {
-                            if (commands.length > 1){
+                            if (checkCommandLenght(2,commands,"/searchUserById",backToSender)){
                                 if (webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])) != null) {
                                     sendTelegramTextMessage("To " + webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])).getFirstName(),update.getMessage().getFrom().getId());
                                 }
@@ -164,49 +160,33 @@ private final Long CHOMIK = 6182762959L;
                             }
                         }
                         case "/hueapp" -> {
-                            if (commands.length > 2) {
-                                if (commands[1].equalsIgnoreCase("link")){
-                                    if (hueAuthorizationService.getAuthorizationForDisplayName(commands[2])!= null){
-                                    HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
-                                    sendTelegramTextMessage(authorization.generateAuthorizationLink(),backToSender);
-                                    hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(authorization);
-                                    }else {
-                                        sendTelegramTextMessage("There's no such app in DB. Add app first!",backToSender);
+//                            command lenght check
+                            if (checkCommandLenght(3,commands,"/hueapp",backToSender)) {
+                                if (commands[1].equalsIgnoreCase("link")) {
+                                    if (checkAuthorizationForDisplayName(commands[2],"/hueapp link",backToSender)) {
+                                        HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
+                                        sendTelegramTextMessage(authorization.generateAuthorizationLink(), backToSender);
+                                        hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(authorization);
                                     }
                                 }
-//                                if (commands[1].equalsIgnoreCase("tokens")) {
-//                                    if (hueAuthorizationService.getAuthorizationForDisplayName(commands[2]) != null) {
-//                                        HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
-//                                        hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(request.requestHueAuthentication(authorization));
-//                                        sendTelegramTextMessage("Tokens retrieved! App " + authorization.getDisplayName() + "authenticated!", backToSender);
-//                                    }
-//                                }
-                                if (commands[1].equalsIgnoreCase("checktokens")){
-//                                    command lenght check
-                                    if (commands.length > 3){
+                                if (commands[1].equalsIgnoreCase("checktokens")) {
 //                                        authorization for display name check
-                                        if (hueAuthorizationService.getAuthorizationForDisplayName(commands[2])!= null){
-                                            HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
+                                    if (checkAuthorizationForDisplayName(commands[2], "/hueapp checktokens",backToSender)) {
+                                        HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
+                                        if (authorization.getTokens().getAccess_token()!=null && authorization.getUsername()!=null){
 
-                                            }else {
-                                                log.warn("No token or username (app id) found in authentication for app '"+authorization.getDisplayName()+"'");
-                                                sendTelegramTextMessage("No token or username (app id) found in authentication for app '"+authorization.getDisplayName()+"'",backToSender);
-                                            }
-                                        }else {
-                                            log.warn("No authorization found for app name '" + commands[2] + "'.");
-                                            sendTelegramTextMessage("No authorization found for app name '" + commands[2] + "'.", backToSender);
                                         }
-                                    }else sendBadCommandWarning(backToSender);
+                                    }
                                 }
                                 if (commands[1].equalsIgnoreCase("add")){
-                                    if (commands.length > 4){
+                                    if (checkCommandLenght(5, commands,"/hueapp add",backToSender)){
                                     HueAuthorizationEntity authorization = new HueAuthorizationEntity();
                                     authorization.setClientId(commands[2]);
                                     authorization.setClientSecret(commands[3]);
                                     authorization.setDisplayName(commands[4]);
                                     hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(authorization);
                                     sendTelegramTextMessage("Hue App "+authorization.getDisplayName()+ " added to DB.", backToSender);
-                                    }else sendBadCommandWarning(backToSender);
+                                    }
                                 }
                                 if (commands[1].equalsIgnoreCase("searchByName")){
                                     if (hueAuthorizationService.getAuthorizationForDisplayName(commands[2])!= null) {
@@ -215,7 +195,7 @@ private final Long CHOMIK = 6182762959L;
                                         sendTelegramTextMessage("App with this Id already in DB with client ID: "+entity.getClientId(),backToSender);
                                     }else sendTelegramTextMessage("No app with this name added",backToSender);
                                 }
-                            }else sendBadCommandWarning(backToSender);
+                            }
                         }
                     }
                 }
@@ -313,8 +293,26 @@ private final Long CHOMIK = 6182762959L;
         log.debug("Quiz "+quiz.getQuizId()+ " wyslany do chatId "+chatId+" <<<<<<");
     }
 //
+//              PRIVATE ONLY
 //
-//
+    private Boolean checkCommandLenght (int atLeast, String[] command, String invokerCommand, Long whoToInform){
+        if (command.length >= atLeast){
+            return true;
+        }else {
+            log.warn("Bad command lenght - insuficient parameters from command "+ invokerCommand);
+            sendTelegramTextMessage("Bad command lenght - insuficient parameters from command "+ invokerCommand, whoToInform);
+            return false;
+        }
+    }
+    private Boolean checkAuthorizationForDisplayName(String displayName, String invoker, Long whoToInform){
+        if (hueAuthorizationService.getAuthorizationForDisplayName(displayName) != null) {
+            return true;
+        } else {
+            log.warn("No authorization for app with name '"+displayName+"' in DB. Invoker: "+invoker);
+            sendTelegramTextMessage("No authorization for app with name '"+displayName+"' in DB. Invoker: "+invoker, whoToInform)
+            return false;
+        }
+    }
     private Boolean checkAndRefreshHueAuthorization (HueAuthorizationEntity authorization) {
         //                                            authorization token and username check
         if (authorization.getTokens().getAccess_token() != null && authorization.getUsername() != null) {
