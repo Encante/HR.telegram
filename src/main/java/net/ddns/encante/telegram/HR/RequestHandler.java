@@ -2,6 +2,7 @@ package net.ddns.encante.telegram.HR;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import lombok.Data;
 import net.ddns.encante.telegram.HR.Quiz.Quiz;
 import net.ddns.encante.telegram.HR.RemoteRequest.RemoteRequest;
 import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
@@ -43,7 +44,7 @@ private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 private final Long ME = 5580797031L;
 private final Long YASIA = 566760042L;
 private final Long CHOMIK = 6182762959L;
-
+private User backToSender;
 
     //        when receiving message:
     @PostMapping("/HR4telegram")
@@ -59,7 +60,7 @@ private final Long CHOMIK = 6182762959L;
         //            check if it is callback
         if (update.getCallback_query() != null) {
             //        just little helpful var with chatID of who send msg
-            Long backToSender = update.getCallback_query().getMessage().getChat().getId();
+            this.backToSender = update.getMessage().getFrom();
 //            check if it is a quiz message callback and resolve quiz
             if(quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id())!=null){
                 Quiz quiz = quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id());
@@ -86,7 +87,7 @@ private final Long CHOMIK = 6182762959L;
 //      check if have any message
         if (update.getMessage() != null) {
             //        just little helpful var with chatID of who send msg
-            Long backToSender = update.getMessage().getChat().getId();
+            this.backToSender = update.getMessage().getFrom();
 //      check if incoming message have any text
             if (update.getMessage().getText() != null) {
 //        check if incoming message have any and if there is do commands:
@@ -95,7 +96,7 @@ private final Long CHOMIK = 6182762959L;
                     switch (commands[0]) {
 //                        basic command to check if bot is running
                         case "/hi" -> greet(update.getMessage().getFrom());
-                        case "/commands" ->sendTelegramTextMessage("/hi /commands /start /sm",backToSender);
+                        case "/commands" ->sendBackTelegramTextMessage("/hi /commands /start /sm");
                         case "/start" -> greetFirstTime(update.getMessage().getFrom());
 //                        send message through bot
                         case "/sm" -> {
@@ -154,9 +155,9 @@ private final Long CHOMIK = 6182762959L;
                         case "/searchUserById" -> {
                             if (checkCommandLenght(2,commands,"/searchUserById",backToSender)){
                                 if (webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])) != null) {
-                                    sendTelegramTextMessage("To " + webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])).getFirstName(),update.getMessage().getFrom().getId());
+                                    sendBackTelegramTextMessage("To " + webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])).getFirstName());
                                 }
-                                else sendTelegramTextMessage("User with id " + commands[1] + " not in DB!",update.getMessage().getFrom().getId());
+                                else sendBackTelegramTextMessage("User with id " + commands[1] + " not in DB!");
                             }
                         }
                         case "/hueapp" -> {
@@ -165,7 +166,7 @@ private final Long CHOMIK = 6182762959L;
                                 if (commands[1].equalsIgnoreCase("link")) {
                                     if (checkAuthorizationForDisplayName(commands[2],"/hueapp link",backToSender)) {
                                         HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
-                                        sendTelegramTextMessage(authorization.generateAuthorizationLink(), backToSender);
+                                        sendBackTelegramTextMessage(authorization.generateAuthorizationLink());
                                         hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(authorization);
                                     }
                                 }
@@ -185,15 +186,15 @@ private final Long CHOMIK = 6182762959L;
                                     authorization.setClientSecret(commands[3]);
                                     authorization.setDisplayName(commands[4]);
                                     hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(authorization);
-                                    sendTelegramTextMessage("Hue App "+authorization.getDisplayName()+ " added to DB.", backToSender);
+                                    sendBackTelegramTextMessage("Hue App "+authorization.getDisplayName()+ " added to DB.");
                                     }
                                 }
                                 if (commands[1].equalsIgnoreCase("searchByName")){
                                     if (hueAuthorizationService.getAuthorizationForDisplayName(commands[2])!= null) {
                                         HueAuthorizationEntity entity =
                                         hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
-                                        sendTelegramTextMessage("App with this Id already in DB with client ID: "+entity.getClientId(),backToSender);
-                                    }else sendTelegramTextMessage("No app with this name added",backToSender);
+                                        sendBackTelegramTextMessage("App with this Id already in DB with client ID: "+entity.getClientId());
+                                    }else sendBackTelegramTextMessage("No app with this name added");
                                 }
                             }
                         }
@@ -201,7 +202,7 @@ private final Long CHOMIK = 6182762959L;
                 }
                 //        if not from me, send message to me
                 if (update.getMessage().getFrom().getId().equals(ME)) {
-                    log.debug("Wiadomość ode mnie.");
+                    log.debug("Wiadomość do bota ode mnie.");
                 }
                 else {
                     sendTelegramTextMessage("New message! T: " + Utils.getCurrentDateTime()
@@ -229,11 +230,19 @@ private final Long CHOMIK = 6182762959L;
             }
         }
 //        update not contains message object
-        else return "not a message";
+        else sendTelegramTextMessage("New message! T: " + Utils.getCurrentDateTime()
+                + "  FROM: "
+                + update.getMessage().getFrom().getFirst_name()
+                + " "
+                + update.getMessage().getFrom().getLast_name()
+                + "  CHAT ID: "
+                + backToSender
+                + " But it has no message object", ME);
+        return "200";
     }
 
     @GetMapping("/hue/code")
-    public void hueTokensCreator(@RequestParam String code, @RequestParam String state){
+    public void hueAuthentication(@RequestParam String code, @RequestParam String state){
         log.debug("New Hue code retrieved!"+code);
         if (hueAuthorizationService.getAuthorizationForState(state)!= null) {
             HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForState(state);
@@ -295,6 +304,29 @@ private final Long CHOMIK = 6182762959L;
 //
 //              PRIVATE ONLY
 //
+    private class Checker{
+        int atLeast;
+        String[] command;
+        String invoker;
+        Long whoToInform;
+        String displayName;
+
+//        setting constant values
+        Checker (String[] command, Long whoToInform){
+            this.command = command;
+            this.whoToInform = whoToInform;
+        }
+        Checker lenghtChecker (int atLeast, String invoker){
+            this.atLeast = atLeast;
+            this.invoker = invoker;
+            return this;
+        }
+        Checker authChecker (String displayName, String invoker){
+            this.displayName = displayName;
+            this.invoker = invoker;
+            return this;
+        }
+};
     private Boolean checkCommandLenght (int atLeast, String[] command, String invokerCommand, Long whoToInform){
         if (command.length >= atLeast){
             return true;
@@ -309,7 +341,7 @@ private final Long CHOMIK = 6182762959L;
             return true;
         } else {
             log.warn("No authorization for app with name '"+displayName+"' in DB. Invoker: "+invoker);
-            sendTelegramTextMessage("No authorization for app with name '"+displayName+"' in DB. Invoker: "+invoker, whoToInform)
+            sendTelegramTextMessage("No authorization for app with name '"+displayName+"' in DB. Invoker: "+invoker, whoToInform);
             return false;
         }
     }
@@ -319,24 +351,30 @@ private final Long CHOMIK = 6182762959L;
 //                                                check if access token and username is valid
             if (request.hueGetResourceDevice(authorization) != null && request.hueGetResourceDevice(authorization).getErrors() == null) {
                 log.debug("Tokens for " + authorization.getDisplayName() + " checked and valid.");
-            } else
+            } else{};
 //                                            do GET DEVICES REQUEST TO CHECK ACCESS TOKENS
         }
     }
-    private SentMessage greetFirstTime(User whoToGreet){
-        if (whoToGreet.getLast_name() != null){
-            return sendTelegramTextMessage("Hello "+ whoToGreet.getFirst_name() + " " + whoToGreet.getLast_name() + "! Nice to see you! Hope You'll have a good time =]", whoToGreet.getId());
-        }
-        else {
-            return sendTelegramTextMessage("Hello "+ whoToGreet.getFirst_name() + "! Nice to see you! Hope You'll have a good time =]", whoToGreet.getId());
+    private SentMessage greetFirstTime(){
+        if (backToSender!=null) {
+            if (backToSender.getLast_name() != null) {
+                return sendBackTelegramTextMessage("Hello " + backToSender.getFirst_name() + " " + backToSender.getLast_name() + "! Nice to see you! Hope You'll have a good time =]");
+            } else {
+                return sendBackTelegramTextMessage("Hello " + backToSender.getFirst_name() + "! Nice to see you! Hope You'll have a good time =]", backToSender.getId());
+            }
+        }else {
+            log.warn("ERROR! backToSender is null. Invoker: greetFirstTime");
+            sendTelegramTextMessage("ERROR! backToSender is null. Invoker: greetFirstTime",ME);
+            throw new RuntimeException("ERROR! backToSender is null. Invoker: greetFirstTime");
         }
     }
-    private SentMessage greet (User whoToGreet){
-        if (whoToGreet.getLast_name() != null){
-            return sendTelegramTextMessage("Hey "+ whoToGreet.getFirst_name() + " " + whoToGreet.getLast_name() + "! Have a nice day =]", whoToGreet.getId());
-        }
-        else {
-            return sendTelegramTextMessage("Hello "+ whoToGreet.getFirst_name() + "! Have a nice day =]", whoToGreet.getId());
+    private SentMessage greet (){
+        if (backToSender!= null) {
+            if (backToSender.getLast_name() != null) {
+                return sendBackTelegramTextMessage("Hey " + backToSender.getFirst_name() + " " + backToSender.getLast_name() + "! Have a nice day =]");
+            } else {
+                return sendTelegramTextMessage("Hello " + whoToGreet.getFirst_name() + "! Have a nice day =]", whoToGreet.getId());
+            }
         }
     }
     private SentMessage sendTelegramTextMessage (String text, Long chatId){
@@ -344,8 +382,14 @@ private final Long CHOMIK = 6182762959L;
                 .setText(text)
                 .setChat_id(chatId));
     }
-    private SentMessage sendBadCommandWarning (Long chatId){
-        return sendTelegramTextMessage("WARNING! BAD COMMAND!", chatId);
+    private SentMessage sendBackTelegramTextMessage (String text){
+        if (this.backToSender!=null) {
+            return request.sendTelegramMessage(new SendMessage()
+                    .setText(text)
+                    .setChat_id(backToSender.getId()));
+        }else {
+            logSendThrowError("ERROR. No backToSender set! Text for debug: "+text);
+        }
     }
     private void sendQuizResultInfo(Quiz quiz, Long whoTo){
         if (quiz.getSuccess() == true){
@@ -356,4 +400,9 @@ private final Long CHOMIK = 6182762959L;
             sendTelegramTextMessage("Zła odpowiedź na pytanie: " + quiz.getQuestion() + " Odpowiedź: " + quiz.getLastAnswer(),whoTo);
         }
     }
+    private void logSendThrowError(String error){
+        log.warn(error);
+        sendTelegramTextMessage(error,ME);
+        throw new RuntimeException(error);
+    }    
 }
