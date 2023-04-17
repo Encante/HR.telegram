@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 @Component
-public class UnirestRequest implements RemoteRequest{
+public class UnirestRequest {
     private static final Logger log = LoggerFactory.getLogger(UnirestRequest.class);
     private final String BOT_TOKEN = "XXX";
     private final String HUE_API_URL = "https://api.meethue.com/route";
@@ -33,7 +33,6 @@ public class UnirestRequest implements RemoteRequest{
     private HttpResponse<JsonNode> response;
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    @Override
     public SentMessage sendTelegramMessage(SendMessage message){
     this.response = Unirest.post(SEND_MESSAGE_URL)
             .header("Content-Type", "application/json")
@@ -43,7 +42,6 @@ public class UnirestRequest implements RemoteRequest{
     log.debug(printResponse("sendTelegramMessage"));
     return gson.fromJson(response.getBody().toString(),SentMessage.class);
 }
-    @Override
     public SentMessage editTelegramMessage(EditMessage message){
             this.response = Unirest.post("https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageText")
                     .header("Content-Type", "application/json")
@@ -53,7 +51,6 @@ public class UnirestRequest implements RemoteRequest{
             log.debug(printResponse("editTelegramMessage"));
         return gson.fromJson(response.getBody().toString(),SentMessage.class);
     }
-    @Override
     public void answerCallbackQuery(AnswerCallbackQuery answer){
         this.response = Unirest.post(TELEGRAM_API_URL +"/answerCallbackQuery")
                 .header("Content-Type", "application/json")
@@ -63,7 +60,6 @@ public class UnirestRequest implements RemoteRequest{
         log.debug(printResponse("answerCallbackQuery"));
     }
 
-    @Override
     public HueAuthorizationEntity requestHueAuthentication(HueAuthorizationEntity authorization){
 //        first part: we exchange :code, clientId, clientSecret we got in authentication for authentication tokens
         if (authorization.getClientId() == null || authorization.getClientSecret() == null || authorization.getCode() == null){
@@ -132,7 +128,6 @@ public class UnirestRequest implements RemoteRequest{
             }
         }
     }
-    @Override
     public HueTokensEntity refreshHueTokens(HueAuthorizationEntity authorization){
         String credentials = authorization.getClientId() + ":" + authorization.getClientSecret();
         String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
@@ -154,7 +149,7 @@ public class UnirestRequest implements RemoteRequest{
                 .header("hue-application-key", authorization.getUsername())
                 .asJson();
         if (standardResponseStatusBodyCheck("hueGetResourceDeviceId")){
-            return gson.fromJson(response.getBody().toString(),HueDevice.class)
+            return gson.fromJson(response.getBody().toString(),HueDevice.class);
         }else return null;
     }
 
@@ -164,7 +159,7 @@ public class UnirestRequest implements RemoteRequest{
                 .header("hue-application-key", authorization.getUsername())
                 .asJson();
         if (standardResponseStatusBodyCheck("hueGetResourceDeviceId")){
-            return gson.fromJson(response.getBody().toString(),HueDevice.class)
+            return gson.fromJson(response.getBody().toString(),HueDevice.class);
         }else return null;
     }
 

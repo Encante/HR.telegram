@@ -9,6 +9,7 @@ import net.ddns.encante.telegram.HR.RemoteRequest.RemoteRequest;
 import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
+import net.ddns.encante.telegram.HR.TelegramMethods.MessageSender;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.*;
 import net.ddns.encante.telegram.HR.persistence.entities.HueAuthorizationEntity;
@@ -17,6 +18,7 @@ import net.ddns.encante.telegram.HR.persistence.repository.WebhookUpdateReposito
 import net.ddns.encante.telegram.HR.persistence.service.HueAuthorizationService;
 import net.ddns.encante.telegram.HR.persistence.service.QuizService;
 import net.ddns.encante.telegram.HR.persistence.service.WebhookUpdateService;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,29 +43,25 @@ private HueAuthorizationService hueAuthorizationService;
 private WebhookUpdateRepository webhookUpdateRepository;
 @Autowired
 private QuizRepository quizRepository;
+@Autowired
+private MessageSender msgSender;
 private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
-private final Long ME = 5580797031L;
-private final Long YASIA = 566760042L;
-private final Long CHOMIK = 6182762959L;
-private User backToSender;
 private String[] commands;
 private String error;
 
     //        when receiving message:
     @PostMapping("/HR4telegram")
-    public String postHandler(@RequestBody WebhookUpdate update) {
+    public String postHandler(@RequestBody WebhookUpdate update) {// do WebhookUpdate object from JSON
 //        log incoming update
         log.debug("INCOMING WEBHOOK UPDATE BODY:");
 //        log.debug(gson.toJson(JsonParser.parseString(content)));
         log.debug(gson.toJson(update));
-//        do WebhookUpdate object from JSON
-//        WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class); << done in @RequestBody
-//        store it in the DB
+//        store update it in the DB
         webhookUpdateService.saveWebhookUpdate(update);
         //            check if it is callback
         if (update.getCallback_query() != null) {
             //        just little helpful var with chatID of who send msg
-            this.backToSender = update.getMessage().getFrom();
+            msgSender.setBackToSender(update.getMessage().getFrom());
 //            check if it is a quiz message callback and resolve quiz
             if(quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id())!=null){
                 Quiz quiz = quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id());
@@ -314,7 +312,7 @@ private String error;
             return false;
         }
     }
-    private Boolean checkAuthorizationForDisplayName(String displayName, String invoker){
+    private boolean checkAuthorizationForDisplayName(String displayName, String invoker){
         if (hueAuthorizationService.getAuthorizationForDisplayName(displayName) != null) {
             return true;
         } else {
@@ -323,7 +321,7 @@ private String error;
             return false;
         }
     }
-    private Boolean checkAndRefreshHueAuthorization (HueAuthorizationEntity authorization) {
+    private boolean checkAndRefreshHueAuthorization (@NotNull HueAuthorizationEntity authorization) {
         //                                            authorization token and username check
         if (authorization.getTokens().getAccess_token() != null && authorization.getUsername() != null) {
 //                                                check if access token and username is valid
@@ -331,66 +329,6 @@ private String error;
                 log.debug("Tokens for " + authorization.getDisplayName() + " checked and valid.");
             } else{};
 //                                            do GET DEVICES REQUEST TO CHECK ACCESS TOKENS
-        }
-    }
-    private SentMessage greetFirstTime(){
-        if (backToSender!=null) {
-            if (backToSender.getLast_name() != null) {
-                return sendBackTelegramTextMessage("Hello " + backToSender.getFirst_name() + " " + backToSender.getLast_name() + "! Nice to see you! Hope You'll have a good time =]");
-            } else {
-                return sendBackTelegramTextMessage("Hello " + backToSender.getFirst_name() + "! Nice to see you! Hope You'll have a good time =]");
-            }
-        }else {
-            log.warn("ERROR! backToSender is null. Invoker: greetFirstTime");
-            sendTelegramTextMessage("ERROR! backToSender is null. Invoker: greetFirstTime",ME);
-            throw new RuntimeException("ERROR! backToSender is null. Invoker: greetFirstTime");
-        }
-    }
-    private SentMessage greet (){
-        if (backToSender!= null) {
-            if (backToSender.getLast_name() != null) {
-                return sendBackTelegramTextMessage("Hey " + backToSender.getFirst_name() + " " + backToSender.getLast_name() + "! Have a nice day =]");
-            } else {
-                return sendBackTelegramTextMessage("Hello " + backToSender.getFirst_name() + "! Have a nice day =]");
-            }
-        }else {
-            this.error = "ERROR - backToSender is null. Method: greet.";
-            sendAndLogErrorMsg();
-            throw new RuntimeException(error);
-        }
-    }
-    private SentMessage sendTelegramTextMessage (String text, Long chatId){
-        return request.sendTelegramMessage(new SendMessage()
-                .setText(text)
-                .setChat_id(chatId));
-    }
-    private SentMessage sendBackTelegramTextMessage (String text){
-        if (this.backToSender!=null) {
-            return request.sendTelegramMessage(new SendMessage()
-                    .setText(text)
-                    .setChat_id(backToSender.getId()));
-        }else {
-            this.error = "ERROR - backToSender is null. Method: sendBackTelegramTextMessage. Text: "+text;
-            sendAndLogErrorMsg();
-            throw new RuntimeException(error);
-        }
-    }
-    private void sendQuizResultInfo(Quiz quiz, Long whoTo){
-        if (quiz.getSuccess() == true){
-//            String msg = "Dobra odpowiedź"
-//            sendTelegramTextMessage(StringEscapeUtils.escapeJava()"Dobra odpowiedź!")
-            sendTelegramTextMessage("Dobra odpowiedź na pytanie: " + quiz.getQuestion(), whoTo);
-        } else if (quiz.getSuccess() == false) {
-            sendTelegramTextMessage("Zła odpowiedź na pytanie: " + quiz.getQuestion() + " Odpowiedź: " + quiz.getLastAnswer(),whoTo);
-        }
-    }
-    private void sendAndLogErrorMsg(){
-        if (this.error != null){
-            log.warn(this.error);
-            sendTelegramTextMessage(this.error, ME);
-        }else {
-            log.warn("Error is null");
-            throw new RuntimeException("Error is null");
         }
     }
 }
