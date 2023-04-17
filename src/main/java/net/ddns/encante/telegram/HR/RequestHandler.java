@@ -3,6 +3,7 @@ package net.ddns.encante.telegram.HR;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.Data;
+import lombok.Getter;
 import net.ddns.encante.telegram.HR.Quiz.Quiz;
 import net.ddns.encante.telegram.HR.RemoteRequest.RemoteRequest;
 import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
@@ -45,6 +46,8 @@ private final Long ME = 5580797031L;
 private final Long YASIA = 566760042L;
 private final Long CHOMIK = 6182762959L;
 private User backToSender;
+private String[] commands;
+private String error;
 
     //        when receiving message:
     @PostMapping("/HR4telegram")
@@ -54,7 +57,7 @@ private User backToSender;
 //        log.debug(gson.toJson(JsonParser.parseString(content)));
         log.debug(gson.toJson(update));
 //        do WebhookUpdate object from JSON
-//        WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class);
+//        WebhookUpdate update = gson.fromJson(content, WebhookUpdate.class); << done in @RequestBody
 //        store it in the DB
         webhookUpdateService.saveWebhookUpdate(update);
         //            check if it is callback
@@ -82,8 +85,6 @@ private User backToSender;
                 request.editTelegramMessage(new EditMessage(update.getCallback_query()));
             }
         }
-
-
 //      check if have any message
         if (update.getMessage() != null) {
             //        just little helpful var with chatID of who send msg
@@ -92,15 +93,15 @@ private User backToSender;
             if (update.getMessage().getText() != null) {
 //        check if incoming message have any and if there is do commands:
                 if (update.getMessage().getText().charAt(0) == '/') {
-                    String[] commands = update.getMessage().getText().split(" ");
+                    this.commands = update.getMessage().getText().split(" ");
                     switch (commands[0]) {
 //                        basic command to check if bot is running
-                        case "/hi" -> greet(update.getMessage().getFrom());
+                        case "/hi" -> greet();
                         case "/commands" ->sendBackTelegramTextMessage("/hi /commands /start /sm");
-                        case "/start" -> greetFirstTime(update.getMessage().getFrom());
+                        case "/start" -> greetFirstTime();
 //                        send message through bot
                         case "/sm" -> {
-                            if (checkCommandLenght(3, commands, "/sm", backToSender)) {
+                            if (checkCommandLenght(3, "/sm")) {
 //                                send message to me - checking purposes
                                 if (commands[1].equalsIgnoreCase("m")) {
                                     sendTelegramTextMessage(update.getMessage().getText().substring(6),ME);
@@ -120,10 +121,10 @@ private User backToSender;
                             request.sendTelegramMessage(new SendMessage()
                                     .setText("Inline message")
                                     .setReply_markup(new InlineKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
-                                    .setChat_id(backToSender));
+                                    .setChat_id(backToSender.getId()));
                         }
                         case "/smq" -> {
-                            if (checkCommandLenght(6, commands, "/smq",backToSender)){
+                            if (checkCommandLenght(6, "/smq")){
                                 Quiz quiz = new Quiz("Command line Quiz test", commands[2], commands[3], commands[4], commands[5], commands[2]);
                                 quizService.saveQuiz(quiz);
                                 request.sendTelegramMessage(quiz.createQuizMessageFromCommand(update));
@@ -133,7 +134,7 @@ private User backToSender;
 
                         case "/quizyas" -> sendQuizToYasia();
                         case "/quizid" -> {
-                            if (checkCommandLenght(2, commands,"/quizid",backToSender)){
+                            if (checkCommandLenght(2, "/quizid")){
                                 sendQuizToId(Long.decode(commands[1]));
                             }
                         }
@@ -144,16 +145,16 @@ private User backToSender;
                             request.sendTelegramMessage(new SendMessage()
                                     .setText("Message with keyboard")
                                     .setReply_markup(new ReplyKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
-                                    .setChat_id(backToSender));
+                                    .setChat_id(backToSender.getId()));
                         }
                         case "/rmk" -> {
                             request.sendTelegramMessage(new SendMessage()
                                     .setText("Keyboard removed! Have fun you little shmuck ;)")
-                                    .setChat_id(backToSender)
+                                    .setChat_id(backToSender.getId())
                                     .setReply_markup(new ReplyKeyboardRemove()));
                         }
                         case "/searchUserById" -> {
-                            if (checkCommandLenght(2,commands,"/searchUserById",backToSender)){
+                            if (checkCommandLenght(2,"/searchUserById")){
                                 if (webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])) != null) {
                                     sendBackTelegramTextMessage("To " + webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])).getFirstName());
                                 }
@@ -162,9 +163,9 @@ private User backToSender;
                         }
                         case "/hueapp" -> {
 //                            command lenght check
-                            if (checkCommandLenght(3,commands,"/hueapp",backToSender)) {
+                            if (checkCommandLenght(3,"/hueapp")) {
                                 if (commands[1].equalsIgnoreCase("link")) {
-                                    if (checkAuthorizationForDisplayName(commands[2],"/hueapp link",backToSender)) {
+                                    if (checkAuthorizationForDisplayName(commands[2],"/hueapp link")) {
                                         HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
                                         sendBackTelegramTextMessage(authorization.generateAuthorizationLink());
                                         hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(authorization);
@@ -172,7 +173,7 @@ private User backToSender;
                                 }
                                 if (commands[1].equalsIgnoreCase("checktokens")) {
 //                                        authorization for display name check
-                                    if (checkAuthorizationForDisplayName(commands[2], "/hueapp checktokens",backToSender)) {
+                                    if (checkAuthorizationForDisplayName(commands[2], "/hueapp checktokens")) {
                                         HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
                                         if (authorization.getTokens().getAccess_token()!=null && authorization.getUsername()!=null){
 
@@ -180,7 +181,7 @@ private User backToSender;
                                     }
                                 }
                                 if (commands[1].equalsIgnoreCase("add")){
-                                    if (checkCommandLenght(5, commands,"/hueapp add",backToSender)){
+                                    if (checkCommandLenght(5, "/hueapp add")){
                                     HueAuthorizationEntity authorization = new HueAuthorizationEntity();
                                     authorization.setClientId(commands[2]);
                                     authorization.setClientSecret(commands[3]);
@@ -304,44 +305,21 @@ private User backToSender;
 //
 //              PRIVATE ONLY
 //
-    private class Checker{
-        int atLeast;
-        String[] command;
-        String invoker;
-        Long whoToInform;
-        String displayName;
-
-//        setting constant values
-        Checker (String[] command, Long whoToInform){
-            this.command = command;
-            this.whoToInform = whoToInform;
-        }
-        Checker lenghtChecker (int atLeast, String invoker){
-            this.atLeast = atLeast;
-            this.invoker = invoker;
-            return this;
-        }
-        Checker authChecker (String displayName, String invoker){
-            this.displayName = displayName;
-            this.invoker = invoker;
-            return this;
-        }
-};
-    private Boolean checkCommandLenght (int atLeast, String[] command, String invokerCommand, Long whoToInform){
-        if (command.length >= atLeast){
+    Boolean checkCommandLenght (int atLeast, String invoker){
+        if (commands.length >= atLeast){
             return true;
         }else {
-            log.warn("Bad command lenght - insuficient parameters from command "+ invokerCommand);
-            sendTelegramTextMessage("Bad command lenght - insuficient parameters from command "+ invokerCommand, whoToInform);
+            log.warn("Bad command lenght - insuficient parameters from command "+ invoker);
+            sendBackTelegramTextMessage("Bad command lenght - insuficient parameters from command "+ invoker);
             return false;
         }
     }
-    private Boolean checkAuthorizationForDisplayName(String displayName, String invoker, Long whoToInform){
+    private Boolean checkAuthorizationForDisplayName(String displayName, String invoker){
         if (hueAuthorizationService.getAuthorizationForDisplayName(displayName) != null) {
             return true;
         } else {
             log.warn("No authorization for app with name '"+displayName+"' in DB. Invoker: "+invoker);
-            sendTelegramTextMessage("No authorization for app with name '"+displayName+"' in DB. Invoker: "+invoker, whoToInform);
+            sendBackTelegramTextMessage("No authorization for app with name '"+displayName+"' in DB. Invoker: "+invoker);
             return false;
         }
     }
@@ -360,7 +338,7 @@ private User backToSender;
             if (backToSender.getLast_name() != null) {
                 return sendBackTelegramTextMessage("Hello " + backToSender.getFirst_name() + " " + backToSender.getLast_name() + "! Nice to see you! Hope You'll have a good time =]");
             } else {
-                return sendBackTelegramTextMessage("Hello " + backToSender.getFirst_name() + "! Nice to see you! Hope You'll have a good time =]", backToSender.getId());
+                return sendBackTelegramTextMessage("Hello " + backToSender.getFirst_name() + "! Nice to see you! Hope You'll have a good time =]");
             }
         }else {
             log.warn("ERROR! backToSender is null. Invoker: greetFirstTime");
@@ -373,8 +351,12 @@ private User backToSender;
             if (backToSender.getLast_name() != null) {
                 return sendBackTelegramTextMessage("Hey " + backToSender.getFirst_name() + " " + backToSender.getLast_name() + "! Have a nice day =]");
             } else {
-                return sendTelegramTextMessage("Hello " + whoToGreet.getFirst_name() + "! Have a nice day =]", whoToGreet.getId());
+                return sendBackTelegramTextMessage("Hello " + backToSender.getFirst_name() + "! Have a nice day =]");
             }
+        }else {
+            this.error = "ERROR - backToSender is null. Method: greet.";
+            sendAndLogErrorMsg();
+            throw new RuntimeException(error);
         }
     }
     private SentMessage sendTelegramTextMessage (String text, Long chatId){
@@ -388,7 +370,9 @@ private User backToSender;
                     .setText(text)
                     .setChat_id(backToSender.getId()));
         }else {
-            logSendThrowError("ERROR. No backToSender set! Text for debug: "+text);
+            this.error = "ERROR - backToSender is null. Method: sendBackTelegramTextMessage. Text: "+text;
+            sendAndLogErrorMsg();
+            throw new RuntimeException(error);
         }
     }
     private void sendQuizResultInfo(Quiz quiz, Long whoTo){
@@ -400,9 +384,13 @@ private User backToSender;
             sendTelegramTextMessage("Zła odpowiedź na pytanie: " + quiz.getQuestion() + " Odpowiedź: " + quiz.getLastAnswer(),whoTo);
         }
     }
-    private void logSendThrowError(String error){
-        log.warn(error);
-        sendTelegramTextMessage(error,ME);
-        throw new RuntimeException(error);
-    }    
+    private void sendAndLogErrorMsg(){
+        if (this.error != null){
+            log.warn(this.error);
+            sendTelegramTextMessage(this.error, ME);
+        }else {
+            log.warn("Error is null");
+            throw new RuntimeException("Error is null");
+        }
+    }
 }
