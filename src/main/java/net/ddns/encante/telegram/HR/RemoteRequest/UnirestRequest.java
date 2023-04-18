@@ -33,7 +33,7 @@ public class UnirestRequest {
     private HttpResponse<JsonNode> response;
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-    public SentMessage sendTelegramMessage(SendMessage message){
+    public SentMessage sendTelegramMessageObj(SendMessage message){
     this.response = Unirest.post(SEND_MESSAGE_URL)
             .header("Content-Type", "application/json")
             .body(gson.toJson(message))
