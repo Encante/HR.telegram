@@ -58,7 +58,7 @@ private String[] commands;
         //            check if it is callback
         if (update.getCallback_query() != null) {
             //        just little helpful var with chatID of who send msg
-            msgManager.setOriginalSender(update.getMessage().getFrom());
+            msgManager.setOriginalSender(update.getCallback_query().getFrom());
 //            check if it is a quiz message callback and resolve quiz
             if(quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id())!=null){
                 Quiz quiz = quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id());
