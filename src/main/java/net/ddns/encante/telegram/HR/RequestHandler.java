@@ -55,7 +55,7 @@ private String[] commands;
         log.debug(gson.toJson(update));
 //        store update it in the DB
         webhookUpdateService.saveWebhookUpdate(update);
-        //            check if it is callback
+//            check if it is callback
         if (update.getCallback_query() != null) {
             //        just little helpful var with chatID of who send msg
             msgManager.setOriginalSender(update.getCallback_query().getFrom());
@@ -79,9 +79,8 @@ private String[] commands;
 //            delete keyboard after pressing a key
                 request.editTelegramMessage(new EditMessage(update.getCallback_query()));
             }
-        }
-//      check if have any message
-        if (update.getMessage() != null) {
+            //      check if have any message
+        } else if (update.getMessage() != null) {
             //        just little helpful var with chatID of who send msg
             msgManager.setOriginalSender(update.getMessage().getFrom());
 //      check if incoming message have any text
@@ -224,16 +223,15 @@ private String[] commands;
                         + " But it has no text!", msgManager.getME());
                 return "200";
             }
-        }
-//        update not contains message object
-        else msgManager.sendTelegramTextMessage("New message! T: " + Utils.getCurrentDateTime()
+            //        update not contains message object and is not a callback
+        }else msgManager.sendTelegramTextMessage("New message. T: " + Utils.getCurrentDateTime()
                 + "  FROM: "
                 + msgManager.getOriginalSender().getFirst_name()
                 + " "
                 + msgManager.getOriginalSender().getLast_name()
                 + "  CHAT ID: "
                 + msgManager.getOriginalSender().getId()
-                + " But it has no message object", msgManager.getME());
+                + " But it has no message object nor it's a callback.", msgManager.getME());
         return "200";
     }
 
