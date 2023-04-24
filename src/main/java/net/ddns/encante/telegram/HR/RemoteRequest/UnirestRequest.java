@@ -38,7 +38,7 @@ public class UnirestRequest {
             .header("Content-Type", "application/json")
             .body(gson.toJson(message))
             .asJson();
-    log.debug("BODY SENT BY sendTelegramMessage: "+gson.toJson(message));
+    log.debug("BODY SENT BY sendTelegramMessageOBJ: "+gson.toJson(message));
     log.debug(printResponse("sendTelegramMessage"));
     return gson.fromJson(response.getBody().toString(),SentMessage.class);
 }

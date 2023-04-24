@@ -9,6 +9,8 @@ import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
 import net.ddns.encante.telegram.HR.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,6 +35,7 @@ public class Quiz {
     Long dateSent;
     Long dateAnswered;
     Long messageId;
+    private static final Logger log = LoggerFactory.getLogger(Quiz.class);
 //    for resolving answer only, wont be saved to db
     AnswerCallbackQuery reactionForAnswerCallback;
     SendMessage reactionForAnswerMessage;
@@ -74,6 +77,10 @@ public class Quiz {
                     .setReply_markup(new InlineKeyboardMarkup
                             .KeyboardBuilder(1,2,keys).build())
                     .setChat_id(chatId);
+            default -> {
+                log.warn("Bad answers left number cant create quiz message");
+                throw new RuntimeException("Bad answers left number cant create quiz message");
+            }
         }
         return msg;
     }
