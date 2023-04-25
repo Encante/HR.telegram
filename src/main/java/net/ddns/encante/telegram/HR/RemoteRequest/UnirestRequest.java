@@ -41,7 +41,7 @@ public class UnirestRequest {
     log.debug("BODY SENT BY sendTelegramMessageOBJ: "+gson.toJson(message));
     log.debug(printResponse("sendTelegramMessage"));
     return gson.fromJson(response.getBody().toString(),SentMessage.class);
-}
+    }
     public SentMessage editTelegramMessage(EditMessage message){
             this.response = Unirest.post("https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageText")
                     .header("Content-Type", "application/json")

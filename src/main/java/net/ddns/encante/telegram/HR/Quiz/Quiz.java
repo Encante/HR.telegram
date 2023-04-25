@@ -48,42 +48,8 @@ public class Quiz {
         this.optD = optD;
         this.correctAnswer = correctAnswer;
     }
-    public SendMessage createQuizMessageFromCommand (WebhookUpdate update){
-        String[] commands = update.getMessage().getText().split(" ");
-            String[] keys = {commands[2],commands[3],commands[4],commands[5]};
-            return new SendMessage()
-                    .setText(commands[1])
-                    .setReply_markup(new InlineKeyboardMarkup
-                            .KeyboardBuilder(1,4,keys).build())
-                    .setChat_id(update.getMessage().getChat().getId());
-    }
 
-    public SendMessage createMessage (Long chatId){
-        String[] keys = {this.optA,this.optB,this.optC,this.optD};
-        SendMessage msg = new SendMessage();
-        switch (this.answersLeft){
-            case 4 -> msg
-                    .setText(this.question)
-                    .setReply_markup(new InlineKeyboardMarkup
-                            .KeyboardBuilder(1,4,keys).build())
-                    .setChat_id(chatId);
-            case 3 -> msg
-                    .setText(this.question)
-                    .setReply_markup(new InlineKeyboardMarkup
-                            .KeyboardBuilder(1,3,keys).build())
-                    .setChat_id(chatId);
-            case 2 -> msg
-                    .setText(this.question)
-                    .setReply_markup(new InlineKeyboardMarkup
-                            .KeyboardBuilder(1,2,keys).build())
-                    .setChat_id(chatId);
-            default -> {
-                log.warn("Bad answers left number cant create quiz message");
-                throw new RuntimeException("Bad answers left number cant create quiz message");
-            }
-        }
-        return msg;
-    }
+
 //    checking answer based on webhook update sent by telegram
     public Quiz resolveAnswer (WebhookUpdate update){
 //        saving metadata

@@ -1,15 +1,21 @@
 package net.ddns.encante.telegram.HR.persistence.service;
 
 import net.ddns.encante.telegram.HR.Quiz.Quiz;
+import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
+import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
+import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
 import net.ddns.encante.telegram.HR.persistence.entities.QuizEntity;
 import net.ddns.encante.telegram.HR.persistence.repository.QuizRepository;
 import org.apache.commons.text.StringEscapeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service("quizService")
 
 public class QuizServiceImpl implements QuizService {
+    private static final Logger log = LoggerFactory.getLogger(QuizServiceImpl.class);
     @Autowired
     private QuizRepository quizRepository;
 
@@ -47,9 +53,81 @@ public class QuizServiceImpl implements QuizService {
         if(quizRepository.findAllQuizEntitiesToSend().size()>0)
             return convertQuizEntityToObj(quizRepository.findAllQuizEntitiesToSend().get(0));
         else {
-            throw new RuntimeException("No entries in db");
+            log.warn("No entries in db. Invoker: QuizServiceImpl.getNextQuizToSendFromDb()");
+            throw new RuntimeException("No entries in db. Invoker: QuizServiceImpl.getNextQuizToSendFromDb()");
         }
     }
+    @Override
+    public SendMessage createQuizMessageFromCommand (WebhookUpdate update){
+        String[] commands = update.getMessage().getText().split(" ");
+        String[] keys = {commands[2],commands[3],commands[4],commands[5]};
+        return new SendMessage()
+                .setText(commands[1])
+                .setReply_markup(new InlineKeyboardMarkup
+                        .KeyboardBuilder(1,4,keys).build())
+                .setChat_id(update.getMessage().getChat().getId());
+    }
+    @Override
+    public SendMessage createMessage (Long chatId, Quiz quiz) {
+        if (quiz.getOptA() != null && quiz.getOptB() != null && quiz.getOptC() != null && quiz.getOptD() != null && quiz.getQuestion() != null) {
+            String[] keys = {quiz.getOptA(), quiz.getOptB(), quiz.getOptC(), quiz.getOptD()};
+            SendMessage msg = new SendMessage().setText(quiz.getQuestion());
+            switch (quiz.getAnswersLeft()) {
+                case 4 -> msg
+//                    .setText(quiz.getQuestion())
+                        .setReply_markup(new InlineKeyboardMarkup
+                                .KeyboardBuilder(1, 4, keys).build())
+                        .setChat_id(chatId);
+                case 3 -> msg
+//                    .setText(quiz.getQuestion())
+                        .setReply_markup(new InlineKeyboardMarkup
+                                .KeyboardBuilder(1, 3, keys).build())
+                        .setChat_id(chatId);
+                case 2 -> msg
+//                    .setText(this.question)
+                        .setReply_markup(new InlineKeyboardMarkup
+                                .KeyboardBuilder(1, 2, keys).build())
+                        .setChat_id(chatId);
+                default -> {
+                    log.warn("Bad answers left number cant create quiz message");
+                    throw new RuntimeException("Bad answers left number cant create quiz message");
+                }
+            }
+            return msg;
+        }else {
+            log.warn("Quiz object incomplete. Can't create Quiz message. Invoker: QuizServiceImpl.createMessage");
+            throw new RuntimeException("Quiz object incomplete. Can't create Quiz message. Invoker: QuizServiceImpl.createMessage");
+        }
+    }
+//    public SendMessage createNextQuizMessage (Long chatId){
+//        Quiz quiz = getNextQuizToSendFromDb();
+//        String[] keys = {quiz.getOptA(),quiz.getOptB(),quiz.getOptC(),quiz.getOptD()};
+//        SendMessage msg = new SendMessage().setText(quiz.getQuestion());
+//        switch (quiz.getAnswersLeft()){
+//            case 4 -> msg
+////                    .setText(quiz.getQuestion())
+//                    .setReply_markup(new InlineKeyboardMarkup
+//                            .KeyboardBuilder(1,4,keys).build())
+//                    .setChat_id(chatId);
+//            case 3 -> msg
+////                    .setText(quiz.getQuestion())
+//                    .setReply_markup(new InlineKeyboardMarkup
+//                            .KeyboardBuilder(1,3,keys).build())
+//                    .setChat_id(chatId);
+//            case 2 -> msg
+////                    .setText(this.question)
+//                    .setReply_markup(new InlineKeyboardMarkup
+//                            .KeyboardBuilder(1,2,keys).build())
+//                    .setChat_id(chatId);
+//            default -> {
+//                log.warn("Bad answers left number cant create quiz message");
+//                throw new RuntimeException("Bad answers left number cant create quiz message");
+//            }
+//        }
+//        return msg;
+//    }
+
+
 //
 //      CONVERT ENTITIES TO OBJECTS
 //

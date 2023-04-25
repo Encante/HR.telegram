@@ -28,8 +28,8 @@ import javax.annotation.Resource;
 @RestController
 public class RequestHandler {
 Gson gson = new GsonBuilder().setPrettyPrinting().create();
-@Autowired
-UnirestRequest request;
+//@Autowired
+//UnirestRequest request;
 @Resource(name = "webhookUpdateService")
 private WebhookUpdateService webhookUpdateService;
 @Resource(name = "quizService")
@@ -121,15 +121,14 @@ private String[] commands;
                             if (checkCommandLenght(6, "/smq")){
                                 Quiz quiz = new Quiz("Command line Quiz test", commands[2], commands[3], commands[4], commands[5], commands[2]);
                                 quizService.saveQuiz(quiz);
-                                request.sendTelegramMessageObj(quiz.createQuizMessageFromCommand(update));
+                                request.sendTelegramMessageObj(quizService.createQuizMessageFromCommand(update));
                             }
                         }
-                        case "/quizme" -> sendQuizToMe();
-
-                        case "/quizyas" -> sendQuizToYasia();
+                        case "/quizme" -> msgManager.sendQuizToId(msgManager.getME());
+                        case "/quizyas" -> msgManager.sendQuizToYasia();
                         case "/quizid" -> {
                             if (checkCommandLenght(2, "/quizid")){
-                                sendQuizToId(Long.decode(commands[1]));
+                                msgManager.sendQuizToId(Long.decode(commands[1]));
                             }
                         }
 
@@ -251,50 +250,49 @@ private String[] commands;
 //
 //    sending Quiz on schedule
 //
-    @Async
-    @Scheduled(cron = "0 0 8-18 ? * *")
-    public void sendQuizToYasia(){
+//    @Async
+//    @Scheduled(cron = "0 0 8-18 ? * *")
+//    public void sendQuizToYasia(){
+////                            get next not sent quiz from db
+//        Quiz quiz = quizService.getNextQuizToSendFromDb();
+////                            send quiz message
+//        SentMessage sentQuizMessage = request.sendTelegramMessageObj(quiz.createMessage(msgManager.getYASIA()));
+////                            update quiz obj
+//        quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
+//        quiz.setDateSent(sentQuizMessage.getResult().getDate());
+//        quiz.setLastAnswer(null);
+////                            save updated quiz to db
+//        quizService.saveQuiz(quiz);
+//        msgManager.sendTelegramTextMessage("Quiz "+ quiz.getQuestion() +" wysłany", msgManager.getME());
+//        log.debug("Quiz "+quiz.getQuizId()+ " wyslany do Yasi!<<<<<<<<<");
+//    }
 
-//                            get next not sent quiz from db
-        Quiz quiz = quizService.getNextQuizToSendFromDb();
-//                            send quiz message
-        SentMessage sentQuizMessage = request.sendTelegramMessageObj(quiz.createMessage(msgManager.getYASIA()));
-//                            update quiz obj
-        quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
-        quiz.setDateSent(sentQuizMessage.getResult().getDate());
-        quiz.setLastAnswer(null);
-//                            save updated quiz to db
-        quizService.saveQuiz(quiz);
-        msgManager.sendTelegramTextMessage("Quiz "+ quiz.getQuestion() +" wysłany", msgManager.getME());
-        log.debug("Quiz "+quiz.getQuizId()+ " wyslany do Yasi!<<<<<<<<<");
-    }
-
-    public void sendQuizToMe(){
-        //                            get next not sent quiz from db
-        Quiz quiz = quizService.getNextQuizToSendFromDb();
-//                            send quiz message
-        SentMessage sentQuizMessage = request.sendTelegramMessageObj(quiz.createMessage(msgManager.getME()));
-//                            update quiz obj
-        quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
-        quiz.setDateSent(sentQuizMessage.getResult().getDate());
-        quiz.setLastAnswer(null);
-//                            save updated quiz to db
-        quizService.saveQuiz(quiz);
-        log.debug("Quiz "+quiz.getQuizId()+ " wyslany do mnie!<<<<<<");
-    }
-    public void sendQuizToId (Long chatId){
-        //                            get next not sent quiz from db
-        Quiz quiz = quizService.getNextQuizToSendFromDb();
-//                            send quiz message
-        SentMessage sentQuizMessage = request.sendTelegramMessageObj(quiz.createMessage(chatId));
-//                            update quiz obj
-        quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
-        quiz.setDateSent(sentQuizMessage.getResult().getDate());
-        quiz.setLastAnswer(null);
-//                            save updated quiz to db
-        quizService.saveQuiz(quiz);
-        log.debug("Quiz "+quiz.getQuizId()+ " wyslany do chatId "+chatId+" <<<<<<");
-    }
+//    public void sendQuizToMe(){
+//        //                            get next not sent quiz from db
+//        Quiz quiz = quizService.getNextQuizToSendFromDb();
+////                            send quiz message
+//        SentMessage sentQuizMessage = request.sendTelegramMessageObj(quiz.createMessage(msgManager.getME()));
+////                            update quiz obj
+//        quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
+//        quiz.setDateSent(sentQuizMessage.getResult().getDate());
+//        quiz.setLastAnswer(null);
+////                            save updated quiz to db
+//        quizService.saveQuiz(quiz);
+//        log.debug("Quiz "+quiz.getQuizId()+ " wyslany do mnie!<<<<<<");
+//    }
+//    public void sendQuizToId (Long chatId){
+//        //                            get next not sent quiz from db
+//        Quiz quiz = quizService.getNextQuizToSendFromDb();
+////                            send quiz message
+//        SentMessage sentQuizMessage = request.sendTelegramMessageObj(quiz.createMessage(chatId));
+////                            update quiz obj
+//        quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
+//        quiz.setDateSent(sentQuizMessage.getResult().getDate());
+//        quiz.setLastAnswer(null);
+////                            save updated quiz to db
+//        quizService.saveQuiz(quiz);
+//        log.debug("Quiz "+quiz.getQuizId()+ " wyslany do chatId "+chatId+" <<<<<<");
+//    }
 //
 //              PRIVATE ONLY
 //
