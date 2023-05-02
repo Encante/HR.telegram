@@ -57,29 +57,22 @@ private String[] commands;
         webhookUpdateService.saveWebhookUpdate(update);
 //            check if it is callback
         if (update.getCallback_query() != null) {
-            //        just little helpful var with chatID of who send msg
+            //        initialise msgManager setting originalSender of message
             msgManager.setOriginalSender(update.getCallback_query().getFrom());
-//            check if it is a quiz message callback and resolve quiz
+//            check if it is a quiz message callback and eventually resolve a quiz
             if(quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id())!=null){
-                Quiz quiz = quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id());
+//                Quiz quiz = quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id());
 //              actually resolve answer
-                quizService.saveQuiz(quiz.resolveAnswer(update));
-//              edit message: add answer
-                request.editTelegramMessage(new EditMessage(update.getCallback_query(), update.getCallback_query().getMessage().getText() +" Twoja odpowiedź: "+quiz.getLastAnswer()));
-//                add popup message with response to answer
-                request.answerCallbackQuery(quiz.getReactionForAnswerCallback());
-//                send reply to message with answer
-                request.sendTelegramMessageObj(quiz.getReactionForAnswerMessage());
-//                    send me an info about quiz
-                    msgManager.sendQuizResultInfo(quiz, msgManager.getME());
+                quizService.resolveQuizAnswer(update);
             }
             else {
+//                nothing specific other than quiz is designed to be used by callbacks so now default behavior will be sending "Callback Answer" and deleting an inline keyboard
 //            answer callback query
-                request.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(), "Callback Answer!", false));
+                msgManager.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(), "Callback Answer!", false));
 //            delete keyboard after pressing a key
-                request.editTelegramMessage(new EditMessage(update.getCallback_query()));
+                msgManager.editTelegramMessage(update.getMessage().getChat().getId(),update.getMessage().getMessage_id(),null);
             }
-            //      check if have any message
+            //      if it doesnt have callback querry, check if it has any message obj
         } else if (update.getMessage() != null) {
             //        just little helpful var with chatID of who send msg
             msgManager.setOriginalSender(update.getMessage().getFrom());
@@ -112,36 +105,33 @@ private String[] commands;
                         }
                         case "/smi" -> {
                             String[] names = {"Inline", "she", "goes"};
-                            request.sendTelegramMessageObj(new SendMessage()
+                            msgManager.sendTelegramObjAsMessage(new SendMessage()
                                     .setText("Inline message")
                                     .setReply_markup(new InlineKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
                                     .setChat_id(msgManager.getOriginalSender().getId()));
                         }
-                        case "/smq" -> {
-                            if (checkCommandLenght(6, "/smq")){
-                                Quiz quiz = new Quiz("Command line Quiz test", commands[2], commands[3], commands[4], commands[5], commands[2]);
-                                quizService.saveQuiz(quiz);
-                                request.sendTelegramMessageObj(quizService.createQuizMessageFromCommand(update));
+                        case "/quiz" -> {
+                            if (checkCommandLenght(2, "/quiz")) {
+                                if (commands[1].equalsIgnoreCase("me")) msgManager.sendQuizToId(msgManager.getME());
+                                if (commands[1].equalsIgnoreCase("yas")) msgManager.sendQuizToYasia();
+                                if (commands[1].equalsIgnoreCase("chom"))
+                                    msgManager.sendQuizToId(msgManager.getCHOMIK());
+                                if (commands[1].equalsIgnoreCase("id")){
+                                    if(checkCommandLenght(3,"/quiz id"))
+                                        msgManager.sendQuizToId(Long.decode(commands[2]));
+                                }
                             }
                         }
-                        case "/quizme" -> msgManager.sendQuizToId(msgManager.getME());
-                        case "/quizyas" -> msgManager.sendQuizToYasia();
-                        case "/quizid" -> {
-                            if (checkCommandLenght(2, "/quizid")){
-                                msgManager.sendQuizToId(Long.decode(commands[1]));
-                            }
-                        }
-
                         case "/hmql" -> msgManager.sendTelegramTextMessage("Zostało "+quizRepository.findAllQuizEntitiesToSend().size()+" pytań.", msgManager.getME());
                         case "/smk" -> {
                             String[] names = {"Reply", "she", "goes"};
-                            request.sendTelegramMessageObj(new SendMessage()
+                            msgManager.sendTelegramObjAsMessage(new SendMessage()
                                     .setText("Message with keyboard")
                                     .setReply_markup(new ReplyKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
                                     .setChat_id(msgManager.getOriginalSender().getId()));
                         }
                         case "/rmk" -> {
-                            request.sendTelegramMessageObj(new SendMessage()
+                            msgManager.sendTelegramObjAsMessage(new SendMessage()
                                     .setText("Keyboard removed! Have fun you little shmuck ;)")
                                     .setChat_id(msgManager.getOriginalSender().getId())
                                     .setReply_markup(new ReplyKeyboardRemove()));
@@ -158,11 +148,9 @@ private String[] commands;
 //                            command lenght check
                             if (checkCommandLenght(3,"/hueapp")) {
                                 if (commands[1].equalsIgnoreCase("link")) {
-                                    if (checkAuthorizationForDisplayName(commands[2],"/hueapp link")) {
                                         HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
                                         msgManager.sendBackTelegramTextMessage(authorization.generateAuthorizationLink());
                                         hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(authorization);
-                                    }
                                 }
                                 if (commands[1].equalsIgnoreCase("checktokens")) {
 //                                        authorization for display name check
@@ -304,14 +292,7 @@ private String[] commands;
             return false;
         }
     }
-    private boolean checkAuthorizationForDisplayName(String displayName, String invoker){
-        if (hueAuthorizationService.getAuthorizationForDisplayName(displayName) != null) {
-            return true;
-        } else {
-            msgManager.sendAndLogErrorMsg("No authorization for app with name '"+displayName+"' in DB. Invoker: "+invoker);
-            return false;
-        }
-    }
+
     private boolean checkAndRefreshHueAuthorization (@NotNull HueAuthorizationEntity authorization) {
         //                                            authorization token and username check
         if (authorization.getTokens().getAccess_token() != null && authorization.getUsername() != null) {

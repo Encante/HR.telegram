@@ -1,6 +1,5 @@
 package net.ddns.encante.telegram.HR.TelegramMethods;
 
-import kong.unirest.Unirest;
 import lombok.Data;
 import net.ddns.encante.telegram.HR.Quiz.Quiz;
 import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
@@ -32,7 +31,7 @@ public class MessageManager {
 //                            get next not sent quiz from db
             Quiz quiz = quizService.getNextQuizToSendFromDb();
 //                            send quiz message
-            SentMessage sentQuizMessage = request.sendTelegramMessageObj(quizService.createMessage(chatId, quiz));
+            SentMessage sentQuizMessage = request.sendTelegramMessageObj(quizService.createQuizMessage(chatId, quiz));
 //                            update quiz obj
             quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
             quiz.setDateSent(sentQuizMessage.getResult().getDate());
@@ -54,6 +53,13 @@ public class MessageManager {
         return request.sendTelegramMessageObj(new SendMessage()
                 .setText(text)
                 .setChat_id(chatId));
+    }
+
+    public SentMessage editTelegramMessage (Long chatId, Long messageId, String text){
+        return request.editTelegramMessage(new EditMessage(chatId,messageId, text));
+    }
+    public void answerCallbackQuery(AnswerCallbackQuery answer){
+        request.answerCallbackQuery(answer);
     }
 
     public void sendAndLogErrorMsg(@NotNull String error) {

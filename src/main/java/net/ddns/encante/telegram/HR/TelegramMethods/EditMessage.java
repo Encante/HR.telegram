@@ -21,9 +21,10 @@ public class EditMessage {
     InlineKeyboardMarkup reply_markup;
 
 
-    public EditMessage(Long chat_id, Long message_id) {
-        this.chat_id = chat_id;
-        this.message_id = message_id;
+    public EditMessage(Long chatId, Long messageId, String text) {
+        this.chat_id = chatId;
+        this.message_id = messageId;
+        this.text = text;
     }
 //    deleting keyboard from message
     public EditMessage (CallbackQuery callback) {

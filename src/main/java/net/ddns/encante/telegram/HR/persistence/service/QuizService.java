@@ -10,6 +10,6 @@ public interface QuizService {
     Quiz getNextQuizToSendFromDb();
     Quiz getQuizByMessageId(final Long messageId);
     boolean deleteQuizById(final Long quizId);
-    SendMessage createQuizMessageFromCommand (WebhookUpdate update);
-    SendMessage createMessage (Long chatId, Quiz quiz);
+    SendMessage createQuizMessage(Long chatId, Quiz quiz);
+    void resolveQuizAnswer(WebhookUpdate update);
 }
