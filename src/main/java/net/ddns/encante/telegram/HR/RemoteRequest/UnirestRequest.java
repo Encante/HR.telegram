@@ -63,8 +63,8 @@ public class UnirestRequest {
     public HueAuthorizationEntity requestHueAuthentication(HueAuthorizationEntity authorization){
 //        first part: we exchange :code, clientId, clientSecret we got in authentication for authentication tokens
         if (authorization.getClientId() == null || authorization.getClientSecret() == null || authorization.getCode() == null){
-            log.warn("Part of Authorization missing! Check authorization in DB!");
-            throw new RuntimeException("Part of Authorization missing! Check authorization in DB!");
+            log.warn("Part of Authorization missing. Check authorization in DB!");
+            throw new RuntimeException("Part of Authorization missing. Check authorization in DB!");
         }else {
             String credentials = authorization.getClientId() + ":" + authorization.getClientSecret();
             String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes(StandardCharsets.UTF_8));

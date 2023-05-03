@@ -12,6 +12,6 @@ import org.springframework.stereotype.Component;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class EditMessageReplyMarkup extends EditMessage {
     public EditMessageReplyMarkup(SentMessage sentMessage) {
-        super(sentMessage.getResult().getChat().getId(), sentMessage.getResult().getMessage_id());
+        super(sentMessage.getResult().getChat().getId(), sentMessage.getResult().getMessage_id(), sentMessage.getResult().getText());
     }
 }

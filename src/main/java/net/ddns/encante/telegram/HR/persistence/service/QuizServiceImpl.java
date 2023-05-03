@@ -6,6 +6,7 @@ import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.MessageManager;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
+import net.ddns.encante.telegram.HR.TelegramObjects.SentMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
 import net.ddns.encante.telegram.HR.Utils;
 import net.ddns.encante.telegram.HR.persistence.entities.QuizEntity;
@@ -14,6 +15,8 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -28,7 +31,6 @@ public class QuizServiceImpl implements QuizService {
     private QuizRepository quizRepository;
     @Autowired
     private MessageManager msgMgr;
-    private static final Logger log = LoggerFactory.getLogger(QuizServiceImpl.class);
 
     @Override
     public Quiz saveQuiz(Quiz quiz) {
@@ -145,7 +147,7 @@ public class QuizServiceImpl implements QuizService {
             quiz.setRetriesCount(quiz.getRetriesCount()+1);
 //            react for answer:
 //            callback will be the same either it was last answer or not so well set it now
-            quiz.setReactionForAnswerCallback(new AnswerCallbackQuery(update.getCallback_query().getId(),"Zła odpowiedź!",true);
+            quiz.setReactionForAnswerCallback(new AnswerCallbackQuery(update.getCallback_query().getId(),"Zła odpowiedź!",true));
 //            check if it isn't last answer
             if (quiz.getAnswersLeft()>1) {
 //                randomize answers and set used on last places
@@ -183,7 +185,7 @@ public class QuizServiceImpl implements QuizService {
                 quiz.setReactionForAnswerMessage(new SendMessage()
                         .setText("Niestety zła odpowiedź :( Prawidłowa odpowiedź to: "+ quiz.getCorrectAnswer())
                         .setReply_to_message_id(update.getCallback_query().getMessage().getMessage_id())
-                        .setChat_id(update.getCallback_query().getMessage().getChat().getId()))
+                        .setChat_id(update.getCallback_query().getMessage().getChat().getId()));
             }
         }
 //        either way it was good or bad answer now is the time to send reaction
@@ -198,13 +200,33 @@ public class QuizServiceImpl implements QuizService {
 //        if quiz object is incompatibile (unexpected nulls)
             }else {
                 log.warn("ERROR. Unexpected null on Quiz object. Invoker: QuizServiceImpl.resolveQuizAnswer.");
-                throw new RuntimeException("ERROR. Unexpected null on Quiz object. Invoker: QuizServiceImpl.resolveQuizAnswer.")
+                throw new RuntimeException("ERROR. Unexpected null on Quiz object. Invoker: QuizServiceImpl.resolveQuizAnswer.");
             }
 //        if prerequisite checks failed:
         }else {
             log.warn("ERROR. Prerequisite check failed for QuizServiceImpl.resolveQuizAnswer.");
             throw new RuntimeException("ERROR. Prerequisite check failed for QuizServiceImpl.resolve answer.");
         }
+    }
+    @Override
+    public void sendQuizToId(Long chatId){
+        //                            get next not sent quiz from db
+        Quiz quiz = getNextQuizToSendFromDb();
+//                            send quiz message
+        SentMessage sentQuizMsg = msgMgr.sendTelegramObjAsMessage(createQuizMessage(chatId,quiz));
+//                            update quiz obj
+        quiz.setMessageId(sentQuizMsg.getResult().getMessage_id());
+        quiz.setDateSent(sentQuizMsg.getResult().getDate());
+        quiz.setLastAnswer(null);
+//                            save updated quiz to db
+        saveQuiz(quiz);
+        msgMgr.sendTelegramTextMessage("Quiz "+ quiz.getQuestion() +" wysłany", msgMgr.getME());
+        log.debug("Quiz "+quiz.getQuizId()+ " wyslany <<<<<<<<<");
+    }
+    @Async
+    @Scheduled(cron = "0 0 8-18 ? * *")
+    public void sendQuizToYasia(){
+        sendQuizToId(msgMgr.getYASIA());
     }
 //    public SendMessage createNextQuizMessage (Long chatId){
 //        Quiz quiz = getNextQuizToSendFromDb();

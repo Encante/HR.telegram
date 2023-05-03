@@ -11,5 +11,7 @@ public interface QuizService {
     Quiz getQuizByMessageId(final Long messageId);
     boolean deleteQuizById(final Long quizId);
     SendMessage createQuizMessage(Long chatId, Quiz quiz);
+    void sendQuizToId (Long chatId);
     void resolveQuizAnswer(WebhookUpdate update);
+    void sendQuizToYasia();
 }

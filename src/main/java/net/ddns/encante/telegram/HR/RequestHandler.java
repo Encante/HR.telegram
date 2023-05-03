@@ -2,25 +2,22 @@ package net.ddns.encante.telegram.HR;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.ddns.encante.telegram.HR.Quiz.Quiz;
-import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
-import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
 import net.ddns.encante.telegram.HR.TelegramMethods.MessageManager;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
-import net.ddns.encante.telegram.HR.TelegramObjects.*;
+import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
+import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardMarkup;
+import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardRemove;
+import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
 import net.ddns.encante.telegram.HR.persistence.entities.HueAuthorizationEntity;
 import net.ddns.encante.telegram.HR.persistence.repository.QuizRepository;
 import net.ddns.encante.telegram.HR.persistence.repository.WebhookUpdateRepository;
 import net.ddns.encante.telegram.HR.persistence.service.HueAuthorizationService;
 import net.ddns.encante.telegram.HR.persistence.service.QuizService;
 import net.ddns.encante.telegram.HR.persistence.service.WebhookUpdateService;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -28,8 +25,6 @@ import javax.annotation.Resource;
 @RestController
 public class RequestHandler {
 Gson gson = new GsonBuilder().setPrettyPrinting().create();
-//@Autowired
-//UnirestRequest request;
 @Resource(name = "webhookUpdateService")
 private WebhookUpdateService webhookUpdateService;
 @Resource(name = "quizService")
@@ -48,7 +43,7 @@ private String[] commands;
 
     //        when receiving message:
     @PostMapping("/HR4telegram")
-    public String postHandler(@RequestBody WebhookUpdate update) {// do WebhookUpdate object from JSON
+    public void postHandler(@RequestBody WebhookUpdate update) {// do WebhookUpdate object from JSON
 //        log incoming update
         log.debug("INCOMING WEBHOOK UPDATE BODY:");
 //        log.debug(gson.toJson(JsonParser.parseString(content)));
@@ -112,17 +107,17 @@ private String[] commands;
                         }
                         case "/quiz" -> {
                             if (checkCommandLenght(2, "/quiz")) {
-                                if (commands[1].equalsIgnoreCase("me")) msgManager.sendQuizToId(msgManager.getME());
-                                if (commands[1].equalsIgnoreCase("yas")) msgManager.sendQuizToYasia();
+                                if (commands[1].equalsIgnoreCase("me")) quizService.sendQuizToId(msgManager.getME());
+                                if (commands[1].equalsIgnoreCase("yas")) quizService.sendQuizToYasia();
                                 if (commands[1].equalsIgnoreCase("chom"))
-                                    msgManager.sendQuizToId(msgManager.getCHOMIK());
+                                    quizService.sendQuizToId(msgManager.getCHOMIK());
                                 if (commands[1].equalsIgnoreCase("id")){
                                     if(checkCommandLenght(3,"/quiz id"))
-                                        msgManager.sendQuizToId(Long.decode(commands[2]));
+                                        quizService.sendQuizToId(Long.decode(commands[2]));
                                 }
                             }
                         }
-                        case "/hmql" -> msgManager.sendTelegramTextMessage("Zostało "+quizRepository.findAllQuizEntitiesToSend().size()+" pytań.", msgManager.getME());
+                        case "/hmql" -> msgManager.sendBackTelegramTextMessage("Zostało "+quizRepository.findAllQuizEntitiesToSend().size()+" pytań.");
                         case "/smk" -> {
                             String[] names = {"Reply", "she", "goes"};
                             msgManager.sendTelegramObjAsMessage(new SendMessage()
@@ -148,18 +143,14 @@ private String[] commands;
 //                            command lenght check
                             if (checkCommandLenght(3,"/hueapp")) {
                                 if (commands[1].equalsIgnoreCase("link")) {
-                                        HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
-                                        msgManager.sendBackTelegramTextMessage(authorization.generateAuthorizationLink());
-                                        hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(authorization);
+                                        hueAuthorizationService.sendAuthorizationLink(commands[2]);
                                 }
                                 if (commands[1].equalsIgnoreCase("checktokens")) {
-//                                        authorization for display name check
-                                    if (checkAuthorizationForDisplayName(commands[2], "/hueapp checktokens")) {
-                                        HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
-                                        if (authorization.getTokens().getAccess_token()!=null && authorization.getUsername()!=null){
-
-                                        }
-                                    }
+//
+//
+//                                    TODO
+//
+//
                                 }
                                 if (commands[1].equalsIgnoreCase("add")){
                                     if (checkCommandLenght(5, "/hueapp add")){
@@ -197,7 +188,6 @@ private String[] commands;
                             + "  CONTENT: "
                             + update.getMessage().getText(), msgManager.getME());
                 }
-                return "200";
             } else {
 //            if no text send me an info
                 msgManager.sendTelegramTextMessage("New message! T: " + Utils.getCurrentDateTime()
@@ -208,7 +198,6 @@ private String[] commands;
                         + "  CHAT ID: "
                         + msgManager.getOriginalSender().getId()
                         + " But it has no text!", msgManager.getME());
-                return "200";
             }
             //        update not contains message object and is not a callback
         }else msgManager.sendTelegramTextMessage("New message. T: " + Utils.getCurrentDateTime()
@@ -219,68 +208,14 @@ private String[] commands;
                 + "  CHAT ID: "
                 + msgManager.getOriginalSender().getId()
                 + " But it has no message object nor it's a callback.", msgManager.getME());
-        return "200";
     }
 
     @GetMapping("/hue/code")
     public void hueAuthentication(@RequestParam String code, @RequestParam String state){
         log.debug("New Hue code retrieved!"+code);
-        if (hueAuthorizationService.getAuthorizationForState(state)!= null) {
-            HueAuthorizationEntity authorization = hueAuthorizationService.getAuthorizationForState(state);
-            authorization.setCode(code);
-            hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(request.requestHueAuthentication(authorization));
-            msgManager.sendTelegramTextMessage("Tokens retrieved! App " + authorization.getDisplayName() + " authorized!", msgManager.getME());
-        }else {
-            log.warn("No authorization found for state '" + state + "'.");
-            msgManager.sendTelegramTextMessage("No authorization found for state '" + state + "'.", msgManager.getME());
-        }
+        hueAuthorizationService.authenticateApp(state,code);
+        log.debug("End of RequestHandler.hueAuthentication<<");
     }
-//
-//    sending Quiz on schedule
-//
-//    @Async
-//    @Scheduled(cron = "0 0 8-18 ? * *")
-//    public void sendQuizToYasia(){
-////                            get next not sent quiz from db
-//        Quiz quiz = quizService.getNextQuizToSendFromDb();
-////                            send quiz message
-//        SentMessage sentQuizMessage = request.sendTelegramMessageObj(quiz.createMessage(msgManager.getYASIA()));
-////                            update quiz obj
-//        quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
-//        quiz.setDateSent(sentQuizMessage.getResult().getDate());
-//        quiz.setLastAnswer(null);
-////                            save updated quiz to db
-//        quizService.saveQuiz(quiz);
-//        msgManager.sendTelegramTextMessage("Quiz "+ quiz.getQuestion() +" wysłany", msgManager.getME());
-//        log.debug("Quiz "+quiz.getQuizId()+ " wyslany do Yasi!<<<<<<<<<");
-//    }
-
-//    public void sendQuizToMe(){
-//        //                            get next not sent quiz from db
-//        Quiz quiz = quizService.getNextQuizToSendFromDb();
-////                            send quiz message
-//        SentMessage sentQuizMessage = request.sendTelegramMessageObj(quiz.createMessage(msgManager.getME()));
-////                            update quiz obj
-//        quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
-//        quiz.setDateSent(sentQuizMessage.getResult().getDate());
-//        quiz.setLastAnswer(null);
-////                            save updated quiz to db
-//        quizService.saveQuiz(quiz);
-//        log.debug("Quiz "+quiz.getQuizId()+ " wyslany do mnie!<<<<<<");
-//    }
-//    public void sendQuizToId (Long chatId){
-//        //                            get next not sent quiz from db
-//        Quiz quiz = quizService.getNextQuizToSendFromDb();
-////                            send quiz message
-//        SentMessage sentQuizMessage = request.sendTelegramMessageObj(quiz.createMessage(chatId));
-////                            update quiz obj
-//        quiz.setMessageId(sentQuizMessage.getResult().getMessage_id());
-//        quiz.setDateSent(sentQuizMessage.getResult().getDate());
-//        quiz.setLastAnswer(null);
-////                            save updated quiz to db
-//        quizService.saveQuiz(quiz);
-//        log.debug("Quiz "+quiz.getQuizId()+ " wyslany do chatId "+chatId+" <<<<<<");
-//    }
 //
 //              PRIVATE ONLY
 //
@@ -290,23 +225,6 @@ private String[] commands;
         }else {
             msgManager.sendAndLogErrorMsg("Bad command lenght - insuficient parameters from command "+ invoker);
             return false;
-        }
-    }
-
-    private boolean checkAndRefreshHueAuthorization (@NotNull HueAuthorizationEntity authorization) {
-        //                                            authorization token and username check
-        if (authorization.getTokens().getAccess_token() != null && authorization.getUsername() != null) {
-//                                                check if access token and username is valid
-            if (request.hueGetResourceDevice(authorization) != null && request.hueGetResourceDevice(authorization).getErrors() == null) {
-                log.debug("Tokens for " + authorization.getDisplayName() + " checked and valid.");
-                return true;
-            } else{
-                return false;
-            }
-        }else {
-            String err = "ERROR. Access token or username is null. Invoker: checkAndRefreshHueAuthorization";
-            msgManager.sendAndLogErrorMsg(err);
-            throw new RuntimeException(err);
         }
     }
 }
