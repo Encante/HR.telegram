@@ -1,7 +1,6 @@
 package net.ddns.encante.telegram.HR.persistence.service;
 
 import net.ddns.encante.telegram.HR.Quiz.Quiz;
-import net.ddns.encante.telegram.HR.RequestHandler;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.MessageManager;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
@@ -130,6 +129,8 @@ public class QuizServiceImpl implements QuizService {
         if (quiz.getLastAnswer().equals(quiz.getCorrectAnswer())){
 //            write result to quiz object
             quiz.setSuccess(true);
+//            reset available answers. Will need it for future reuse of quiz.
+            quiz.setAnswersLeft(4);
 //            set up reaction for answer:
 //            by callback
             quiz.setReactionForAnswerCallback(new AnswerCallbackQuery(update.getCallback_query().getId(),"Bardzo dobrze!",true));
