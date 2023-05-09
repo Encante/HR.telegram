@@ -166,6 +166,7 @@ public class UnirestRequest {
 //
 //    private methods
 //
+    private HttpResponse<JsonNode>
     private String printResponse(String invoker){
         return invoker+" RESPONSE STATUS: \r\n" + response.getStatus()
                 + " "

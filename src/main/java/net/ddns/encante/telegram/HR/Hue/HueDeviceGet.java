@@ -1,7 +1,9 @@
 package net.ddns.encante.telegram.HR.Hue;
 
-import java.util.ArrayList;
+import lombok.Data;
 
+import java.util.ArrayList;
+@Data
 public class HueDeviceGet {
     public String id;
     public String id_v1;
@@ -9,5 +11,5 @@ public class HueDeviceGet {
     public HueMetadata metadata;
     public HueIdentify identify;
     public ArrayList<HueResourceIdentifierGet> services;
-    public String type;
+    public HueType type;
 }
