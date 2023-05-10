@@ -18,6 +18,7 @@ import net.ddns.encante.telegram.HR.persistence.entities.HueTokensEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -34,30 +35,15 @@ public class UnirestRequest {
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public SentMessage sendTelegramMessageObj(SendMessage message){
-    this.response = Unirest.post(SEND_MESSAGE_URL)
-            .header("Content-Type", "application/json")
-            .body(gson.toJson(message))
-            .asJson();
-    log.debug("BODY SENT BY sendTelegramMessageOBJ: "+gson.toJson(message));
-    log.debug(printResponse("sendTelegramMessage"));
+        standardAppJsonPost(SEND_MESSAGE_URL,message);
     return gson.fromJson(response.getBody().toString(),SentMessage.class);
     }
     public SentMessage editTelegramMessage(EditMessage message){
-            this.response = Unirest.post("https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageText")
-                    .header("Content-Type", "application/json")
-                    .body(gson.toJson(message))
-                    .asJson();
-            log.debug("BODY SENT by editTelegramMessage: "+gson.toJson(message));
-            log.debug(printResponse("editTelegramMessage"));
+        standardAppJsonPost("https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageText",message);
         return gson.fromJson(response.getBody().toString(),SentMessage.class);
     }
     public void answerCallbackQuery(AnswerCallbackQuery answer){
-        this.response = Unirest.post(TELEGRAM_API_URL +"/answerCallbackQuery")
-                .header("Content-Type", "application/json")
-                .body(gson.toJson(answer))
-                .asJson();
-        log.debug("BODY SENT BY answerCallbackQuery : "+gson.toJson(answer));
-        log.debug(printResponse("answerCallbackQuery"));
+        standardAppJsonPost(TELEGRAM_API_URL +"/answerCallbackQuery", answer);
     }
 
     public HueAuthorizationEntity requestHueAuthentication(HueAuthorizationEntity authorization){
@@ -166,7 +152,15 @@ public class UnirestRequest {
 //
 //    private methods
 //
-    private HttpResponse<JsonNode>
+    private void standardAppJsonPost(String url, Object objToSend){
+        String json = gson.toJson(objToSend);
+        this.response = Unirest.post(url)
+                .header("Content-Type", "application/json")
+                .body(json)
+                .asJson();
+        log.debug("BODY SENT BY UnirestRequest.standardPost: "+json);
+        log.debug(printResponse("UnirestRequest.standardPost"));
+    }
     private String printResponse(String invoker){
         return invoker+" RESPONSE STATUS: \r\n" + response.getStatus()
                 + " "
