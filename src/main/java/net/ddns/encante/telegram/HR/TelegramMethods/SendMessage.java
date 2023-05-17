@@ -11,9 +11,7 @@ import java.util.ArrayList;
 @Getter
 @Component
 //klasa na obiekty wysyłające dane
-// chat id:
-//    M:   5580797031L
-//    Y:   566760042L
+
 public class SendMessage {
     private Long chat_id;
     private Long message_thread_id;
