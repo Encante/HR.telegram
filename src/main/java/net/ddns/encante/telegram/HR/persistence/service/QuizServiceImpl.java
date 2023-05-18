@@ -89,10 +89,10 @@ public class QuizServiceImpl implements QuizService {
     public void resolveQuizAnswer (WebhookUpdate update){ //method is void cause effect of its work is saved to db
 //        we have to differentiate now is it answer for abcd type quiz or force-reply type of quiz, because it determines how we gonna handle it
 //        if update doesn't contain callback query - it's gonna be a force-reply type of quiz
-        if (update.getCallback_query()==null){
-            resolveForceReplyQuiz(update);
-        }else {
+        if (update.getCallback_query()!=null){
             resolveAbcdQuiz(update);
+        }else {
+            resolveForceReplyQuiz(update);
         }
 
     }
@@ -257,70 +257,72 @@ public class QuizServiceImpl implements QuizService {
     }
     private void resolveForceReplyQuiz (WebhookUpdate update){
         //        prerequisite check for possible null-pointers
-        if (getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id()) != null
-                && update.getMessage().getText()!= null
-        ){
-//        getting quiz entity from db by message id
-            Quiz quiz = getQuizByMessageId(update.getMessage().getMessage_id());
-//        check for null-pointers on quiz object
-            if (quiz.getOptA() != null
-                    && quiz.getOptB() != null
-                    && quiz.getOptC() != null
-                    && quiz.getOptD() != null
-                    && quiz.getCorrectAnswer() != null
-                    && quiz.getAnswersLeft() != null
-                    && quiz.getRetriesCount() != null
+        if (update.getMessage().getReply_to_message()!= null){
+            if (getQuizByMessageId(update.getMessage().getReply_to_message().getMessage_id()) != null
+                    && update.getMessage().getText()!= null
             ){
-                quiz.setDateAnswered(Utils.getCurrentUnixTime());
-                quiz.setLastAnswer(update.getMessage().getText());
-                //              edit sent quiz message: add answer. We would do it anyway so we'll do it at start
-                msgMgr.editTelegramMessage(update.getMessage().getFrom().getId(),update.getMessage().getMessage_id(),update.getMessage().getText()+" Twoja odpowiedź: "+quiz.getLastAnswer());
-                //        actual check
+//        getting quiz entity from db by message id
+                Quiz quiz = getQuizByMessageId(update.getMessage().getReply_to_message().getMessage_id());
+//        check for null-pointers on quiz object
+                if (quiz.getOptA() != null
+                        && quiz.getOptB() != null
+                        && quiz.getOptC() != null
+                        && quiz.getOptD() != null
+                        && quiz.getCorrectAnswer() != null
+                        && quiz.getAnswersLeft() != null
+                        && quiz.getRetriesCount() != null
+                ){
+                    quiz.setDateAnswered(Utils.getCurrentUnixTime());
+                    quiz.setLastAnswer(update.getMessage().getText());
+                    //              edit sent quiz message: add answer. We would do it anyway so we'll do it at start
+                    msgMgr.editTelegramMessage(update.getMessage().getFrom().getId(),update.getMessage().getMessage_id(),update.getMessage().getText()+" Twoja odpowiedź: "+quiz.getLastAnswer());
+                    //        actual check
 //        if answer is good-
-                if (quiz.getLastAnswer().equals(quiz.getCorrectAnswer())) {
+                    if (quiz.getLastAnswer().equals(quiz.getCorrectAnswer())) {
 //            write result to quiz object
-                    quiz.setSuccess(true);
+                        quiz.setSuccess(true);
 //            reset available answers. Will need it for future reuse of quiz.
-                    quiz.setAnswersLeft(4);
+                        quiz.setAnswersLeft(4);
 //                    set up message reaction for answer
-                    quiz.setReactionForAnswerMessage(new SendMessage()
-                            .setText("Dobra odpowiedź! ;)")
-                            .setReply_to_message_id(update.getMessage().getMessage_id())
-                            .setChat_id(update.getMessage().getFrom().getId()));
+                        quiz.setReactionForAnswerMessage(new SendMessage()
+                                .setText("Dobra odpowiedź! ;)")
+                                .setReply_to_message_id(update.getMessage().getMessage_id())
+                                .setChat_id(update.getMessage().getFrom().getId()));
 //                    if answer is bad:
-                }else {
+                    }else {
 //            write answer details to quiz object
-                    quiz.setSuccess(false);
-                    quiz.setAnswersLeft(quiz.getAnswersLeft()-1);
-                    quiz.setRetriesCount(quiz.getRetriesCount()+1);
+                        quiz.setSuccess(false);
+                        quiz.setAnswersLeft(quiz.getAnswersLeft()-1);
+                        quiz.setRetriesCount(quiz.getRetriesCount()+1);
 //                    react for answer:
 //                    check if it isn't last answer
-                    if(quiz.getAnswersLeft()>1){
+                        if(quiz.getAnswersLeft()>1){
 //                set up reaction for answer by message
-                        quiz.setReactionForAnswerMessage(new SendMessage()
-                                .setText("Niestety zła odpowiedź :( Pozostało "+quiz.getAnswersLeft()+" prób.")
-                                .setReply_to_message_id(update.getMessage().getMessage_id())
-                                .setChat_id(update.getMessage().getFrom().getId()));
+                            quiz.setReactionForAnswerMessage(new SendMessage()
+                                    .setText("Niestety zła odpowiedź :( Pozostało "+quiz.getAnswersLeft()+" prób.")
+                                    .setReply_to_message_id(update.getMessage().getMessage_id())
+                                    .setChat_id(update.getMessage().getFrom().getId()));
 //            if it was last try prepare correct answer to be sent in response
-                    }else{
-                        quiz.setReactionForAnswerMessage(new SendMessage()
-                                .setText("Niestety zła odpowiedź :( Prawidłowa odpowiedź to: "+ quiz.getCorrectAnswer())
-                                .setReply_to_message_id(update.getMessage().getMessage_id())
-                                .setChat_id(update.getMessage().getFrom().getId()));
+                        }else{
+                            quiz.setReactionForAnswerMessage(new SendMessage()
+                                    .setText("Niestety zła odpowiedź :( Prawidłowa odpowiedź to: "+ quiz.getCorrectAnswer())
+                                    .setReply_to_message_id(update.getMessage().getMessage_id())
+                                    .setChat_id(update.getMessage().getFrom().getId()));
+                        }
                     }
-                }
 //        either way it was good or bad answer now is the time to send reaction
 //                by message (reply to original message)
-                msgMgr.sendTelegramObjAsMessage(quiz.getReactionForAnswerMessage());
+                    msgMgr.sendTelegramObjAsMessage(quiz.getReactionForAnswerMessage());
 //        send me an info about quiz answer:
-                msgMgr.sendQuizResultInfo(quiz,msgMgr.getME());
+                    msgMgr.sendQuizResultInfo(quiz,msgMgr.getME());
 //        after modifications save quiz to and end method
-                saveQuiz(quiz);
-            }else {
-                log.warn("ERROR. Unexpected null on Quiz object. Invoker: QuizServiceImpl.resolveQuizAnswer.");
-                throw new RuntimeException("ERROR. Unexpected null on Quiz object. Invoker: QuizServiceImpl.resolveQuizAnswer.");
-            }
+                    saveQuiz(quiz);
+                }else {
+                    log.warn("ERROR. Unexpected null on Quiz object. Invoker: QuizServiceImpl.resolveQuizAnswer.");
+                    throw new RuntimeException("ERROR. Unexpected null on Quiz object. Invoker: QuizServiceImpl.resolveQuizAnswer.");
+                }
 //        if prerequisite checks failed:
+            }
         }else {
             log.warn("ERROR. Prerequisite check failed for QuizServiceImpl.resolveQuizAnswer.");
             throw new RuntimeException("ERROR. Prerequisite check failed for QuizServiceImpl.resolve answer.");

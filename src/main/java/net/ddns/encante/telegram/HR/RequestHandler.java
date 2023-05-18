@@ -48,7 +48,7 @@ private String[] commands;
         log.debug("INCOMING WEBHOOK UPDATE BODY:");
 //        log.debug(gson.toJson(JsonParser.parseString(content)));
         log.debug(gson.toJson(update));
-//        store update it in the DB
+//        store update in the DB
         webhookUpdateService.saveWebhookUpdate(update);
 //            check if it is callback
         if (update.getCallback_query() != null) {
@@ -67,10 +67,16 @@ private String[] commands;
 //            delete keyboard after pressing a key
                 msgManager.editTelegramMessage(update.getMessage().getChat().getId(),update.getMessage().getMessage_id(),null);
             }
-            //      if it doesnt have callback querry, check if it has any message obj
+//      if it doesnt have callback querry, check if it has any message obj
         } else if (update.getMessage() != null) {
-            //        just little helpful var with chatID of who send msg
+//        just little helpful var with chatID of who send msg
             msgManager.setOriginalSender(update.getMessage().getFrom());
+//            check if it is quiz related message
+            if (update.getMessage().getReply_to_message()!= null){
+                if (quizService.getQuizByMessageId(update.getMessage().getReply_to_message().getMessage_id())!= null){
+                    quizService.resolveQuizAnswer(update);
+                }
+            }
 //      check if incoming message have any text
             if (update.getMessage().getText() != null) {
 //        check if incoming message have any and if there is do commands:
