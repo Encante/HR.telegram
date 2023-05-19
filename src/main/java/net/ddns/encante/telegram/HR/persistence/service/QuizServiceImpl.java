@@ -278,7 +278,7 @@ public class QuizServiceImpl implements QuizService {
                     msgMgr.editTelegramMessage(update.getMessage().getFrom().getId(),update.getMessage().getMessage_id(),update.getMessage().getText()+" Twoja odpowiedź: "+quiz.getLastAnswer());
                     //        actual check
 //        if answer is good-
-                    if (quiz.getLastAnswer().equals(quiz.getCorrectAnswer())) {
+                    if (quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer())||quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer()+" ")) {
 //            write result to quiz object
                         quiz.setSuccess(true);
 //            reset available answers. Will need it for future reuse of quiz.
