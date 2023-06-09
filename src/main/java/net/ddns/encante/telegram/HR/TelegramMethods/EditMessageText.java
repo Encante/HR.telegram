@@ -10,7 +10,7 @@ import net.ddns.encante.telegram.HR.TelegramObjects.MessageEntity;
 import java.util.ArrayList;
 @Getter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class EditMessage {
+public class EditMessageText {
     Long chat_id;
     Long message_id;
     String inline_message_id;
@@ -21,18 +21,12 @@ public class EditMessage {
     InlineKeyboardMarkup reply_markup;
 
 
-    public EditMessage(Long chatId, Long messageId, String text) {
+    public EditMessageText(Long chatId, Long messageId, String text) {
         this.chat_id = chatId;
         this.message_id = messageId;
         this.text = text;
     }
-//    deleting keyboard from message
-    public EditMessage (CallbackQuery callback) {
-        this.chat_id = callback.getMessage().getChat().getId();
-        this.message_id = callback.getMessage().getMessage_id();
-        this.text = callback.getMessage().getText();
-    }
-    public EditMessage (CallbackQuery callback, String text){
+    public EditMessageText(CallbackQuery callback, String text){
         this.chat_id = callback.getMessage().getChat().getId();
         this.message_id = callback.getMessage().getMessage_id();
         this.text = text;

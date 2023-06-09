@@ -2,16 +2,22 @@ package net.ddns.encante.telegram.HR.TelegramMethods;
 
 import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import net.ddns.encante.telegram.HR.TelegramObjects.CallbackQuery;
-import net.ddns.encante.telegram.HR.TelegramObjects.SentMessage;
-import org.springframework.stereotype.Component;
+import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 
 @Getter
+@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class EditMessageReplyMarkup extends EditMessage {
-    public EditMessageReplyMarkup(SentMessage sentMessage) {
-        super(sentMessage.getResult().getChat().getId(), sentMessage.getResult().getMessage_id(), sentMessage.getResult().getText());
+public class EditMessageReplyMarkup {
+    Long chat_id;
+    Long message_id;
+    Long inline_message_id;
+    InlineKeyboardMarkup reply_markup;
+
+    public EditMessageReplyMarkup (Long chat_id, Long message_id, InlineKeyboardMarkup reply_markup){
+        this.chat_id = chat_id;
+        this.message_id = message_id;
+        this.reply_markup = reply_markup;
     }
 }

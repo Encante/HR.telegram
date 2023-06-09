@@ -3,6 +3,7 @@ package net.ddns.encante.telegram.HR.TelegramMethods;
 import lombok.Data;
 import net.ddns.encante.telegram.HR.Quiz.Quiz;
 import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
+import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.SentMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.User;
 import org.jetbrains.annotations.NotNull;
@@ -33,8 +34,14 @@ public class MessageManager {
                 .setChat_id(chatId));
     }
 
-    public SentMessage editTelegramMessage (Long chatId, Long messageId, String text){
-        return request.editTelegramMessage(new EditMessage(chatId,messageId, text));
+    public SentMessage editTelegramMessageText(Long chatId, Long messageId, String text){
+        return request.editTelegramMessageText(new EditMessageText(chatId,messageId, text));
+    }
+    public SentMessage editTelegramMessageReplyMarkup (Long chatId,Long messageId, InlineKeyboardMarkup replyMarkup){
+        return request.editTelegramMessageReplyMarkup(new EditMessageReplyMarkup(chatId,messageId, replyMarkup));
+    }
+    public boolean deleteTelegramMessage(Long chatId, Long messageId){
+        return request.deleteTelegramMessage(new DeleteMessage(chatId,messageId));
     }
     public void answerCallbackQuery(AnswerCallbackQuery answer){
         request.answerCallbackQuery(answer);

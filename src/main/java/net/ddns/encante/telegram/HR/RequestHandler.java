@@ -56,7 +56,6 @@ private String[] commands;
             msgManager.setOriginalSender(update.getCallback_query().getFrom());
 //            check if it is a quiz message callback and eventually resolve a quiz
             if(quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id())!=null){
-//                Quiz quiz = quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id());
 //              actually resolve answer
                 quizService.resolveQuizAnswer(update);
             }
@@ -65,13 +64,13 @@ private String[] commands;
 //            answer callback query
                 msgManager.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(), "Callback Answer!", false));
 //            delete keyboard after pressing a key
-                msgManager.editTelegramMessage(update.getMessage().getChat().getId(),update.getMessage().getMessage_id(),null);
+                msgManager.editTelegramMessageText(update.getCallback_query().getFrom().getId(),update.getCallback_query().getMessage().getMessage_id(),update.getCallback_query().getMessage().getText());
             }
 //      if it doesnt have callback querry, check if it has any message obj
         } else if (update.getMessage() != null) {
 //        just little helpful var with chatID of who send msg
             msgManager.setOriginalSender(update.getMessage().getFrom());
-//            check if it is quiz related message
+//            check if it is quiz related (reply for force reply) message
             if (update.getMessage().getReply_to_message()!= null){
                 if (quizService.getQuizByMessageId(update.getMessage().getReply_to_message().getMessage_id())!= null){
                     quizService.resolveQuizAnswer(update);

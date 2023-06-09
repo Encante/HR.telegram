@@ -77,6 +77,11 @@ public class QuizServiceImpl implements QuizService {
 //            if optA in DB is "forceReply" we know it will be a force-reply type
 //            if not - it will be 4 options to choose as keys
             if (quiz.getOptA().equalsIgnoreCase("forceReply")){
+//                small work-around so that force-reply type of quiz get valid 4 chances
+                if(quiz.getMessageId()==null){
+                    quiz.setAnswersLeft(5);
+                    saveQuiz(quiz);
+                }
 //                do force-reply type of quiz
                 return createForceReplyQuizMessage(chatId,quiz);
             }else return createAbcdQuizMessage(chatId, quiz);
@@ -90,11 +95,14 @@ public class QuizServiceImpl implements QuizService {
 //        we have to differentiate now is it answer for abcd type quiz or force-reply type of quiz, because it determines how we gonna handle it
 //        if update doesn't contain callback query - it's gonna be a force-reply type of quiz
         if (update.getCallback_query()!=null){
-            resolveAbcdQuiz(update);
+            if(update.getCallback_query().getData().equalsIgnoreCase("відповісти")){
+                prepareForceReplyQuiz(update);
+            }else {
+                resolveAbcdQuiz(update);
+            }
         }else {
             resolveForceReplyQuiz(update);
         }
-
     }
     @Override
     public void sendQuizToId(Long chatId){
@@ -142,11 +150,26 @@ public class QuizServiceImpl implements QuizService {
         return msg;
     }
     private SendMessage createForceReplyQuizMessage(Long chatId, Quiz quiz){
+        String[] key = {"відповісти"};
+        return new SendMessage().setText(quiz.getQuestion())
+                .setChat_id(chatId)
+                .setReply_markup(new InlineKeyboardMarkup.KeyboardBuilder(1,1,key).build());
+    }
+    private SendMessage prepareForceReplyQuizMessage(Long chatId, Quiz quiz){
         return new SendMessage().setText(quiz.getQuestion())
                 .setChat_id(chatId)
                 .setReply_markup(new ForceReply()
                         .setForce_reply(true)
-                        .setInput_field_placeholder("Wpisz tutaj swoją odpowiedź."));
+                        .setInput_field_placeholder("Введіть свою відповідь тут."));
+    }
+    private void prepareForceReplyQuiz(WebhookUpdate update){
+        Quiz quiz = getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id());
+//        firstly we delete original message because it cant be edited to force reply
+        msgMgr.deleteTelegramMessage(update.getCallback_query().getFrom().getId(),update.getCallback_query().getMessage().getMessage_id());
+//        now send message with force reply to chat...
+        quiz.setMessageId(msgMgr.sendTelegramObjAsMessage(prepareForceReplyQuizMessage(update.getCallback_query().getFrom().getId(), quiz)).getResult().getMessage_id());
+//        and save new message id to quiz in db
+        saveQuiz(quiz);
     }
     private void resolveAbcdQuiz (WebhookUpdate update){
         //        prerequisite check for possible null-pointers
@@ -169,7 +192,7 @@ public class QuizServiceImpl implements QuizService {
                 quiz.setDateAnswered(Utils.getCurrentUnixTime());
                 quiz.setLastAnswer(update.getCallback_query().getData());
                 //              edit sent quiz message: add answer. We would do it anyway so we'll do it at start
-                msgMgr.editTelegramMessage(update.getCallback_query().getMessage().getChat().getId(),update.getCallback_query().getMessage().getMessage_id(), update.getCallback_query().getMessage().getText() + " Twoja odpowiedź: "+ quiz.getLastAnswer());
+                msgMgr.editTelegramMessageText(update.getCallback_query().getMessage().getChat().getId(),update.getCallback_query().getMessage().getMessage_id(), update.getCallback_query().getMessage().getText() + " Twoja odpowiedź: "+ quiz.getLastAnswer());
 //        actual check
 //        if answer is good-
                 if (quiz.getLastAnswer().equals(quiz.getCorrectAnswer())){
@@ -233,6 +256,7 @@ public class QuizServiceImpl implements QuizService {
                                 .setText("Niestety zła odpowiedź :( Prawidłowa odpowiedź to: "+ quiz.getCorrectAnswer())
                                 .setReply_to_message_id(update.getCallback_query().getMessage().getMessage_id())
                                 .setChat_id(update.getCallback_query().getMessage().getChat().getId()));
+                        quiz.setAnswersLeft(4);
                     }
                 }
 //        either way it was good or bad answer now is the time to send reaction
@@ -275,14 +299,14 @@ public class QuizServiceImpl implements QuizService {
                     quiz.setDateAnswered(Utils.getCurrentUnixTime());
                     quiz.setLastAnswer(update.getMessage().getText());
                     //              edit sent quiz message: add answer. We would do it anyway so we'll do it at start
-                    msgMgr.editTelegramMessage(update.getMessage().getFrom().getId(),update.getMessage().getMessage_id(),update.getMessage().getText()+" Twoja odpowiedź: "+quiz.getLastAnswer());
+                    msgMgr.editTelegramMessageText(update.getMessage().getFrom().getId(),update.getMessage().getMessage_id(),update.getMessage().getText()+" Twoja odpowiedź: "+quiz.getLastAnswer());
                     //        actual check
 //        if answer is good-
                     if (quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer())||quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer()+" ")) {
 //            write result to quiz object
                         quiz.setSuccess(true);
 //            reset available answers. Will need it for future reuse of quiz.
-                        quiz.setAnswersLeft(4);
+                        quiz.setAnswersLeft(5);
 //                    set up message reaction for answer
                         quiz.setReactionForAnswerMessage(new SendMessage()
                                 .setText("Dobra odpowiedź! ;)")
@@ -298,8 +322,9 @@ public class QuizServiceImpl implements QuizService {
 //                    check if it isn't last answer
                         if(quiz.getAnswersLeft()>1){
 //                set up reaction for answer by message
+                            int answersLeft = quiz.getAnswersLeft()-1;
                             quiz.setReactionForAnswerMessage(new SendMessage()
-                                    .setText("Niestety zła odpowiedź :( Pozostało "+quiz.getAnswersLeft()+" prób.")
+                                    .setText("Niestety zła odpowiedź :( Pozostało "+answersLeft+" prób.")
                                     .setReply_to_message_id(update.getMessage().getMessage_id())
                                     .setChat_id(update.getMessage().getFrom().getId()));
 //            if it was last try prepare correct answer to be sent in response
@@ -308,6 +333,7 @@ public class QuizServiceImpl implements QuizService {
                                     .setText("Niestety zła odpowiedź :( Prawidłowa odpowiedź to: "+ quiz.getCorrectAnswer())
                                     .setReply_to_message_id(update.getMessage().getMessage_id())
                                     .setChat_id(update.getMessage().getFrom().getId()));
+                            quiz.setAnswersLeft(5);
                         }
                     }
 //        either way it was good or bad answer now is the time to send reaction

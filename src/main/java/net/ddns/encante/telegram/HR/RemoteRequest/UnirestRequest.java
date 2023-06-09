@@ -8,9 +8,7 @@ import kong.unirest.Unirest;
 import net.ddns.encante.telegram.HR.Hue.HueDevice;
 import net.ddns.encante.telegram.HR.Hue.HueLinkButton;
 import net.ddns.encante.telegram.HR.Hue.HueUser;
-import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
-import net.ddns.encante.telegram.HR.TelegramMethods.EditMessage;
-import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
+import net.ddns.encante.telegram.HR.TelegramMethods.*;
 import net.ddns.encante.telegram.HR.TelegramObjects.SentMessage;
 import net.ddns.encante.telegram.HR.Utils;
 import net.ddns.encante.telegram.HR.persistence.entities.HueAuthorizationEntity;
@@ -38,9 +36,17 @@ public class UnirestRequest {
         standardAppJsonPost(SEND_MESSAGE_URL,message);
     return gson.fromJson(response.getBody().toString(),SentMessage.class);
     }
-    public SentMessage editTelegramMessage(EditMessage message){
+    public SentMessage editTelegramMessageText(EditMessageText message){
         standardAppJsonPost("https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageText",message);
         return gson.fromJson(response.getBody().toString(),SentMessage.class);
+    }
+    public SentMessage editTelegramMessageReplyMarkup (EditMessageReplyMarkup message){
+        standardAppJsonPost("https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageReplyMarkup",message);
+        return gson.fromJson(response.getBody().toString(),SentMessage.class);
+    }
+    public boolean deleteTelegramMessage(DeleteMessage message){
+        standardAppJsonPost("https://api.telegram.org/bot"+ BOT_TOKEN +"/deleteMessage",message);
+        return response.isSuccess();
     }
     public void answerCallbackQuery(AnswerCallbackQuery answer){
         standardAppJsonPost(TELEGRAM_API_URL +"/answerCallbackQuery", answer);
