@@ -166,7 +166,7 @@ public class QuizServiceImpl implements QuizService {
         Quiz quiz = getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id());
 //        firstly we delete original message because it cant be edited to force reply
         msgMgr.deleteTelegramMessage(update.getCallback_query().getFrom().getId(),update.getCallback_query().getMessage().getMessage_id());
-//        now send message with force reply to chat...
+//        now send message with force reply to chat and update quiz object with new message id...
         quiz.setMessageId(msgMgr.sendTelegramObjAsMessage(prepareForceReplyQuizMessage(update.getCallback_query().getFrom().getId(), quiz)).getResult().getMessage_id());
 //        and save new message id to quiz in db
         saveQuiz(quiz);
