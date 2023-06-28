@@ -4,6 +4,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
+import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
+import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 
 import javax.persistence.*;
 
@@ -11,10 +14,11 @@ import javax.persistence.*;
 @Setter
 @Entity
 @Table(name = "Quiz")
+@Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE)
 
 //class for persisting / retrieving data for quiz questions that bot can send according to harmonogram
-public class QuizEntity {
+public class Quiz {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "key_id")
@@ -50,4 +54,8 @@ public class QuizEntity {
     Long dateAnswered;
     @Column (name = "message_id")
     Long messageId;
+    @Column (name = "chat_id")
+    Long chatId;
+    transient AnswerCallbackQuery reactionForAnswerCallback;
+    transient SendMessage reactionForAnswerMessage;
 }

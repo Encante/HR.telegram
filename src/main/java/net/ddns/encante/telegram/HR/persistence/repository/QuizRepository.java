@@ -1,20 +1,22 @@
 package net.ddns.encante.telegram.HR.persistence.repository;
 
-import net.ddns.encante.telegram.HR.persistence.entities.QuizEntity;
+import net.ddns.encante.telegram.HR.persistence.entities.Quiz;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface QuizRepository extends JpaRepository<QuizEntity, Long> {
-    QuizEntity findFirstByOrderByKeyIdAsc();
+public interface QuizRepository extends JpaRepository<Quiz, Long> {
+    Quiz findFirstByOrderByKeyIdAsc();
 //    returns list of all quiz entities that were either not yet send or has been sent but remain answered badly but not the ones that are waiting in chat to be answered (q.answer is null for this cases)
-    @Query("SELECT q FROM QuizEntity q WHERE q.dateSent IS NULL OR (q.success = 0 AND q.lastAnswer IS NOT NULL AND q.answersLeft > 1)")
-    List<QuizEntity> findAllQuizEntitiesToSend();
+    @Query("SELECT q FROM Quiz q WHERE q.dateSent IS NULL OR (q.success = 0 AND q.lastAnswer IS NOT NULL AND q.answersLeft > 1)")
+    List<Quiz> findAllQuizEntitiesToSend();
 //    returns list of all quiz entities that are waiting in chat to be answered
-    @Query("SELECT q From QuizEntity q WHERE q.success = 0 AND q.lastAnswer IS NULL")
-    List<QuizEntity> findAllSentButNotAnsweredQuizEntities();
-    QuizEntity findByMessageId(Long messageId);
+    @Query("SELECT q FROM Quiz q WHERE q.success = 0 AND q.lastAnswer IS NULL")
+    List<Quiz> findAllSentButNotAnsweredQuizEntities();
+    @Query("SELECT q FROM Quiz q WHERE q.messageId = :messageId AND q.chatId = :chatId")
+    Quiz findByCredentials(@Param("messageId") Long messageId, @Param("chatId") Long chat_id);
 }

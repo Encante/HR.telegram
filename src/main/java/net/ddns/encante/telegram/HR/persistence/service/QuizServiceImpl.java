@@ -1,5 +1,6 @@
 package net.ddns.encante.telegram.HR.persistence.service;
 
+import lombok.extern.slf4j.Slf4j;
 import net.ddns.encante.telegram.HR.Quiz.Quiz;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.MessageManager;
@@ -9,11 +10,8 @@ import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.SentMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
 import net.ddns.encante.telegram.HR.Utils;
-import net.ddns.encante.telegram.HR.persistence.entities.QuizEntity;
+import net.ddns.encante.telegram.HR.persistence.entities.Quiz;
 import net.ddns.encante.telegram.HR.persistence.repository.QuizRepository;
-import org.apache.commons.text.StringEscapeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,9 +22,9 @@ import java.util.Collections;
 import java.util.List;
 
 @Service("quizService")
+@Slf4j
 
 public class QuizServiceImpl implements QuizService {
-    private static final Logger log = LoggerFactory.getLogger(QuizServiceImpl.class);
     @Autowired
     private QuizRepository quizRepository;
     @Autowired
@@ -34,9 +32,8 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public Quiz saveQuiz(Quiz quiz) {
-        QuizEntity quizEntity = convertQuizObjToEntity(quiz);
 //        no checking for existing records @ db right now
-        return convertQuizEntityToObj(quizRepository.save(quizEntity));
+        return quizRepository.save(quiz);
     }
     @Override
     public boolean deleteQuizById(final Long quizId){
@@ -45,29 +42,31 @@ public class QuizServiceImpl implements QuizService {
     }
     @Override
     public Quiz getFirstQuizFromDb(){
-        if(quizRepository.count()<1){
-            throw new RuntimeException("No entries in db");
+        if(quizRepository.count()>0){
+            return quizRepository.findFirstByOrderByKeyIdAsc();
         }
         else {
-            return convertQuizEntityToObj(quizRepository.findFirstByOrderByKeyIdAsc());
+            log.warn("No entries in db. getFirstQuizFromDb");
+            throw new RuntimeException("No entries in db.");
         }
     }
     @Override
-    public Quiz getQuizByMessageId(final Long messageId){
-        if (quizRepository.findByMessageId(messageId)!= null)
-        return convertQuizEntityToObj(quizRepository.findByMessageId(messageId));
+    public Quiz getQuizByCredentials(final Long messageId, final Long chatId){
+        if (quizRepository.findByCredentials(messageId, chatId)!= null)
+        return quizRepository.findByCredentials(messageId, chatId);
         else {
-            return null;
+            log.warn("No entries in db with such credentials. getQuizByCredentials");
+            throw new RuntimeException("No entries in db with such credentials.");
         }
     }
 //    gets next quiz from db to send, checks if quiz is not already sent but unanswered
     @Override
     public Quiz getNextQuizToSendFromDb(){
         if(quizRepository.findAllQuizEntitiesToSend().size()>0)
-            return convertQuizEntityToObj(quizRepository.findAllQuizEntitiesToSend().get(0));
+            return quizRepository.findAllQuizEntitiesToSend().get(0);
         else {
-            log.warn("No entries in db. Invoker: QuizServiceImpl.getNextQuizToSendFromDb()");
-            throw new RuntimeException("No entries in db. Invoker: QuizServiceImpl.getNextQuizToSendFromDb()");
+            log.warn("No entries in db. Invoker: getNextQuizToSendFromDb()");
+            throw new RuntimeException("No entries in db.");
         }
     }
     @Override
@@ -97,12 +96,8 @@ public class QuizServiceImpl implements QuizService {
         if (update.getCallback_query()!=null){
             if(update.getCallback_query().getData().equalsIgnoreCase("відповісти")){
                 prepareForceReplyQuiz(update);
-            }else {
-                resolveAbcdQuiz(update);
-            }
-        }else {
-            resolveForceReplyQuiz(update);
-        }
+            }else resolveAbcdQuiz(update);
+        }else resolveForceReplyQuiz(update);
     }
     @Override
     public void sendQuizToId(Long chatId){
@@ -112,12 +107,13 @@ public class QuizServiceImpl implements QuizService {
         SentMessage sentQuizMsg = msgMgr.sendTelegramObjAsMessage(createQuizMessage(chatId,quiz));
 //                            update quiz obj
         quiz.setMessageId(sentQuizMsg.getResult().getMessage_id());
+        quiz.setChatId(sentQuizMsg.getResult().getFrom().getId());
         quiz.setDateSent(sentQuizMsg.getResult().getDate());
         quiz.setLastAnswer(null);
 //                            save updated quiz to db
         saveQuiz(quiz);
         msgMgr.sendTelegramTextMessage("Quiz "+ quiz.getQuestion() +" wysłany", msgMgr.getME());
-        log.debug("Quiz "+quiz.getQuizId()+ " wyslany <<<<<<<<<");
+        log.debug("Quiz "+quiz.getKeyId()+ " wyslany <<<<<<<<<");
     }
     @Async
     @Scheduled(cron = "0 0 8-18 ? * *")
@@ -128,20 +124,17 @@ public class QuizServiceImpl implements QuizService {
 //PRIVATE
     private SendMessage createAbcdQuizMessage (Long chatId, Quiz quiz){
         String[] keys = {quiz.getOptA(), quiz.getOptB(), quiz.getOptC(), quiz.getOptD()};
-        SendMessage msg = new SendMessage().setText(quiz.getQuestion());
+        SendMessage msg = new SendMessage().setText(quiz.getQuestion()).setChat_id(chatId);
         switch (quiz.getAnswersLeft()) {
             case 4 -> msg
                     .setReply_markup(new InlineKeyboardMarkup
-                            .KeyboardBuilder(1, 4, keys).build())
-                    .setChat_id(chatId);
+                            .KeyboardBuilder(1, 4, keys).build());
             case 3 -> msg
                     .setReply_markup(new InlineKeyboardMarkup
-                            .KeyboardBuilder(1, 3, keys).build())
-                    .setChat_id(chatId);
+                            .KeyboardBuilder(1, 3, keys).build());
             case 2 -> msg
                     .setReply_markup(new InlineKeyboardMarkup
-                            .KeyboardBuilder(1, 2, keys).build())
-                    .setChat_id(chatId);
+                            .KeyboardBuilder(1, 2, keys).build());
             default -> {
                 log.warn("Bad 'answers left' number cant create quiz message");
                 throw new RuntimeException("Bad answers left number cant create quiz message");
@@ -163,7 +156,7 @@ public class QuizServiceImpl implements QuizService {
                         .setInput_field_placeholder("Введіть свою відповідь тут."));
     }
     private void prepareForceReplyQuiz(WebhookUpdate update){
-        Quiz quiz = getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id());
+        Quiz quiz = getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id());
 //        firstly we delete original message because it cant be edited to force reply
         msgMgr.deleteTelegramMessage(update.getCallback_query().getFrom().getId(),update.getCallback_query().getMessage().getMessage_id());
 //        now send message with force reply to chat and update quiz object with new message id...
@@ -173,13 +166,13 @@ public class QuizServiceImpl implements QuizService {
     }
     private void resolveAbcdQuiz (WebhookUpdate update){
         //        prerequisite check for possible null-pointers
-        if (getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id()) != null
+        if (getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id()) != null
                 && update.getCallback_query().getData() != null
                 && update.getCallback_query().getMessage().getChat().getId() != null
                 && update.getCallback_query().getMessage().getText() != null
         ){
 //        getting quiz entity from db by message id
-            Quiz quiz = getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id());
+            Quiz quiz = getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id());
 //        check for null-pointers on quiz object
             if (quiz.getOptA() != null
                     && quiz.getOptB() != null
@@ -282,11 +275,11 @@ public class QuizServiceImpl implements QuizService {
     private void resolveForceReplyQuiz (WebhookUpdate update){
         //        prerequisite check for possible null-pointers
         if (update.getMessage().getReply_to_message()!= null){
-            if (getQuizByMessageId(update.getMessage().getReply_to_message().getMessage_id()) != null
+            if (getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id()) != null
                     && update.getMessage().getText()!= null
             ){
 //        getting quiz entity from db by message id
-                Quiz quiz = getQuizByMessageId(update.getMessage().getReply_to_message().getMessage_id());
+                Quiz quiz = getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id());
 //        check for null-pointers on quiz object
                 if (quiz.getOptA() != null
                         && quiz.getOptB() != null
@@ -357,49 +350,49 @@ public class QuizServiceImpl implements QuizService {
 //
 //      CONVERT ENTITIES TO OBJECTS
 //
-    private Quiz convertQuizEntityToObj(QuizEntity entity) {
-        Quiz obj = new Quiz(StringEscapeUtils.escapeJava(entity.getQuestion()),entity.getOptA(),entity.getOptB(),entity.getOptC(),entity.getOptD(),entity.getCorrectAnswer());
-        if(entity.getKeyId() != null)
-            obj.setQuizId(entity.getKeyId());
-        obj.setQuestion(entity.getQuestion());
-        obj.setRetriesCount(entity.getRetriesCount());
-        obj.setAnswersLeft(entity.getAnswersLeft());
-        if(entity.getLastAnswer() != null)
-            obj.setLastAnswer(entity.getLastAnswer());
-        obj.setSuccess(entity.getSuccess());
-        if(entity.getDateSent()!=null)
-            obj.setDateSent(entity.getDateSent());
-        if(entity.getDateAnswered()!=null)
-            obj.setDateAnswered(entity.getDateAnswered());
-        if(entity.getMessageId()!=null)
-            obj.setMessageId(entity.getMessageId());
-        return obj;
-    }
+//    private Quiz convertQuizEntityToObj(QuizEntity entity) {
+//        Quiz obj = new Quiz(StringEscapeUtils.escapeJava(entity.getQuestion()),entity.getOptA(),entity.getOptB(),entity.getOptC(),entity.getOptD(),entity.getCorrectAnswer());
+//        if(entity.getKeyId() != null)
+//            obj.setQuizId(entity.getKeyId());
+//        obj.setQuestion(entity.getQuestion());
+//        obj.setRetriesCount(entity.getRetriesCount());
+//        obj.setAnswersLeft(entity.getAnswersLeft());
+//        if(entity.getLastAnswer() != null)
+//            obj.setLastAnswer(entity.getLastAnswer());
+//        obj.setSuccess(entity.getSuccess());
+//        if(entity.getDateSent()!=null)
+//            obj.setDateSent(entity.getDateSent());
+//        if(entity.getDateAnswered()!=null)
+//            obj.setDateAnswered(entity.getDateAnswered());
+//        if(entity.getMessageId()!=null)
+//            obj.setMessageId(entity.getMessageId());
+//        return obj;
+//    }
 //
 //      CONVERT OBJECTS TO ENTITIES
 //
-    private QuizEntity convertQuizObjToEntity(Quiz obj){
-        QuizEntity entity = new QuizEntity();
-        if(obj.getQuizId()!=null)
-        entity.setKeyId(obj.getQuizId());
-        entity.setQuestion(StringEscapeUtils.unescapeJava(obj.getQuestion()));
-        entity.setRetriesCount(obj.getRetriesCount());
-        entity.setAnswersLeft(obj.getAnswersLeft());
-        entity.setOptA(obj.getOptA());
-        entity.setOptB(obj.getOptB());
-        entity.setOptC(obj.getOptC());
-        entity.setOptD(obj.getOptD());
-        entity.setCorrectAnswer(obj.getCorrectAnswer());
-        if(obj.getLastAnswer()!=null)
-            entity.setLastAnswer(obj.getLastAnswer());
-        entity.setSuccess(obj.getSuccess());
-        if (obj.getDateSent()!=null)
-            entity.setDateSent(obj.getDateSent());
-        if(obj.getDateAnswered()!=null)
-            entity.setDateAnswered(obj.getDateAnswered());
-        if(obj.getMessageId()!=null)
-            entity.setMessageId(obj.getMessageId());
-        return entity;
-    }
+//    private QuizEntity convertQuizObjToEntity(Quiz obj){
+//        QuizEntity entity = new QuizEntity();
+//        if(obj.getQuizId()!=null)
+//        entity.setKeyId(obj.getQuizId());
+//        entity.setQuestion(StringEscapeUtils.unescapeJava(obj.getQuestion()));
+//        entity.setRetriesCount(obj.getRetriesCount());
+//        entity.setAnswersLeft(obj.getAnswersLeft());
+//        entity.setOptA(obj.getOptA());
+//        entity.setOptB(obj.getOptB());
+//        entity.setOptC(obj.getOptC());
+//        entity.setOptD(obj.getOptD());
+//        entity.setCorrectAnswer(obj.getCorrectAnswer());
+//        if(obj.getLastAnswer()!=null)
+//            entity.setLastAnswer(obj.getLastAnswer());
+//        entity.setSuccess(obj.getSuccess());
+//        if (obj.getDateSent()!=null)
+//            entity.setDateSent(obj.getDateSent());
+//        if(obj.getDateAnswered()!=null)
+//            entity.setDateAnswered(obj.getDateAnswered());
+//        if(obj.getMessageId()!=null)
+//            entity.setMessageId(obj.getMessageId());
+//        return entity;
+//    }
 
 }

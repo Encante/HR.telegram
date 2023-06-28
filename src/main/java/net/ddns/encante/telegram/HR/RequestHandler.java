@@ -55,7 +55,7 @@ private String[] commands;
             //        initialise msgManager setting originalSender of message
             msgManager.setOriginalSender(update.getCallback_query().getFrom());
 //            check if it is a quiz message callback and eventually resolve a quiz
-            if(quizService.getQuizByMessageId(update.getCallback_query().getMessage().getMessage_id())!=null){
+            if(quizService.getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id())!=null){
 //              actually resolve answer
                 quizService.resolveQuizAnswer(update);
             }
@@ -72,7 +72,7 @@ private String[] commands;
             msgManager.setOriginalSender(update.getMessage().getFrom());
 //            check if it is quiz related (reply for force reply) message
             if (update.getMessage().getReply_to_message()!= null){
-                if (quizService.getQuizByMessageId(update.getMessage().getReply_to_message().getMessage_id())!= null){
+                if (quizService.getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id())!= null){
                     quizService.resolveQuizAnswer(update);
                 }
             }
