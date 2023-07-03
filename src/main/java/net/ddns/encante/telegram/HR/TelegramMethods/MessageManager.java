@@ -1,11 +1,11 @@
 package net.ddns.encante.telegram.HR.TelegramMethods;
 
 import lombok.Data;
-import net.ddns.encante.telegram.HR.Quiz.Quiz;
 import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
 import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.SentMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.User;
+import net.ddns.encante.telegram.HR.persistence.entities.Quiz;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

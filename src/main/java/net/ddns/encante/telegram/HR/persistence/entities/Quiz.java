@@ -56,6 +56,8 @@ public class Quiz {
     Long messageId;
     @Column (name = "chat_id")
     Long chatId;
+    @Column(name = "answers_depleted")
+    boolean answersDepleted;
     transient AnswerCallbackQuery reactionForAnswerCallback;
     transient SendMessage reactionForAnswerMessage;
 }

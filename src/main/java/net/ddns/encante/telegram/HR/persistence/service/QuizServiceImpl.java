@@ -248,6 +248,7 @@ public class QuizServiceImpl implements QuizService {
                                 .setText("Niestety zła odpowiedź :( Prawidłowa odpowiedź to: "+ quiz.getCorrectAnswer())
                                 .setReply_to_message_id(update.getCallback_query().getMessage().getMessage_id())
                                 .setChat_id(update.getCallback_query().getMessage().getChat().getId()));
+                        quiz.setAnswersDepleted(true);
                         quiz.setAnswersLeft(4);
                     }
                 }
@@ -274,11 +275,11 @@ public class QuizServiceImpl implements QuizService {
     private void resolveForceReplyQuiz (WebhookUpdate update){
         //        prerequisite check for possible null-pointers
         if (update.getMessage().getReply_to_message()!= null){
-            if (getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id()) != null
+            if (getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id(),update.getMessage().getReply_to_message().getFrom().getId()) != null
                     && update.getMessage().getText()!= null
             ){
 //        getting quiz entity from db by message id
-                Quiz quiz = getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id());
+                Quiz quiz = getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id(),update.getMessage().getReply_to_message().getFrom().getId());
 //        check for null-pointers on quiz object
                 if (quiz.getOptA() != null
                         && quiz.getOptB() != null
@@ -290,7 +291,7 @@ public class QuizServiceImpl implements QuizService {
                 ){
                     quiz.setDateAnswered(Utils.getCurrentUnixTime());
                     quiz.setLastAnswer(update.getMessage().getText());
-                    //              edit sent quiz message: add answer. We would do it anyway so we'll do it at start
+                    //              edit sent quiz message: add user answer. We would do it anyway so we'll do it at start
                     msgMgr.editTelegramMessageText(update.getMessage().getFrom().getId(),update.getMessage().getMessage_id(),update.getMessage().getText()+" Twoja odpowiedź: "+quiz.getLastAnswer());
                     //        actual check
 //        if answer is good-
@@ -326,6 +327,7 @@ public class QuizServiceImpl implements QuizService {
                                     .setReply_to_message_id(update.getMessage().getMessage_id())
                                     .setChat_id(update.getMessage().getFrom().getId()));
                             quiz.setAnswersLeft(5);
+                            quiz.setAnswersDepleted(true);
                         }
                     }
 //        either way it was good or bad answer now is the time to send reaction
