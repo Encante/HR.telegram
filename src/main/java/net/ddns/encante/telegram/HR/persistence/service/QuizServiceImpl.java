@@ -1,7 +1,6 @@
 package net.ddns.encante.telegram.HR.persistence.service;
 
 import lombok.extern.slf4j.Slf4j;
-import net.ddns.encante.telegram.HR.Quiz.Quiz;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.HR.TelegramMethods.MessageManager;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
@@ -156,7 +155,7 @@ public class QuizServiceImpl implements QuizService {
                         .setInput_field_placeholder("Введіть свою відповідь тут."));
     }
     private void prepareForceReplyQuiz(WebhookUpdate update){
-        Quiz quiz = getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id());
+        Quiz quiz = getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id(),update.getMessage().getFrom().getId());
 //        firstly we delete original message because it cant be edited to force reply
         msgMgr.deleteTelegramMessage(update.getCallback_query().getFrom().getId(),update.getCallback_query().getMessage().getMessage_id());
 //        now send message with force reply to chat and update quiz object with new message id...
@@ -166,13 +165,13 @@ public class QuizServiceImpl implements QuizService {
     }
     private void resolveAbcdQuiz (WebhookUpdate update){
         //        prerequisite check for possible null-pointers
-        if (getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id()) != null
+        if (getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id(),update.getMessage().getFrom().getId()) != null
                 && update.getCallback_query().getData() != null
                 && update.getCallback_query().getMessage().getChat().getId() != null
                 && update.getCallback_query().getMessage().getText() != null
         ){
 //        getting quiz entity from db by message id
-            Quiz quiz = getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id());
+            Quiz quiz = getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id(),update.getMessage().getFrom().getId());
 //        check for null-pointers on quiz object
             if (quiz.getOptA() != null
                     && quiz.getOptB() != null
