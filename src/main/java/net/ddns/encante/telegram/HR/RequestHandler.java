@@ -59,8 +59,8 @@ private String[] commands;
 //              actually resolve answer
                 quizService.resolveQuizAnswer(update);
             }
-            else {
 //                nothing specific other than quiz is designed to be used by callbacks so now default behavior will be sending "Callback Answer" and deleting an inline keyboard
+            else {
 //            answer callback query
                 msgManager.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(), "Callback Answer!", false));
 //            delete keyboard after pressing a key
@@ -70,35 +70,49 @@ private String[] commands;
         } else if (update.getMessage() != null) {
 //        just little helpful var with chatID of who send msg
             msgManager.setOriginalSender(update.getMessage().getFrom());
-//            check if it is quiz related (reply for force reply) message
-            if (update.getMessage().getReply_to_message()!= null){
-                if (quizService.getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id(),msgManager.getOriginalSender().getId())!= null){
-                    quizService.resolveQuizAnswer(update);
-                }
-            }
 //      check if incoming message have any text
             if (update.getMessage().getText() != null) {
+//                check if it is reply to other msg
+                if (update.getMessage().getReply_to_message()!= null){
+//            check if it is quiz related (reply for force reply) message
+                    if (quizService.getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id(),msgManager.getOriginalSender().getId())!= null){
+                        quizService.resolveQuizAnswer(update);
+//                    if it is not quiz related reply to bot message and it is not from me send message to me
+                    }else {
+                        if(!msgManager.getOriginalSender().getId().equals(msgManager.getME())){
+                            msgManager.sendTelegramTextMessage("New reply! T: " + Utils.getCurrentDateTime()
+                                    + "  FROM: "
+                                    + msgManager.getOriginalSender().getFirst_name()
+                                    + " "
+                                    + update.getMessage().getFrom().getLast_name()
+                                    + "  CHAT ID: "
+                                    + msgManager.getOriginalSender().getId()
+                                    + "  CONTENT: "
+                                    + update.getMessage().getText(), msgManager.getME());
+                        }
+                    }
+                }
 //        check if incoming message have any and if there is do commands:
                 if (update.getMessage().getText().charAt(0) == '/') {
                     this.commands = update.getMessage().getText().split(" ");
                     switch (commands[0]) {
 //                        basic command to check if bot is running
                         case "/hi" -> msgManager.greet();
-                        case "/commands" ->msgManager.sendBackTelegramTextMessage("/hi /commands /start /sm");
+                        case "/commands" -> msgManager.sendBackTelegramTextMessage("/hi /commands /start /sm");
                         case "/start" -> msgManager.greetFirstTime();
 //                        send message through bot
                         case "/sm" -> {
                             if (checkCommandLenght(3, "/sm")) {
 //                                send message to me - checking purposes
                                 if (commands[1].equalsIgnoreCase("m")) {
-                                    msgManager.sendTelegramTextMessage(update.getMessage().getText().substring(6),msgManager.getME());
+                                    msgManager.sendTelegramTextMessage(update.getMessage().getText().substring(6), msgManager.getME());
                                 }
 //                                send message to Yas
                                 if (commands[1].equalsIgnoreCase("y")) {
                                     msgManager.sendTelegramTextMessage(update.getMessage().getText().substring(6), msgManager.getYASIA());
                                 }
 //                                send msg to chom
-                                if (commands[1].equalsIgnoreCase("c")){
+                                if (commands[1].equalsIgnoreCase("c")) {
                                     msgManager.sendTelegramTextMessage(update.getMessage().getText().substring(6), msgManager.getCHOMIK());
                                 }
                             }
@@ -112,17 +126,19 @@ private String[] commands;
                         }
                         case "/quiz" -> {
                             if (checkCommandLenght(2, "/quiz")) {
-                                if (commands[1].equalsIgnoreCase("me")) quizService.sendQuizToId(msgManager.getME());
+                                if (commands[1].equalsIgnoreCase("me"))
+                                    quizService.sendQuizToId(msgManager.getME());
                                 if (commands[1].equalsIgnoreCase("yas")) quizService.sendQuizToYasia();
                                 if (commands[1].equalsIgnoreCase("chom"))
                                     quizService.sendQuizToId(msgManager.getCHOMIK());
-                                if (commands[1].equalsIgnoreCase("id")){
-                                    if(checkCommandLenght(3,"/quiz id"))
+                                if (commands[1].equalsIgnoreCase("id")) {
+                                    if (checkCommandLenght(3, "/quiz id"))
                                         quizService.sendQuizToId(Long.decode(commands[2]));
                                 }
                             }
                         }
-                        case "/hmql" -> msgManager.sendBackTelegramTextMessage("Zostało "+quizRepository.findAllQuizEntitiesToSend().size()+" pytań.");
+                        case "/hmql" ->
+                                msgManager.sendBackTelegramTextMessage("Zostało " + quizRepository.findAllQuizEntitiesToSend().size() + " pytań.");
                         case "/smk" -> {
                             String[] names = {"Reply", "she", "goes"};
                             msgManager.sendTelegramObjAsMessage(new SendMessage()
@@ -137,18 +153,18 @@ private String[] commands;
                                     .setReply_markup(new ReplyKeyboardRemove()));
                         }
                         case "/searchUserById" -> {
-                            if (checkCommandLenght(2,"/searchUserById")){
+                            if (checkCommandLenght(2, "/searchUserById")) {
                                 if (webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])) != null) {
                                     msgManager.sendBackTelegramTextMessage("To " + webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])).getFirstName());
-                                }
-                                else msgManager.sendBackTelegramTextMessage("User with id " + commands[1] + " not in DB!");
+                                } else
+                                    msgManager.sendBackTelegramTextMessage("User with id " + commands[1] + " not in DB!");
                             }
                         }
                         case "/hueapp" -> {
 //                            command lenght check
-                            if (checkCommandLenght(3,"/hueapp")) {
+                            if (checkCommandLenght(3, "/hueapp")) {
                                 if (commands[1].equalsIgnoreCase("link")) {
-                                        hueAuthorizationService.sendAuthorizationLink(commands[2]);
+                                    hueAuthorizationService.sendAuthorizationLink(commands[2]);
                                 }
                                 if (commands[1].equalsIgnoreCase("checktokens")) {
 //
@@ -157,33 +173,30 @@ private String[] commands;
 //
 //
                                 }
-                                if (commands[1].equalsIgnoreCase("add")){
-                                    if (checkCommandLenght(5, "/hueapp add")){
-                                    HueAuthorizationEntity authorization = new HueAuthorizationEntity();
-                                    authorization.setClientId(commands[2]);
-                                    authorization.setClientSecret(commands[3]);
-                                    authorization.setDisplayName(commands[4]);
-                                    hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(authorization);
-                                    msgManager.sendBackTelegramTextMessage("Hue App "+authorization.getDisplayName()+ " added to DB.");
+                                if (commands[1].equalsIgnoreCase("add")) {
+                                    if (checkCommandLenght(5, "/hueapp add")) {
+                                        HueAuthorizationEntity authorization = new HueAuthorizationEntity();
+                                        authorization.setClientId(commands[2]);
+                                        authorization.setClientSecret(commands[3]);
+                                        authorization.setDisplayName(commands[4]);
+                                        hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(authorization);
+                                        msgManager.sendBackTelegramTextMessage("Hue App " + authorization.getDisplayName() + " added to DB.");
                                     }
                                 }
-                                if (commands[1].equalsIgnoreCase("searchByName")){
-                                    if (hueAuthorizationService.getAuthorizationForDisplayName(commands[2])!= null) {
+                                if (commands[1].equalsIgnoreCase("searchByName")) {
+                                    if (hueAuthorizationService.getAuthorizationForDisplayName(commands[2]) != null) {
                                         HueAuthorizationEntity entity =
-                                        hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
-                                        msgManager.sendBackTelegramTextMessage("App with this Id already in DB with client ID: "+entity.getClientId());
-                                    }else msgManager.sendBackTelegramTextMessage("No app with this name added");
+                                                hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
+                                        msgManager.sendBackTelegramTextMessage("App with this Id already in DB with client ID: " + entity.getClientId());
+                                    } else msgManager.sendBackTelegramTextMessage("No app with this name added");
                                 }
                             }
                         }
                     }
                 }
                 //        if not from me, send message to me
-                if (update.getMessage().getFrom().getId().equals(msgManager.getME())) {
-                    log.debug("Wiadomość do bota ode mnie.");
-                }
-                else {
-                    msgManager.sendTelegramTextMessage("New message! T: " + Utils.getCurrentDateTime()
+                if (!msgManager.getOriginalSender().getId().equals(msgManager.getME())) {
+                    msgManager.sendTelegramTextMessage("New message T: " + Utils.getCurrentDateTime()
                             + "  FROM: "
                             + msgManager.getOriginalSender().getFirst_name()
                             + " "
@@ -193,26 +206,32 @@ private String[] commands;
                             + "  CONTENT: "
                             + update.getMessage().getText(), msgManager.getME());
                 }
+//                if message has no text and is not from me send me an info
             } else {
-//            if no text send me an info
-                msgManager.sendTelegramTextMessage("New message! T: " + Utils.getCurrentDateTime()
+                if (!msgManager.getOriginalSender().getId().equals(msgManager.getME())) {
+                    msgManager.sendTelegramTextMessage("New message T: " + Utils.getCurrentDateTime()
+                            + "  FROM: "
+                            + msgManager.getOriginalSender().getFirst_name()
+                            + " "
+                            + msgManager.getOriginalSender().getLast_name()
+                            + "  CHAT ID: "
+                            + msgManager.getOriginalSender().getId()
+                            + " But it has no text.", msgManager.getME());
+                }
+            }
+            //        update not contains message object and is not a callback and not from me - send me an info
+        }else {
+            if (!msgManager.getOriginalSender().getId().equals(msgManager.getME())){
+                msgManager.sendTelegramTextMessage("New message. T: " + Utils.getCurrentDateTime()
                         + "  FROM: "
                         + msgManager.getOriginalSender().getFirst_name()
                         + " "
                         + msgManager.getOriginalSender().getLast_name()
                         + "  CHAT ID: "
                         + msgManager.getOriginalSender().getId()
-                        + " But it has no text!", msgManager.getME());
+                        + " But it has no message object nor is a callback.", msgManager.getME());
             }
-            //        update not contains message object and is not a callback
-        }else msgManager.sendTelegramTextMessage("New message. T: " + Utils.getCurrentDateTime()
-                + "  FROM: "
-                + msgManager.getOriginalSender().getFirst_name()
-                + " "
-                + msgManager.getOriginalSender().getLast_name()
-                + "  CHAT ID: "
-                + msgManager.getOriginalSender().getId()
-                + " But it has no message object nor it's a callback.", msgManager.getME());
+        }
     }
 
     @GetMapping("/hue/code")

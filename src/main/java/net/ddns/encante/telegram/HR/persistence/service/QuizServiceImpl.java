@@ -54,8 +54,8 @@ public class QuizServiceImpl implements QuizService {
         if (quizRepository.findByCredentials(messageId, chatId)!= null)
         return quizRepository.findByCredentials(messageId, chatId);
         else {
-            log.warn("No entries in db with such credentials. getQuizByCredentials");
-            throw new RuntimeException("No entries in db with such credentials.");
+            log.warn("No entries in db with such credentials. MessageId: "+messageId+"ChatId: "+chatId+"  getQuizByCredentials");
+            return null;
         }
     }
 //    gets next quiz from db to send, checks if quiz is not already sent but unanswered
@@ -106,7 +106,7 @@ public class QuizServiceImpl implements QuizService {
         SentMessage sentQuizMsg = msgMgr.sendTelegramObjAsMessage(createQuizMessage(chatId,quiz));
 //                            update quiz obj
         quiz.setMessageId(sentQuizMsg.getResult().getMessage_id());
-        quiz.setChatId(sentQuizMsg.getResult().getFrom().getId());
+        quiz.setChatId(sentQuizMsg.getResult().getChat().getId());
         quiz.setDateSent(sentQuizMsg.getResult().getDate());
         quiz.setLastAnswer(null);
 //                            save updated quiz to db
@@ -155,7 +155,7 @@ public class QuizServiceImpl implements QuizService {
                         .setInput_field_placeholder("Введіть свою відповідь тут."));
     }
     private void prepareForceReplyQuiz(WebhookUpdate update){
-        Quiz quiz = getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id(),update.getMessage().getFrom().getId());
+        Quiz quiz = getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id(),update.getCallback_query().getFrom().getId());
 //        firstly we delete original message because it cant be edited to force reply
         msgMgr.deleteTelegramMessage(update.getCallback_query().getFrom().getId(),update.getCallback_query().getMessage().getMessage_id());
 //        now send message with force reply to chat and update quiz object with new message id...
@@ -165,13 +165,13 @@ public class QuizServiceImpl implements QuizService {
     }
     private void resolveAbcdQuiz (WebhookUpdate update){
         //        prerequisite check for possible null-pointers
-        if (getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id(),update.getMessage().getFrom().getId()) != null
+        if (getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id(),update.getCallback_query().getMessage().getChat().getId()) != null
                 && update.getCallback_query().getData() != null
                 && update.getCallback_query().getMessage().getChat().getId() != null
                 && update.getCallback_query().getMessage().getText() != null
         ){
 //        getting quiz entity from db by message id
-            Quiz quiz = getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id(),update.getMessage().getFrom().getId());
+            Quiz quiz = getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id(),update.getCallback_query().getMessage().getChat().getId());
 //        check for null-pointers on quiz object
             if (quiz.getOptA() != null
                     && quiz.getOptB() != null
@@ -275,11 +275,11 @@ public class QuizServiceImpl implements QuizService {
     private void resolveForceReplyQuiz (WebhookUpdate update){
         //        prerequisite check for possible null-pointers
         if (update.getMessage().getReply_to_message()!= null){
-            if (getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id(),update.getMessage().getReply_to_message().getFrom().getId()) != null
+            if (getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id(),update.getMessage().getFrom().getId()) != null
                     && update.getMessage().getText()!= null
             ){
 //        getting quiz entity from db by message id
-                Quiz quiz = getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id(),update.getMessage().getReply_to_message().getFrom().getId());
+                Quiz quiz = getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id(),update.getMessage().getFrom().getId());
 //        check for null-pointers on quiz object
                 if (quiz.getOptA() != null
                         && quiz.getOptB() != null
