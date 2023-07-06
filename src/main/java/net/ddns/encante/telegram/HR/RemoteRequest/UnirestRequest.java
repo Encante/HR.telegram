@@ -146,11 +146,11 @@ public class UnirestRequest {
     }
 
     public HueDevice hueGetResourceDevice(HueAuthorizationEntity authorization){
-        this.response = Unirest.get(HUE_API_URL+"/clip/v2/resource/device/")
+        this.response = Unirest.get(HUE_API_URL+"/clip/v2/resource/device")
                 .header("Authorization", "Bearer "+authorization.getTokens().getAccess_token())
                 .header("hue-application-key", authorization.getUsername())
                 .asJson();
-        if (standardResponseStatusBodyCheck("hueGetResourceDeviceId")){
+        if (standardResponseStatusBodyCheck("hueGetResourceDevice")){
             return gson.fromJson(response.getBody().toString(),HueDevice.class);
         }else return null;
     }

@@ -1,17 +1,17 @@
 package net.ddns.encante.telegram.HR.persistence.service;
 
+import lombok.extern.slf4j.Slf4j;
 import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
 import net.ddns.encante.telegram.HR.TelegramMethods.MessageManager;
+import net.ddns.encante.telegram.HR.Utils;
 import net.ddns.encante.telegram.HR.persistence.entities.HueAuthorizationEntity;
 import net.ddns.encante.telegram.HR.persistence.repository.HueAuthorizationRepository;
 import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Random;
-
+@Slf4j
 @Service("hueAuthorizationService")
 public class HueAuthorizationServiceImpl implements HueAuthorizationService{
     @Autowired
@@ -20,7 +20,6 @@ public class HueAuthorizationServiceImpl implements HueAuthorizationService{
     MessageManager msgManager;
     @Autowired
     UnirestRequest request;
-    private static final Logger log = LoggerFactory.getLogger("HueAuthorizationService");
 // If given clientId is in base, update it with new data
     @Override
     public HueAuthorizationEntity saveOrUpdateAuthorizationBasedOnClientId(HueAuthorizationEntity ent){
@@ -28,11 +27,14 @@ public class HueAuthorizationServiceImpl implements HueAuthorizationService{
         return repository.save(ent);
     }
     @Override
-    public HueAuthorizationEntity getAuthorization(){
+    public HueAuthorizationEntity getFirstAuthorization(){
         if (repository.count()>0){
             return repository.findFirstByOrderByKeyIdAsc();
         }
-        else throw new RuntimeException("No authorization in DB");
+        else {
+            log.warn("No HUE App authorization in DB");
+            throw new RuntimeException("No HUE App authorization in DB");
+        }
     }
     @Override
     public HueAuthorizationEntity getAuthorizationForDisplayName(String displayName){
@@ -105,19 +107,48 @@ public class HueAuthorizationServiceImpl implements HueAuthorizationService{
         }else
             msgManager.sendAndLogErrorMsg("ERROR. No authorization with state: "+ state+" in DB. Invoker: HueAuthorizationServiceImpl.authenticateApp.");
     }
+    @Override
+    public void checkAndRefreshToken(@NotNull HueAuthorizationEntity authorization){
+        if (!checkHueAuthorization(authorization)){
+            refreshHueToken(authorization);
+//        if token is valid
+        }else {
+            log.debug("Token valid and no need to be refreshed.");
+        }
+    }
+//    PRIVATE
+//
+//
 
-    private boolean checkAndRefreshHueAuthorization (@NotNull HueAuthorizationEntity authorization) {
+    private boolean checkHueAuthorization (@NotNull HueAuthorizationEntity authorization) {
         //                                            authorization token and username check
         if (authorization.getTokens().getAccess_token() != null && authorization.getUsername() != null) {
 //                                                check if access token and username is valid
-            if (request.hueGetResourceDevice(authorization) != null && request.hueGetResourceDevice(authorization).getErrors() == null) {
-                log.debug("Tokens for " + authorization.getDisplayName() + " checked and valid.");
+            if (request.hueGetResourceDevice(authorization) != null && request.hueGetResourceDevice(authorization).getErrors().size() == 0) {
+                log.debug("Tokens for " + authorization.getDisplayName() + " checked and valid. checkHueAuthorization");
                 return true;
             } else{
+                log.debug("Token invalid. Must be refreshed");
                 return false;
             }
         }else {
             String err = "ERROR. Access token or username is null. Invoker: checkAndRefreshHueAuthorization";
+            msgManager.sendAndLogErrorMsg(err);
+            throw new RuntimeException(err);
+        }
+    }
+    private void refreshHueToken (@NotNull HueAuthorizationEntity authorization){
+//        authorization check for null pointers
+        if(authorization.getClientId() != null
+        && authorization.getClientSecret()!= null
+        && authorization.getTokens().getRefresh_token()!= null){
+            authorization.setTokens(request.refreshHueTokens(authorization));
+            authorization.getTokens().setCreated(Utils.getCurrentUnixTime());
+            saveOrUpdateAuthorizationBasedOnClientId(authorization);
+            log.debug("HUE Token refreshed and saved succesfully. refreshHueToken");
+//            authorization has some unexpected nulls
+        }else {
+            String err = "ERROR. ClientId, ClientSecret or RefreshToken is null. Invoker: HueAuthorizationServiceImpl.refreshHueToken";
             msgManager.sendAndLogErrorMsg(err);
             throw new RuntimeException(err);
         }
@@ -127,7 +158,7 @@ public class HueAuthorizationServiceImpl implements HueAuthorizationService{
             return repository.findByClientId(ent.getClientId());
         else return ent;
     }
-    private Boolean isClientIdAlreadyInDb (HueAuthorizationEntity ent){
+    private boolean isClientIdAlreadyInDb (HueAuthorizationEntity ent){
         return repository.findByClientId(ent.getClientId()) != null;
     }
 }

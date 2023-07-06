@@ -167,11 +167,7 @@ private String[] commands;
                                     hueAuthorizationService.sendAuthorizationLink(commands[2]);
                                 }
                                 if (commands[1].equalsIgnoreCase("checktokens")) {
-//
-//
-//                                    TODO
-//
-//
+                                    hueAuthorizationService.checkAndRefreshToken(hueAuthorizationService.getFirstAuthorization());
                                 }
                                 if (commands[1].equalsIgnoreCase("add")) {
                                     if (checkCommandLenght(5, "/hueapp add")) {

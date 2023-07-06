@@ -5,10 +5,10 @@ import org.jetbrains.annotations.NotNull;
 
 public interface HueAuthorizationService {
     HueAuthorizationEntity saveOrUpdateAuthorizationBasedOnClientId(HueAuthorizationEntity authorization);
-    HueAuthorizationEntity getAuthorization();
+    HueAuthorizationEntity getFirstAuthorization();
     HueAuthorizationEntity getAuthorizationForDisplayName(String displayName);
     HueAuthorizationEntity getAuthorizationForState(String state);
     void sendAuthorizationLink(@NotNull String displayName);
     void authenticateApp(@NotNull String state, @NotNull String code);
-
+    void checkAndRefreshToken(@NotNull HueAuthorizationEntity authorization);
 }
