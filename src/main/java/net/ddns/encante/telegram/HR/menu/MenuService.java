@@ -28,35 +28,30 @@ public class MenuService {
     public void createMainMenu(@NotNull Long chatId){
         if (menuRepo.findByChatId(chatId)!= null){
             log.debug("Menu istniejące w bazie.");
-            HueMenu menu = (HueMenu) menuRepo.findByChatId(chatId);
+            Menu menu = menuRepo.findByChatId(chatId);
             menu.setChatId(chatId);
             menu.setLastSentDate(Utils.getCurrentUnixTime());
             menu.setCurrentPattern(menuRepo.getPatternByName("mainMenu"));
-            menu.setMessageId(msgMgr.sendTelegramObjAsMessage(createHueMenuMessage(menu)).getResult().getMessage_id());
+            menu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessage(menu)).getResult().getMessage_id());
             saveMenu(menu);
         }else {
             log.debug("Nowe menu.");
-            HueMenu menu = new HueMenu();
+            Menu menu = new Menu();
             menu.setChatId(chatId);
             menu.setLastSentDate(Utils.getCurrentUnixTime());
             menu.setCurrentPattern(menuRepo.getPatternByName("mainMenu"));
-            msgMgr.sendTelegramObjAsMessage(createHueMenuMessage(menu));
+            msgMgr.sendTelegramObjAsMessage(createMenuMessage(menu));
             saveMenu(menu);
         }
     }
     public void handleMenuCallback (@NotNull WebhookUpdate update){
-        HueMenu currentMenu = (HueMenu) menuRepo.findByCredentials(msgMgr.getOriginalSender().getId(),update.getCallback_query().getMessage().getMessage_id());
+        Menu currentMenu = menuRepo.findByCredentials(msgMgr.getOriginalSender().getId(),update.getCallback_query().getMessage().getMessage_id());
         if(currentMenu != null){
             String buttonAction = update.getCallback_query().getData();
             log.info("ButtonAction received: "+buttonAction);
             switch (buttonAction){
                 case "/quiz" -> {
-                    currentMenu.setLastSentDate(Utils.getCurrentUnixTime());
-                    currentMenu.setLastPattern(currentMenu.getCurrentPattern());
-                    currentMenu.setCurrentPattern(menuRepo.getPatternByName("quizMainChoice"));
-                    currentMenu.setMessageId
-                            (msgMgr.editTelegramTextMessage(createEditedHueMenuMessage(currentMenu)).getResult().getMessage_id());
-                    saveMenu(currentMenu);
+                    saveMenu(sendNextMenu(currentMenu, "quizMainChoice"));
                 }
                 case "/hmql" -> {
 //                    firstly delete menu message
@@ -73,7 +68,7 @@ public class MenuService {
         return null;
     }
 //    CAUTION: NEED MENU OBJECT WITH CORRECT CURRENT AND LAST MENU PATTERN
-    public EditMessageText createEditedHueMenuMessage(@NotNull HueMenu menu){
+    public EditMessageText createEditedMenuMessage(@NotNull Menu menu){
         if(menu.getCurrentPattern().getText()!=null
                 && menu.getCurrentPattern().getRows()*menu.getCurrentPattern().getCols()==menu.getCurrentPattern().getButtons().size()) {
             ArrayList<InlineKeyboardButton> inlineButtons = new ArrayList<>();
@@ -106,42 +101,48 @@ public class MenuService {
             throw new RuntimeException("Pattern is bad. Edit menu.message");
         }
     }
-    public SendMessage createHueMenuMessage(@NotNull HueMenu menu){
-//        null check
-        if(menu.getCurrentPattern().getText()!=null
-        && menu.getCurrentPattern().getRows()*menu.getCurrentPattern().getCols()==menu.getCurrentPattern().getButtons().size()){
-            ArrayList<InlineKeyboardButton> inlineButtons = new ArrayList<>();
-            ArrayList<InlineKeyboardButton> rowx = new ArrayList<>();
-            ArrayList<ArrayList<InlineKeyboardButton>> inlineLayout = new ArrayList<>();
-            for (InlineMenuButton menuButton :
-                    menu.getCurrentPattern().getButtons()) {
-                inlineButtons.add(menuButton.transformToInlineKeyboardButton());
-            }
-            for (int i = 0; i < menu.getCurrentPattern().getRows(); i++) {
-                for (int j = 0; j < menu.getCurrentPattern().getCols(); j++) {
-                    rowx.add(inlineButtons.get(0));
-                    inlineButtons.remove(0);
-                }
-                inlineLayout.add(rowx);
-                rowx=new ArrayList<>();
-            }
-            return new SendMessage()
-                    .setChat_id(menu.getChatId())
-                    .setText(menu.getCurrentPattern().getText())
-                    .setReply_markup(new InlineKeyboardMarkup(inlineLayout));
-        }else {
-            log.warn("ERROR. Pattern is bad. createMenuMessage");
-            log.debug("Text: "+menu.getCurrentPattern().getText());
-            log.debug("Cols: "+menu.getCurrentPattern().getCols());
-            log.debug("Rows: "+menu.getCurrentPattern().getRows());
-            log.debug("Size of Buttons Array: "+menu.getCurrentPattern().getButtons().size());
-            throw new RuntimeException("Pattern is bad.");
-        }
-    }
-
 //    PRIVATE METHODS
 //
 //
+    private SendMessage createMenuMessage(@NotNull Menu menu){
+//        null check
+    if(menu.getCurrentPattern().getText()!=null
+            && menu.getCurrentPattern().getRows()*menu.getCurrentPattern().getCols()==menu.getCurrentPattern().getButtons().size()){
+        ArrayList<InlineKeyboardButton> inlineButtons = new ArrayList<>();
+        ArrayList<InlineKeyboardButton> rowx = new ArrayList<>();
+        ArrayList<ArrayList<InlineKeyboardButton>> inlineLayout = new ArrayList<>();
+        for (InlineMenuButton menuButton :
+                menu.getCurrentPattern().getButtons()) {
+            inlineButtons.add(menuButton.transformToInlineKeyboardButton());
+        }
+        for (int i = 0; i < menu.getCurrentPattern().getRows(); i++) {
+            for (int j = 0; j < menu.getCurrentPattern().getCols(); j++) {
+                rowx.add(inlineButtons.get(0));
+                inlineButtons.remove(0);
+            }
+            inlineLayout.add(rowx);
+            rowx=new ArrayList<>();
+        }
+        return new SendMessage()
+                .setChat_id(menu.getChatId())
+                .setText(menu.getCurrentPattern().getText())
+                .setReply_markup(new InlineKeyboardMarkup(inlineLayout));
+    }else {
+        log.warn("ERROR. Pattern is bad. createMenuMessage");
+        log.debug("Text: "+menu.getCurrentPattern().getText());
+        log.debug("Cols: "+menu.getCurrentPattern().getCols());
+        log.debug("Rows: "+menu.getCurrentPattern().getRows());
+        log.debug("Size of Buttons Array: "+menu.getCurrentPattern().getButtons().size());
+        throw new RuntimeException("Pattern is bad.");
+    }
+}
+    private Menu sendNextMenu (Menu currentMenu, String patternName){
+        currentMenu.setLastSentDate(Utils.getCurrentUnixTime());
+        currentMenu.setLastPattern(currentMenu.getCurrentPattern());
+        currentMenu.setCurrentPattern(menuRepo.getPatternByName(patternName));
+        currentMenu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage(currentMenu)).getResult().getMessage_id());
+        return currentMenu;
+    }
     private Menu saveMenu(Menu menu){
         return menuRepo.save(menu);
     }

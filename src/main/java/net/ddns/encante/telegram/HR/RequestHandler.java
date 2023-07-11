@@ -148,8 +148,6 @@ private String[] commands;
                                 }
                             }
                         }
-                        case "/hmql" ->
-                                msgManager.sendBackTelegramTextMessage("Zostało " + quizRepository.findAllQuizEntitiesToSend().size() + " pytań.");
                         case "/smk" -> {
                             String[] names = {"Reply", "she", "goes"};
                             msgManager.sendTelegramObjAsMessage(new SendMessage()

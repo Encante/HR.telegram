@@ -8,7 +8,7 @@ import lombok.experimental.FieldDefaults;
 import javax.persistence.*;
 
 @Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+//@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Table(name = "Menu")
 @Getter
 @Setter
@@ -24,4 +24,10 @@ public class Menu {
     Long messageId;
     @Column(name = "last_sent_date")
     Long lastSentDate;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "last_pattern_key", referencedColumnName = "key_id")
+    MenuPattern lastPattern;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "current_pattern_key", referencedColumnName = "key_id")
+    MenuPattern currentPattern;
 }
