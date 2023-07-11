@@ -18,5 +18,5 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
     @Query("SELECT q FROM Quiz q WHERE q.success = 0 AND q.lastAnswer IS NULL")
     List<Quiz> findAllSentButNotAnsweredQuizEntities();
     @Query("SELECT q FROM Quiz q WHERE q.messageId = :messageId AND q.chatId = :chatId")
-    Quiz findByCredentials(@Param("messageId") Long messageId, @Param("chatId") Long chat_id);
+    Quiz findByCredentials(@Param("messageId") Long messageId, @Param("chatId") Long chatId);
 }

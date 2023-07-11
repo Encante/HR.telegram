@@ -54,7 +54,7 @@ public class QuizServiceImpl implements QuizService {
         if (quizRepository.findByCredentials(messageId, chatId)!= null)
         return quizRepository.findByCredentials(messageId, chatId);
         else {
-            log.warn("No entries in db with such credentials. MessageId: "+messageId+"ChatId: "+chatId+"  getQuizByCredentials");
+            log.warn("No Quiz entries in db with such credentials. MessageId: "+messageId+"ChatId: "+chatId+"  getQuizByCredentials");
             return null;
         }
     }
@@ -348,52 +348,5 @@ public class QuizServiceImpl implements QuizService {
             throw new RuntimeException("ERROR. Prerequisite check failed for QuizServiceImpl.resolve answer.");
         }
     }
-//
-//      CONVERT ENTITIES TO OBJECTS
-//
-//    private Quiz convertQuizEntityToObj(QuizEntity entity) {
-//        Quiz obj = new Quiz(StringEscapeUtils.escapeJava(entity.getQuestion()),entity.getOptA(),entity.getOptB(),entity.getOptC(),entity.getOptD(),entity.getCorrectAnswer());
-//        if(entity.getKeyId() != null)
-//            obj.setQuizId(entity.getKeyId());
-//        obj.setQuestion(entity.getQuestion());
-//        obj.setRetriesCount(entity.getRetriesCount());
-//        obj.setAnswersLeft(entity.getAnswersLeft());
-//        if(entity.getLastAnswer() != null)
-//            obj.setLastAnswer(entity.getLastAnswer());
-//        obj.setSuccess(entity.getSuccess());
-//        if(entity.getDateSent()!=null)
-//            obj.setDateSent(entity.getDateSent());
-//        if(entity.getDateAnswered()!=null)
-//            obj.setDateAnswered(entity.getDateAnswered());
-//        if(entity.getMessageId()!=null)
-//            obj.setMessageId(entity.getMessageId());
-//        return obj;
-//    }
-//
-//      CONVERT OBJECTS TO ENTITIES
-//
-//    private QuizEntity convertQuizObjToEntity(Quiz obj){
-//        QuizEntity entity = new QuizEntity();
-//        if(obj.getQuizId()!=null)
-//        entity.setKeyId(obj.getQuizId());
-//        entity.setQuestion(StringEscapeUtils.unescapeJava(obj.getQuestion()));
-//        entity.setRetriesCount(obj.getRetriesCount());
-//        entity.setAnswersLeft(obj.getAnswersLeft());
-//        entity.setOptA(obj.getOptA());
-//        entity.setOptB(obj.getOptB());
-//        entity.setOptC(obj.getOptC());
-//        entity.setOptD(obj.getOptD());
-//        entity.setCorrectAnswer(obj.getCorrectAnswer());
-//        if(obj.getLastAnswer()!=null)
-//            entity.setLastAnswer(obj.getLastAnswer());
-//        entity.setSuccess(obj.getSuccess());
-//        if (obj.getDateSent()!=null)
-//            entity.setDateSent(obj.getDateSent());
-//        if(obj.getDateAnswered()!=null)
-//            entity.setDateAnswered(obj.getDateAnswered());
-//        if(obj.getMessageId()!=null)
-//            entity.setMessageId(obj.getMessageId());
-//        return entity;
-//    }
 
 }

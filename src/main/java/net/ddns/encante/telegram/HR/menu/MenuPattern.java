@@ -6,22 +6,26 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import javax.persistence.*;
+import java.util.List;
 
 @Entity
-@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@Table(name = "Menu")
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Menu {
+public class MenuPattern {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "key_id")
     Long keyId;
-    @Column(name = "chat_id")
-    Long chatId;
-    @Column(name = "message_id")
-    Long messageId;
-    @Column(name = "last_sent_date")
-    Long lastSentDate;
+
+    @Column(name = "name")
+    String name;
+    @Column(name = "text")
+    String text;
+    @Column(name = "rows")
+    int rows;
+    @Column(name = "cols")
+    int cols;
+    @OneToMany(mappedBy = "pattern")
+    List<InlineMenuButton> buttons;
 }

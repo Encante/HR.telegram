@@ -14,9 +14,6 @@ public class Application {
 		ApplicationContext ctx = SpringApplication.run(Application.class, args);
 		MessageManager msgSender = ctx.getBean(MessageManager.class);
 		msgSender.sendTelegramTextMessage("Bot odpalony T: " + Utils.getCurrentDateTime(),msgSender.getME());
-//		UnirestRequest request = ctx.getBean(UnirestRequest.class);
-//		request.sendTelegramMessage(new SendMessage()
-//				.setText("Bot odpalony T: " + Utils.getCurrentDateTime())
-//				.toMe());
+		msgSender.sendTelegramTextMessage("Już wróciłem! :) Przepraszam za SPAM!", msgSender.getYASIA());
 	}
 }

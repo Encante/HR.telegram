@@ -1,10 +1,11 @@
 package net.ddns.encante.telegram.HR.TelegramObjects;
 
-import lombok.AccessLevel;
-import lombok.Getter;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
-
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
+@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class InlineKeyboardButton {
     String text;

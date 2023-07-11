@@ -5,12 +5,15 @@ import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
 import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.SentMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.User;
+import net.ddns.encante.telegram.HR.Utils;
 import net.ddns.encante.telegram.HR.persistence.entities.Quiz;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.PreDestroy;
 
 @Service
 @Data
@@ -33,9 +36,11 @@ public class MessageManager {
                 .setText(text)
                 .setChat_id(chatId));
     }
-
+    public SentMessage editTelegramTextMessage (EditMessageText msg){
+        return request.editTelegramMessageText(msg);
+    }
     public SentMessage editTelegramMessageText(Long chatId, Long messageId, String text){
-        return request.editTelegramMessageText(new EditMessageText(chatId,messageId, text));
+        return request.editTelegramMessageText(EditMessageText.builder().chat_id(chatId).message_id(messageId).text(text).build());
     }
     public SentMessage editTelegramMessageReplyMarkup (Long chatId,Long messageId, InlineKeyboardMarkup replyMarkup){
         return request.editTelegramMessageReplyMarkup(new EditMessageReplyMarkup(chatId,messageId, replyMarkup));
@@ -71,7 +76,6 @@ public class MessageManager {
             sendTelegramTextMessage("Zła odpowiedź na pytanie: " + quiz.getQuestion() + " Odpowiedź: " + quiz.getLastAnswer(), whoTo);
         }
     }
-
     public SentMessage greet() {
         if (originalSender != null) {
             if (originalSender.getLast_name() != null) {
@@ -98,5 +102,11 @@ public class MessageManager {
             sendAndLogErrorMsg(err);
             throw new RuntimeException(err);
         }
+    }
+
+    @PreDestroy
+    private void messageOnQuit(){
+        sendTelegramTextMessage("To już jest koniec T: "+ Utils.getCurrentDateTime(),getME());
+        sendTelegramTextMessage("Chwilowa przerwa w działaniu bota. Wrócę za chwilę ;)", getYASIA());
     }
 }

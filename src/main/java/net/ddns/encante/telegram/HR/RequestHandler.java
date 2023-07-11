@@ -9,6 +9,8 @@ import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.ReplyKeyboardRemove;
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
+import net.ddns.encante.telegram.HR.menu.MenuRepository;
+import net.ddns.encante.telegram.HR.menu.MenuService;
 import net.ddns.encante.telegram.HR.persistence.entities.HueAuthorizationEntity;
 import net.ddns.encante.telegram.HR.persistence.repository.QuizRepository;
 import net.ddns.encante.telegram.HR.persistence.repository.WebhookUpdateRepository;
@@ -31,10 +33,14 @@ private WebhookUpdateService webhookUpdateService;
 private QuizService quizService;
 @Resource(name = "hueAuthorizationService")
 private HueAuthorizationService hueAuthorizationService;
+@Resource(name = "menuService")
+private MenuService menuService;
 @Autowired
 private WebhookUpdateRepository webhookUpdateRepository;
 @Autowired
 private QuizRepository quizRepository;
+@Autowired
+private MenuRepository menuRepository;
 @Autowired
 private MessageManager msgManager;
 private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -58,6 +64,10 @@ private String[] commands;
             if(quizService.getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id(),msgManager.getOriginalSender().getId())!=null){
 //              actually resolve answer
                 quizService.resolveQuizAnswer(update);
+            }
+//            check if it is a menu callback and eventually handle it
+            if(menuService.getMenuByCredentials(msgManager.getOriginalSender().getId(), update.getCallback_query().getMessage().getMessage_id())!=null){
+                menuService.handleMenuCallback(update);
             }
 //                nothing specific other than quiz is designed to be used by callbacks so now default behavior will be sending "Callback Answer" and deleting an inline keyboard
             else {
@@ -99,6 +109,7 @@ private String[] commands;
 //                        basic command to check if bot is running
                         case "/hi" -> msgManager.greet();
                         case "/commands" -> msgManager.sendBackTelegramTextMessage("/hi /commands /start /sm");
+                        case "/menu" -> menuService.createMainMenu(msgManager.getOriginalSender().getId());
                         case "/start" -> msgManager.greetFirstTime();
 //                        send message through bot
                         case "/sm" -> {
@@ -169,6 +180,9 @@ private String[] commands;
                                 if (commands[1].equalsIgnoreCase("checktokens")) {
                                     hueAuthorizationService.checkAndRefreshToken(hueAuthorizationService.getFirstAuthorization());
                                 }
+//                                if (commands[1].equalsIgnoreCase("test")) {
+//                                    msgManager.sendTelegramObjAsMessage(menuService.createMenuMessage(msgManager.getME(),menuRepository.getPatternByName("test")));
+//                                }
                                 if (commands[1].equalsIgnoreCase("add")) {
                                     if (checkCommandLenght(5, "/hueapp add")) {
                                         HueAuthorizationEntity authorization = new HueAuthorizationEntity();

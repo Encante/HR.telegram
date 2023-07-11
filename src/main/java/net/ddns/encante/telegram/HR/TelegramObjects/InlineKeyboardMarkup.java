@@ -19,7 +19,7 @@ public class InlineKeyboardMarkup {
     InlineKeyboardMarkup(KeyboardBuilder builder){
         this.inline_keyboard = builder.keyboardLayout;
     }
-    InlineKeyboardMarkup(ArrayList<ArrayList<InlineKeyboardButton>> inline_keyboard){
+    public InlineKeyboardMarkup(ArrayList<ArrayList<InlineKeyboardButton>> inline_keyboard){
         this.inline_keyboard=inline_keyboard;
     }
     @FieldDefaults(level = AccessLevel.PRIVATE)
