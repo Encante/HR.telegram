@@ -115,6 +115,30 @@ public class QuizServiceImpl implements QuizService {
         log.debug("Quiz "+quiz.getKeyId()+ " wyslany <<<<<<<<<");
     }
     @Async
+    @Scheduled(cron = "0 0 7 ? * FRI")
+    public void prepareQuizForWeekend(){
+        List<Quiz> retriesFromLastWeek = quizRepository.findAllRetriesFromLastWeek(Utils.getCurrentUnixTime());
+        float rate =  (((float)retriesFromLastWeek.size()/quizRepository.findAllQuizFromLastWeek(Utils.getCurrentUnixTime()).size())*100);
+        String summary = "W zeszłym tygodniu zrobiłaś "+retriesFromLastWeek.size()+" pomyłek, czyli miałaś"+rate+"% odpowiedzi poprawnych.";
+        log.info("W zeszlym tygodniu bylo "+retriesFromLastWeek.size()+" pomylek.");
+        msgMgr.sendTelegramTextMessage(summary,msgMgr.getME());
+        msgMgr.sendTelegramTextMessage(summary, msgMgr.getYASIA());
+        if (retriesFromLastWeek.size()<16){
+            List<Quiz>allOtherRetries = quizRepository.findAllRetries();
+            allOtherRetries.removeAll(retriesFromLastWeek);
+            for (int i = retriesFromLastWeek.size(); i < 16; i++) {
+                retriesFromLastWeek.add(allOtherRetries.get(0));
+                allOtherRetries.remove(0);
+            }
+            resetQuizList(retriesFromLastWeek);
+        }else if (retriesFromLastWeek.size()>16){
+            retriesFromLastWeek.subList(16,retriesFromLastWeek.size()).clear();
+            resetQuizList(retriesFromLastWeek);
+        }
+        else resetQuizList(retriesFromLastWeek);
+    }
+
+    @Async
     @Scheduled(cron = "0 0 8-18 ? * *")
     public void sendQuizToYasia(){
         sendQuizToId(msgMgr.getYASIA());
@@ -348,5 +372,13 @@ public class QuizServiceImpl implements QuizService {
             throw new RuntimeException("ERROR. Prerequisite check failed for QuizServiceImpl.resolve answer.");
         }
     }
-
+    private void resetQuizList(List<Quiz> listToReset){
+        for (Quiz q :
+                listToReset) {
+            q.setSuccess(false);
+            quizRepository.save(q);
+        }
+        log.info("Lista weekendowych Quizow przygotowana.");
+        msgMgr.sendTelegramTextMessage("Lista weekendowych Quizow przygotowana.",msgMgr.getME());
+    }
 }

@@ -14,4 +14,5 @@ public interface QuizService {
     void sendQuizToId (Long chatId);
     void resolveQuizAnswer(WebhookUpdate update);
     void sendQuizToYasia();
+    void prepareQuizForWeekend();
 }
