@@ -126,12 +126,14 @@ public class QuizService {
         if (retriesFromLastWeek.size()<16){
             List<Quiz>allOtherRetries = quizRepository.findAllRetries();
             allOtherRetries.removeAll(retriesFromLastWeek);
+            Collections.shuffle(allOtherRetries);
             for (int i = retriesFromLastWeek.size(); i < 16; i++) {
                 retriesFromLastWeek.add(allOtherRetries.get(0));
                 allOtherRetries.remove(0);
             }
             resetQuizList(retriesFromLastWeek);
         }else if (retriesFromLastWeek.size()>16){
+            Collections.shuffle(retriesFromLastWeek);
             retriesFromLastWeek.subList(16,retriesFromLastWeek.size()).clear();
             resetQuizList(retriesFromLastWeek);
         }
