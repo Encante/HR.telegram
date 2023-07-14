@@ -9,15 +9,19 @@ import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
 import net.ddns.encante.telegram.HR.Utils;
 import net.ddns.encante.telegram.HR.persistence.repository.QuizRepository;
+import net.ddns.encante.telegram.HR.persistence.service.QuizService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 
 @Slf4j
 @Service("menuService")
 public class MenuService {
+    @Resource(name = "quizService")
+    private QuizService quizService;
     @Autowired
     private MenuRepository menuRepo;
     @Autowired
@@ -58,6 +62,10 @@ public class MenuService {
                     msgMgr.deleteTelegramMessage(msgMgr.getOriginalSender().getId(), currentMenu.getMessageId());
 //                    send response
                     msgMgr.sendBackTelegramTextMessage("Zostało " + quizRepo.findAllQuizEntitiesToSend().size() + " pytań.");
+                }
+                case "/testWeekend" -> {
+                    msgMgr.deleteTelegramMessage(msgMgr.getOriginalSender().getId(), currentMenu.getMessageId());
+                    quizService.testQuizForWeekend();
                 }
             }
         }
