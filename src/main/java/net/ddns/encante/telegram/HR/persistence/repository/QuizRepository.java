@@ -17,9 +17,9 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
 //    returns list of all quiz entities that are waiting in chat to be answered
     @Query("SELECT q FROM Quiz q WHERE q.success = 0 AND q.lastAnswer IS NULL")
     List<Quiz> findAllSentButNotAnsweredQuizEntities();
-    @Query("SELECT q FROM Quiz q WHERE q.dateAnswered BETWEEN :currentDate AND :currentDate - 604000 AND q.retriesCount > 0")
+    @Query("SELECT q FROM Quiz q WHERE q.dateAnswered BETWEEN :currentDate - 604000L AND :currentDate AND q.retriesCount > 0")
     List<Quiz> findAllRetriesFromLastWeek(@Param("currentDate") Long currentDate);
-    @Query("SELECT q FROM Quiz q WHERE q.dateAnswered BETWEEN :currentDate AND :currentDate - 604000")
+    @Query("SELECT q FROM Quiz q WHERE q.dateAnswered BETWEEN :currentDate - 604000L AND :currentDate")
     List<Quiz>findAllQuizFromLastWeek(@Param("currentDate") Long currentDate);
     @Query("SELECT q FROM Quiz q WHERE q.retriesCount > 0")
     List<Quiz> findAllRetries();

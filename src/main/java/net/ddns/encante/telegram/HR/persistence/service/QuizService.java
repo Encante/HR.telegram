@@ -118,9 +118,10 @@ public class QuizService {
     @Scheduled(cron = "0 55 7 ? * SAT")
     public void prepareQuizForWeekend(){
         List<Quiz> retriesFromLastWeek = quizRepository.findAllRetriesFromLastWeek(Utils.getCurrentUnixTime());
-        float rate =  (((float)retriesFromLastWeek.size()/quizRepository.findAllQuizFromLastWeek(Utils.getCurrentUnixTime()).size())*100);
-        String summary = "W zeszłym tygodniu zrobiłaś "+retriesFromLastWeek.size()+" pomyłek, czyli miałaś"+rate+"% odpowiedzi poprawnych.";
-        log.info("W zeszlym tygodniu bylo "+retriesFromLastWeek.size()+" pomylek.");
+        int rate =  Math.round(((float)retriesFromLastWeek.size()/quizRepository.findAllQuizFromLastWeek(Utils.getCurrentUnixTime()).size())*100);
+
+        String summary = "W zeszłym tygodniu zrobiłaś "+retriesFromLastWeek.size()+" pomyłek, czyli miałaś "+rate+"% odpowiedzi poprawnych.";
+        log.info("W zeszlym tygodniu było "+retriesFromLastWeek.size()+" pomylek.");
         msgMgr.sendTelegramTextMessage(summary,msgMgr.getME());
         msgMgr.sendTelegramTextMessage(summary, msgMgr.getYASIA());
         if (retriesFromLastWeek.size()<16){
@@ -141,12 +142,9 @@ public class QuizService {
     }
     public void testQuizForWeekend(){
         List<Quiz> retriesFromLastWeek = quizRepository.findAllRetriesFromLastWeek(Utils.getCurrentUnixTime());
-        msgMgr.sendTelegramTextMessage("Retries from last week quantity: "+ retriesFromLastWeek.size() + ". All last week Quiz quantinity: "+ quizRepository.findAllQuizFromLastWeek(Utils.getCurrentUnixTime()).size()+ ".", msgMgr.getME());
-        float lastWeekRetries = (float)retriesFromLastWeek.size();
-        float lastWeekQuiz = (float)quizRepository.findAllQuizFromLastWeek(Utils.getCurrentUnixTime()).size();
-        Float rate =  ((lastWeekRetries/lastWeekQuiz)*100);
-        String summary = "W zeszłym tygodniu zrobiłaś "+retriesFromLastWeek.size()+" pomyłek, czyli miałaś"+rate+"% odpowiedzi poprawnych.";
-        msgMgr.sendTelegramTextMessage(summary,msgMgr.getME());
+        int rate =  Math.round(((float)retriesFromLastWeek.size()/quizRepository.findAllQuizFromLastWeek(Utils.getCurrentUnixTime()).size())*100);
+        String summary = "W zeszłym tygodniu zrobiłaś "+retriesFromLastWeek.size()+" pomyłek, czyli miałaś "+rate+"% odpowiedzi poprawnych.";
+        msgMgr.sendTelegramTextMessage(summary, msgMgr.getME());
     }
 
 

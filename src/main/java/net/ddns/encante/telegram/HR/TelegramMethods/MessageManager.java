@@ -106,7 +106,7 @@ public class MessageManager {
 
     @PreDestroy
     private void messageOnQuit(){
-        sendTelegramTextMessage("To już jest koniec T: "+ Utils.getCurrentDateTime(),getME());
-        sendTelegramTextMessage("Chwilowa przerwa w działaniu bota. Wrócę za chwilę ;)", getYASIA());
+        sendTelegramTextMessage("To już jest koniec \n T: "+ Utils.getCurrentDateTime(),getME());
+        sendTelegramTextMessage("Chwilowa przerwa w działaniu bota. Wrócę za chwilę ;) \n Bot jest wyłączony.", getYASIA());
     }
 }
