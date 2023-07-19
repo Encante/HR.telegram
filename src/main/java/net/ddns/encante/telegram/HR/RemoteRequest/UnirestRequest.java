@@ -38,6 +38,7 @@ public class UnirestRequest {
     }
     public SentMessage editTelegramMessageText(EditMessageText message){
         standardAppJsonPost("https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageText",message);
+        log.info("UnirestRequest.editTelegramMessageText Fired. ChatId: "+message.getChat_id()+" MessageId: "+message.getMessage_id()+" text: "+message.getText());
         return gson.fromJson(response.getBody().toString(),SentMessage.class);
     }
     public SentMessage editTelegramMessageReplyMarkup (EditMessageReplyMarkup message){

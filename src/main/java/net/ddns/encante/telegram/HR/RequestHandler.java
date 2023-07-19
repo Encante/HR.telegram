@@ -66,7 +66,7 @@ private String[] commands;
                 quizService.resolveQuizAnswer(update);
             }
 //            check if it is a menu callback and eventually handle it
-            if(menuService.getMenuByCredentials(msgManager.getOriginalSender().getId(), update.getCallback_query().getMessage().getMessage_id())!=null){
+            else if(menuService.getMenuByCredentials(msgManager.getOriginalSender().getId(), update.getCallback_query().getMessage().getMessage_id())!=null){
                 menuService.handleMenuCallback(update);
             }
 //                nothing specific other than quiz is designed to be used by callbacks so now default behavior will be sending "Callback Answer" and deleting an inline keyboard

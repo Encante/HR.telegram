@@ -2,6 +2,7 @@ package net.ddns.encante.telegram.HR.persistence.service;
 
 import lombok.extern.slf4j.Slf4j;
 import net.ddns.encante.telegram.HR.TelegramMethods.AnswerCallbackQuery;
+import net.ddns.encante.telegram.HR.TelegramMethods.EditMessageText;
 import net.ddns.encante.telegram.HR.TelegramMethods.MessageManager;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.ForceReply;
@@ -118,9 +119,10 @@ public class QuizService {
     @Scheduled(cron = "0 55 7 ? * SAT")
     public void prepareQuizForWeekend(){
         List<Quiz> retriesFromLastWeek = quizRepository.findAllRetriesFromLastWeek(Utils.getCurrentUnixTime());
-        int rate =  Math.round(((float)retriesFromLastWeek.size()/quizRepository.findAllQuizFromLastWeek(Utils.getCurrentUnixTime()).size())*100);
+        List<Quiz> allQuizFromLastWeek = quizRepository.findAllQuizFromLastWeek(Utils.getCurrentUnixTime());
+        int rate =  Math.round(((float)retriesFromLastWeek.size()/allQuizFromLastWeek.size())*100);
 
-        String summary = "W zeszłym tygodniu zrobiłaś "+retriesFromLastWeek.size()+" pomyłek, czyli miałaś "+rate+"% odpowiedzi poprawnych.";
+        String summary = "W zeszłym tygodniu zrobiłaś "+retriesFromLastWeek.size()+" pomyłek na "+ allQuizFromLastWeek.size()+" odpowiedzi i miałaś "+rate+"% odpowiedzi poprawnych.";
         log.info("W zeszlym tygodniu było "+retriesFromLastWeek.size()+" pomylek.");
         msgMgr.sendTelegramTextMessage(summary,msgMgr.getME());
         msgMgr.sendTelegramTextMessage(summary, msgMgr.getYASIA());
@@ -128,22 +130,23 @@ public class QuizService {
             List<Quiz>allOtherRetries = quizRepository.findAllRetries();
             allOtherRetries.removeAll(retriesFromLastWeek);
             Collections.shuffle(allOtherRetries);
-            for (int i = retriesFromLastWeek.size(); i < 16; i++) {
+            for (int i = retriesFromLastWeek.size(); i < 24; i++) {
                 retriesFromLastWeek.add(allOtherRetries.get(0));
                 allOtherRetries.remove(0);
             }
             resetQuizList(retriesFromLastWeek);
-        }else if (retriesFromLastWeek.size()>16){
+        }else if (retriesFromLastWeek.size()>24){
             Collections.shuffle(retriesFromLastWeek);
-            retriesFromLastWeek.subList(16,retriesFromLastWeek.size()).clear();
+            retriesFromLastWeek.subList(24,retriesFromLastWeek.size()).clear();
             resetQuizList(retriesFromLastWeek);
         }
         else resetQuizList(retriesFromLastWeek);
     }
     public void testQuizForWeekend(){
         List<Quiz> retriesFromLastWeek = quizRepository.findAllRetriesFromLastWeek(Utils.getCurrentUnixTime());
-        int rate =  Math.round(((float)retriesFromLastWeek.size()/quizRepository.findAllQuizFromLastWeek(Utils.getCurrentUnixTime()).size())*100);
-        String summary = "W zeszłym tygodniu zrobiłaś "+retriesFromLastWeek.size()+" pomyłek, czyli miałaś "+rate+"% odpowiedzi poprawnych.";
+        List<Quiz> allQuizFromLastWeek = quizRepository.findAllQuizFromLastWeek(Utils.getCurrentUnixTime());
+        int rate =  Math.round(((float)retriesFromLastWeek.size()/allQuizFromLastWeek.size())*100);
+        String summary = "W zeszłym tygodniu zrobiłaś "+retriesFromLastWeek.size()+" pomyłek na "+ allQuizFromLastWeek.size()+" odpowiedzi i miałaś "+rate+"% odpowiedzi poprawnych.";
         msgMgr.sendTelegramTextMessage(summary, msgMgr.getME());
     }
 
@@ -182,6 +185,7 @@ public class QuizService {
                 .setReply_markup(new InlineKeyboardMarkup.KeyboardBuilder(1,1,key).build());
     }
     private SendMessage prepareForceReplyQuizMessage(Long chatId, Quiz quiz){
+        log.debug("prepareForceReplyQuizMessage fired");
         return new SendMessage().setText(quiz.getQuestion())
                 .setChat_id(chatId)
                 .setReply_markup(new ForceReply()
@@ -189,6 +193,7 @@ public class QuizService {
                         .setInput_field_placeholder("Введіть свою відповідь тут."));
     }
     private void prepareForceReplyQuiz(WebhookUpdate update){
+        log.debug("prepareForceReplyQuiz fired");
         Quiz quiz = getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id(),update.getCallback_query().getFrom().getId());
 //        firstly we delete original message because it cant be edited to force reply
         msgMgr.deleteTelegramMessage(update.getCallback_query().getFrom().getId(),update.getCallback_query().getMessage().getMessage_id());
@@ -218,7 +223,12 @@ public class QuizService {
                 quiz.setDateAnswered(Utils.getCurrentUnixTime());
                 quiz.setLastAnswer(update.getCallback_query().getData());
                 //              edit sent quiz message: add answer. We would do it anyway so we'll do it at start
-                msgMgr.editTelegramMessageText(update.getCallback_query().getMessage().getChat().getId(),update.getCallback_query().getMessage().getMessage_id(), update.getCallback_query().getMessage().getText() + " Twoja odpowiedź: "+ quiz.getLastAnswer());
+                msgMgr.editTelegramTextMessage(EditMessageText.builder()
+                        .chat_id(update.getCallback_query().getFrom().getId())
+                        .message_id(update.getCallback_query().getMessage().getMessage_id())
+                        .text(update.getCallback_query().getMessage().getText()+"\nTwoja odpowiedź: "+ update.getCallback_query().getData())
+                        .build());
+//                msgMgr.editTelegramMessageText(quiz.getChatId(), quiz.getMessageId(), quiz.getQuestion() + " Twoja odpowiedź: "+ quiz.getLastAnswer());
 //        actual check
 //        if answer is good-
                 if (quiz.getLastAnswer().equals(quiz.getCorrectAnswer())){
