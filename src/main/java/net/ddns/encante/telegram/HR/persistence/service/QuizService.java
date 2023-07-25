@@ -10,7 +10,10 @@ import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.SentMessage;
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
 import net.ddns.encante.telegram.HR.Utils;
+import net.ddns.encante.telegram.HR.events.Event;
+import net.ddns.encante.telegram.HR.events.EventType;
 import net.ddns.encante.telegram.HR.persistence.entities.Quiz;
+import net.ddns.encante.telegram.HR.events.EventRepository;
 import net.ddns.encante.telegram.HR.persistence.repository.QuizRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
@@ -29,6 +32,8 @@ public class QuizService {
     private QuizRepository quizRepository;
     @Autowired
     private MessageManager msgMgr;
+    @Autowired
+    private EventRepository eventsRepo;
 
     
     public Quiz saveQuiz(Quiz quiz) {
@@ -120,13 +125,13 @@ public class QuizService {
     public void prepareQuizForWeekend(){
         List<Quiz> retriesFromLastWeek = quizRepository.findAllRetriesFromLastWeek(Utils.getCurrentUnixTime());
         List<Quiz> allQuizFromLastWeek = quizRepository.findAllQuizFromLastWeek(Utils.getCurrentUnixTime());
-        int rate =  Math.round(((float)retriesFromLastWeek.size()/allQuizFromLastWeek.size())*100);
-
-        String summary = "W zeszłym tygodniu zrobiłaś "+retriesFromLastWeek.size()+" pomyłek na "+ allQuizFromLastWeek.size()+" odpowiedzi i miałaś "+rate+"% odpowiedzi poprawnych.";
-        log.info("W zeszlym tygodniu było "+retriesFromLastWeek.size()+" pomylek.");
+        int lastWeekEvents = eventsRepo.findAllEventsFromLastWeek(Utils.getCurrentUnixTime()).size();
+        int goodAnswerCount = eventsRepo.findGoodAnswerEventsFromLastWeek(Utils.getCurrentUnixTime()).size();
+        int rate =  Math.round(((float)goodAnswerCount/lastWeekEvents)*100);
+        String summary = "W zeszłym tygodniu miałaś "+goodAnswerCount+" dobrych odpowiedzi na "+ lastWeekEvents+" i miałaś "+rate+"% odpowiedzi poprawnych.";
         msgMgr.sendTelegramTextMessage(summary,msgMgr.getME());
         msgMgr.sendTelegramTextMessage(summary, msgMgr.getYASIA());
-        if (retriesFromLastWeek.size()<16){
+        if (retriesFromLastWeek.size()<24){
             List<Quiz>allOtherRetries = quizRepository.findAllRetries();
             allOtherRetries.removeAll(retriesFromLastWeek);
             Collections.shuffle(allOtherRetries);
@@ -143,10 +148,10 @@ public class QuizService {
         else resetQuizList(retriesFromLastWeek);
     }
     public void testQuizForWeekend(){
-        List<Quiz> retriesFromLastWeek = quizRepository.findAllRetriesFromLastWeek(Utils.getCurrentUnixTime());
-        List<Quiz> allQuizFromLastWeek = quizRepository.findAllQuizFromLastWeek(Utils.getCurrentUnixTime());
-        int rate =  Math.round(((float)retriesFromLastWeek.size()/allQuizFromLastWeek.size())*100);
-        String summary = "W zeszłym tygodniu zrobiłaś "+retriesFromLastWeek.size()+" pomyłek na "+ allQuizFromLastWeek.size()+" odpowiedzi i miałaś "+rate+"% odpowiedzi poprawnych.";
+        int lastWeekEvents = eventsRepo.findAllEventsFromLastWeek(Utils.getCurrentUnixTime()).size();
+        int goodAnswerCount = eventsRepo.findGoodAnswerEventsFromLastWeek(Utils.getCurrentUnixTime()).size();
+        int rate =  Math.round(((float)goodAnswerCount/lastWeekEvents)*100);
+        String summary = "W zeszłym tygodniu miałaś "+goodAnswerCount+" dobrych odpowiedzi na "+ lastWeekEvents+" i miałaś "+rate+"% odpowiedzi poprawnych.";
         msgMgr.sendTelegramTextMessage(summary, msgMgr.getME());
     }
 
@@ -228,12 +233,13 @@ public class QuizService {
                         .message_id(update.getCallback_query().getMessage().getMessage_id())
                         .text(update.getCallback_query().getMessage().getText()+"\nTwoja odpowiedź: "+ update.getCallback_query().getData())
                         .build());
-//                msgMgr.editTelegramMessageText(quiz.getChatId(), quiz.getMessageId(), quiz.getQuestion() + " Twoja odpowiedź: "+ quiz.getLastAnswer());
 //        actual check
 //        if answer is good-
                 if (quiz.getLastAnswer().equals(quiz.getCorrectAnswer())){
 //            write result to quiz object
                     quiz.setSuccess(true);
+//                    we add event for statistics
+                    eventsRepo.save(new Event().type(EventType.QUIZ_GOOD_ANSWER).date(Utils.getCurrentUnixTime()));
 //            reset available answers. Will need it for future reuse of quiz.
                     quiz.setAnswersLeft(4);
 //            set up reaction for answer:
@@ -251,6 +257,8 @@ public class QuizService {
                     quiz.setSuccess(false);
                     quiz.setAnswersLeft(quiz.getAnswersLeft()-1);
                     quiz.setRetriesCount(quiz.getRetriesCount()+1);
+//                    we add event for stats
+                    eventsRepo.save(new Event().type(EventType.QUIZ_BAD_ANSWER).date(Utils.getCurrentUnixTime()));
 //            react for answer:
 //            callback will be the same either it was last answer or not so well set it now
                     quiz.setReactionForAnswerCallback(new AnswerCallbackQuery(update.getCallback_query().getId(),"Zła odpowiedź!",true));
