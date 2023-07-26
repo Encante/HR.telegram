@@ -350,6 +350,8 @@ public class QuizService {
                     if (quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer())||quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer()+" ")) {
 //            write result to quiz object
                         quiz.setSuccess(true);
+//                        save an event to table
+                        eventsRepo.save(new Event().date(Utils.getCurrentUnixTime()).type(EventType.QUIZ_FR_GOOD_ANSWER));
 //            reset available answers. Will need it for future reuse of quiz.
                         quiz.setAnswersLeft(5);
 //                    set up message reaction for answer
@@ -363,6 +365,8 @@ public class QuizService {
                         quiz.setSuccess(false);
                         quiz.setAnswersLeft(quiz.getAnswersLeft()-1);
                         quiz.setRetriesCount(quiz.getRetriesCount()+1);
+//                        save an event to the table
+                        eventsRepo.save(new Event().date(Utils.getCurrentUnixTime()).type(EventType.QUIZ_FR_BAD_ANSWER));
 //                    react for answer:
 //                    check if it isn't last answer
                         if(quiz.getAnswersLeft()>1){

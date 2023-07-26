@@ -54,8 +54,22 @@ public class MenuService {
             String buttonAction = update.getCallback_query().getData();
             log.info("ButtonAction received: "+buttonAction);
             switch (buttonAction){
+                case "/back" ->{
+                    if (currentMenu.getLastPattern()!= null) {
+                        if (currentMenu.getLastPattern() != currentMenu.getCurrentPattern()) {
+                            saveMenu(sendNextMenu(currentMenu, currentMenu.getLastPattern().getName()));
+                        } else {
+                            log.info("Can't go back in menu.");
+                        }
+                    }else {
+                        log.warn("No last pattern in Menu object. Object invalid.");
+                    }
+                }
                 case "/quiz" -> {
                     saveMenu(sendNextMenu(currentMenu, "quizMainChoice"));
+                }
+                case "/hue" -> {
+                    saveMenu(sendNextMenu(currentMenu, "hueMainChoice"));
                 }
                 case "/hmql" -> {
 //                    firstly delete menu message
@@ -144,10 +158,10 @@ public class MenuService {
         throw new RuntimeException("Pattern is bad.");
     }
 }
-    private Menu sendNextMenu (Menu currentMenu, String patternName){
+    private Menu sendNextMenu (Menu currentMenu, String nextPatternName){
         currentMenu.setLastSentDate(Utils.getCurrentUnixTime());
         currentMenu.setLastPattern(currentMenu.getCurrentPattern());
-        currentMenu.setCurrentPattern(menuRepo.getPatternByName(patternName));
+        currentMenu.setCurrentPattern(menuRepo.getPatternByName(nextPatternName));
         currentMenu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage(currentMenu)).getResult().getMessage_id());
         return currentMenu;
     }

@@ -108,7 +108,6 @@ private String[] commands;
                     switch (commands[0]) {
 //                        basic command to check if bot is running
                         case "/hi" -> msgManager.greet();
-                        case "/commands" -> msgManager.sendBackTelegramTextMessage("/hi /commands /start /sm");
                         case "/menu" -> menuService.createMainMenu(msgManager.getOriginalSender().getId());
                         case "/start" -> msgManager.greetFirstTime();
 //                        send message through bot
@@ -178,9 +177,6 @@ private String[] commands;
                                 if (commands[1].equalsIgnoreCase("checktokens")) {
                                     hueAuthorizationService.checkAndRefreshToken(hueAuthorizationService.getFirstAuthorization());
                                 }
-//                                if (commands[1].equalsIgnoreCase("test")) {
-//                                    msgManager.sendTelegramObjAsMessage(menuService.createMenuMessage(msgManager.getME(),menuRepository.getPatternByName("test")));
-//                                }
                                 if (commands[1].equalsIgnoreCase("add")) {
                                     if (checkCommandLenght(5, "/hueapp add")) {
                                         HueAuthorizationEntity authorization = new HueAuthorizationEntity();
