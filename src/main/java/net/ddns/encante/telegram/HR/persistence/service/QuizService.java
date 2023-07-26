@@ -152,7 +152,7 @@ public class QuizService {
         int goodAnswerCount = eventsRepo.findGoodAnswerEventsFromLastWeek(Utils.getCurrentUnixTime()).size();
         int rate =  Math.round(((float)goodAnswerCount/lastWeekEvents)*100);
         String summary = "W zeszłym tygodniu miałaś "+goodAnswerCount+" dobrych odpowiedzi na "+ lastWeekEvents+" i miałaś "+rate+"% odpowiedzi poprawnych.";
-        msgMgr.sendTelegramTextMessage(summary, msgMgr.getME());
+        msgMgr.sendBackTelegramTextMessage(summary);
     }
 
 

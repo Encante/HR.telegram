@@ -108,12 +108,13 @@ public class HueAuthorizationServiceImpl implements HueAuthorizationService{
             msgManager.sendAndLogErrorMsg("ERROR. No authorization with state: "+ state+" in DB. Invoker: HueAuthorizationServiceImpl.authenticateApp.");
     }
     @Override
-    public void checkAndRefreshToken(@NotNull HueAuthorizationEntity authorization){
+    public String checkAndRefreshToken(@NotNull HueAuthorizationEntity authorization){
         if (!checkHueAuthorization(authorization)){
-            refreshHueToken(authorization);
+            return refreshHueToken(authorization);
 //        if token is valid
         }else {
             log.debug("Token valid and no need to be refreshed.");
+            return "Token valid and no need to be refreshed.";
         }
     }
 //    PRIVATE
@@ -137,7 +138,7 @@ public class HueAuthorizationServiceImpl implements HueAuthorizationService{
             throw new RuntimeException(err);
         }
     }
-    private void refreshHueToken (@NotNull HueAuthorizationEntity authorization){
+    private String refreshHueToken (@NotNull HueAuthorizationEntity authorization){
 //        authorization check for null pointers
         if(authorization.getClientId() != null
         && authorization.getClientSecret()!= null
@@ -146,11 +147,12 @@ public class HueAuthorizationServiceImpl implements HueAuthorizationService{
             authorization.getTokens().setCreated(Utils.getCurrentUnixTime());
             saveOrUpdateAuthorizationBasedOnClientId(authorization);
             log.debug("HUE Token refreshed and saved succesfully. refreshHueToken");
+            return "HUE Token refreshed and saved succesfully.";
 //            authorization has some unexpected nulls
         }else {
             String err = "ERROR. ClientId, ClientSecret or RefreshToken is null. Invoker: HueAuthorizationServiceImpl.refreshHueToken";
             msgManager.sendAndLogErrorMsg(err);
-            throw new RuntimeException(err);
+            return err;
         }
     }
     private HueAuthorizationEntity checkDbForExistingClientId(HueAuthorizationEntity ent){

@@ -9,6 +9,7 @@ import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
 import net.ddns.encante.telegram.HR.Utils;
 import net.ddns.encante.telegram.HR.persistence.repository.QuizRepository;
+import net.ddns.encante.telegram.HR.persistence.service.HueAuthorizationService;
 import net.ddns.encante.telegram.HR.persistence.service.QuizService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,11 +29,15 @@ public class MenuService {
     MessageManager msgMgr;
     @Autowired
     QuizRepository quizRepo;
+    @Resource(name = "hueAuthorizationService")
+    private HueAuthorizationService hueAuthorizationService;
 
     public void createMainMenu(@NotNull Long chatId){
         if (menuRepo.findByChatId(chatId)!= null){
             log.debug("Menu istniejące w bazie.");
             Menu menu = menuRepo.findByChatId(chatId);
+//            delete old menu message
+            msgMgr.deleteTelegramMessage(msgMgr.getOriginalSender().getId(), menu.getMessageId());
             menu.setChatId(chatId);
             menu.setLastSentDate(Utils.getCurrentUnixTime());
             menu.setCurrentPattern(menuRepo.getPatternByName("mainMenu"));
@@ -44,7 +49,7 @@ public class MenuService {
             menu.setChatId(chatId);
             menu.setLastSentDate(Utils.getCurrentUnixTime());
             menu.setCurrentPattern(menuRepo.getPatternByName("mainMenu"));
-            msgMgr.sendTelegramObjAsMessage(createMenuMessage(menu));
+            menu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessage(menu)).getResult().getMessage_id());
             saveMenu(menu);
         }
     }
@@ -57,7 +62,7 @@ public class MenuService {
                 case "/back" ->{
                     if (currentMenu.getLastPattern()!= null) {
                         if (currentMenu.getLastPattern() != currentMenu.getCurrentPattern()) {
-                            saveMenu(sendNextMenu(currentMenu, currentMenu.getLastPattern().getName()));
+                            saveMenu(sendNextMenuPatternByName(currentMenu, currentMenu.getLastPattern().getName()));
                         } else {
                             log.info("Can't go back in menu.");
                         }
@@ -66,10 +71,15 @@ public class MenuService {
                     }
                 }
                 case "/quiz" -> {
-                    saveMenu(sendNextMenu(currentMenu, "quizMainChoice"));
+                    saveMenu(sendNextMenuPatternByName(currentMenu, "quizMainChoice"));
                 }
                 case "/hue" -> {
-                    saveMenu(sendNextMenu(currentMenu, "hueMainChoice"));
+                    saveMenu(sendNextMenuPatternByName(currentMenu, "hueMainChoice"));
+                }
+                case "/hueCheckTokens" -> {
+                    MenuPattern editedPattern = menuRepo.getPatternByName("hueTokenInfo");
+                    editedPattern.setText(hueAuthorizationService.checkAndRefreshToken(hueAuthorizationService.getFirstAuthorization()));
+                    saveMenu(sendNextMenuPatternByPattern(currentMenu,editedPattern));
                 }
                 case "/hmql" -> {
 //                    firstly delete menu message
@@ -158,10 +168,17 @@ public class MenuService {
         throw new RuntimeException("Pattern is bad.");
     }
 }
-    private Menu sendNextMenu (Menu currentMenu, String nextPatternName){
+    private Menu sendNextMenuPatternByName(Menu currentMenu, String nextPatternName){
         currentMenu.setLastSentDate(Utils.getCurrentUnixTime());
         currentMenu.setLastPattern(currentMenu.getCurrentPattern());
         currentMenu.setCurrentPattern(menuRepo.getPatternByName(nextPatternName));
+        currentMenu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage(currentMenu)).getResult().getMessage_id());
+        return currentMenu;
+    }
+    private Menu sendNextMenuPatternByPattern(Menu currentMenu, MenuPattern nextPattern){
+        currentMenu.setLastSentDate(Utils.getCurrentUnixTime());
+        currentMenu.setLastPattern(currentMenu.getCurrentPattern());
+        currentMenu.setCurrentPattern(nextPattern);
         currentMenu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage(currentMenu)).getResult().getMessage_id());
         return currentMenu;
     }

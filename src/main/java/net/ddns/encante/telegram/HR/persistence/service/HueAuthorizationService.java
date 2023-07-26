@@ -10,5 +10,5 @@ public interface HueAuthorizationService {
     HueAuthorizationEntity getAuthorizationForState(String state);
     void sendAuthorizationLink(@NotNull String displayName);
     void authenticateApp(@NotNull String state, @NotNull String code);
-    void checkAndRefreshToken(@NotNull HueAuthorizationEntity authorization);
+    String checkAndRefreshToken(@NotNull HueAuthorizationEntity authorization);
 }
