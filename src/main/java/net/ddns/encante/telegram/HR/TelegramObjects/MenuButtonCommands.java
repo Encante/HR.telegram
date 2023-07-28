@@ -8,6 +8,6 @@ import lombok.experimental.FieldDefaults;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class MenuButtonCommands {
+public class MenuButtonCommands extends MenuButton {
     String type;
 }
