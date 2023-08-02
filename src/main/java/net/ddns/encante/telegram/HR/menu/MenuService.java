@@ -75,6 +75,7 @@ public class MenuService {
                                     .setForce_reply(true)
                                     .setInput_field_placeholder("Wpisz tu:")))
                             .getResult().getMessage_id());
+                    log.info("NEW MESSAGE ID: "+currentMenu.getMessageId());
 //                    and save menu obj
                     saveMenu(currentMenu);
                 }
@@ -125,6 +126,7 @@ public class MenuService {
                 String menu = currentMenu.getCurrentPattern().getName();
                 switch (menu){
                     case "testMenu" -> {
+                        currentMenu.setMessageId(currentMenu.getMessageId()+1);
                         MenuPattern currentPattern = menuRepo.getPatternByName("infoWithBackButton");
                         currentPattern.setText("Wpisałeś: \n"+menuReply);
                         saveMenu(sendNextMenuPatternByPattern(currentMenu,currentPattern));

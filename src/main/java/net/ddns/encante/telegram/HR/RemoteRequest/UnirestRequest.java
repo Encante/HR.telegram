@@ -47,6 +47,7 @@ public class UnirestRequest {
     }
     public boolean deleteTelegramMessage(DeleteMessage message){
         standardAppJsonPost("https://api.telegram.org/bot"+ BOT_TOKEN +"/deleteMessage",message);
+        log.info("Deleted message with id: "+message.getMessage_id()+" chatId: "+ message.getChat_id());
         return response.isSuccess();
     }
     public void answerCallbackQuery(AnswerCallbackQuery answer){
