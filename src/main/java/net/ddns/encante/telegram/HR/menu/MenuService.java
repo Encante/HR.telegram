@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.ddns.encante.telegram.HR.TelegramMethods.EditMessageText;
 import net.ddns.encante.telegram.HR.TelegramMethods.MessageManager;
 import net.ddns.encante.telegram.HR.TelegramMethods.SendMessage;
+import net.ddns.encante.telegram.HR.TelegramObjects.ForceReply;
 import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardButton;
 import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
@@ -38,6 +39,7 @@ public class MenuService {
             Menu menu = menuRepo.findByChatId(chatId);
 //            delete old menu message
             msgMgr.deleteTelegramMessage(msgMgr.getOriginalSender().getId(), menu.getMessageId());
+//            set up new menu
             menu.setChatId(chatId);
             menu.setLastSentDate(Utils.getCurrentUnixTime());
             menu.setCurrentPattern(menuRepo.getPatternByName("mainMenu"));
@@ -59,6 +61,23 @@ public class MenuService {
             String buttonAction = update.getCallback_query().getData();
             log.info("ButtonAction received: "+buttonAction);
             switch (buttonAction){
+                case "/testMenu" -> {
+                    saveMenu(sendNextMenuPatternByName(currentMenu, "testMenu"));
+                }
+                case "/getInput" ->{
+//        firstly we delete original message because it cant be edited to force reply
+                    msgMgr.deleteTelegramMessage(msgMgr.getOriginalSender().getId(), update.getCallback_query().getMessage().getMessage_id());
+//        now send message with force reply to chat and update menu object with new message id...
+                    currentMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(new SendMessage()
+                            .setText(currentMenu.getCurrentPattern().getText())
+                                            .setChat_id(msgMgr.getOriginalSender().getId())
+                            .setReply_markup(new ForceReply()
+                                    .setForce_reply(true)
+                                    .setInput_field_placeholder("Wpisz tu:")))
+                            .getResult().getMessage_id());
+//                    and save menu obj
+                    saveMenu(currentMenu);
+                }
                 case "/back" ->{
                     if (currentMenu.getLastPattern()!= null) {
                         if (currentMenu.getLastPattern() != currentMenu.getCurrentPattern()) {
@@ -77,9 +96,9 @@ public class MenuService {
                     saveMenu(sendNextMenuPatternByName(currentMenu, "hueMainChoice"));
                 }
                 case "/hueCheckTokens" -> {
-                    MenuPattern editedPattern = menuRepo.getPatternByName("hueTokenInfo");
-                    editedPattern.setText(hueAuthorizationService.checkAndRefreshToken(hueAuthorizationService.getFirstAuthorization()));
-                    saveMenu(sendNextMenuPatternByPattern(currentMenu,editedPattern));
+                    MenuPattern currentPattern = menuRepo.getPatternByName("infoWithBackButton");
+                    currentPattern.setText(hueAuthorizationService.checkAndRefreshToken(hueAuthorizationService.getFirstAuthorization()));
+                    saveMenu(sendNextMenuPatternByPattern(currentMenu,currentPattern));
                 }
                 case "/hmql" -> {
 //                    firstly delete menu message
@@ -92,6 +111,32 @@ public class MenuService {
                     quizService.testQuizForWeekend();
                 }
             }
+        }
+    }
+    public void handleMenuReply (@NotNull WebhookUpdate update){
+        Menu currentMenu = getMenuByCredentials(update.getMessage().getFrom().getId(), update.getMessage().getReply_to_message().getMessage_id());
+        String menuReply = update.getMessage().getText();
+        if (menuReply == null) {
+            log.warn("Reply to menu does not contain text. Called by: MenuService.handleMenuReply");
+            throw new RuntimeException("Reply to menu does not contain text.");
+        }
+        if (currentMenu!= null){
+            if (currentMenu.getCurrentPattern()!=null){
+                String menu = currentMenu.getCurrentPattern().getName();
+                switch (menu){
+                    case "testMenu" -> {
+                        MenuPattern currentPattern = menuRepo.getPatternByName("infoWithBackButton");
+                        currentPattern.setText("Wpisałeś: \n"+menuReply);
+                        saveMenu(sendNextMenuPatternByPattern(currentMenu,currentPattern));
+                    }
+                }
+            }else {
+                log.warn("Corruped menu object in db. Called by MenuService.handleMenuReply");
+                throw new RuntimeException("Corruped menu object in db. Called by MenuService.handleMenuReply");
+            }
+        } else {
+            log.warn("No menu with such credentials in db. ChatId: "+update.getMessage().getFrom().getId()+" MessageId: "+update.getMessage().getReply_to_message().getMessage_id()+" Called by MenuService.handleMenuReply");
+            throw new RuntimeException("No menu with such credentials in db. Called by MenuService.handleMenuReply");
         }
     }
     public Menu getMenuByCredentials(@NotNull Long chatId, @NotNull Long messageId){

@@ -56,7 +56,7 @@ public class QuizService {
         }
     }
     
-    public Quiz getQuizByCredentials(final Long messageId, final Long chatId){
+    public Quiz getQuizByCredentials(final Long chatId, final Long messageId){
         if (quizRepository.findByCredentials(messageId, chatId)!= null)
         return quizRepository.findByCredentials(messageId, chatId);
         else {
@@ -190,7 +190,6 @@ public class QuizService {
                 .setReply_markup(new InlineKeyboardMarkup.KeyboardBuilder(1,1,key).build());
     }
     private SendMessage prepareForceReplyQuizMessage(Long chatId, Quiz quiz){
-        log.debug("prepareForceReplyQuizMessage fired");
         return new SendMessage().setText(quiz.getQuestion())
                 .setChat_id(chatId)
                 .setReply_markup(new ForceReply()
@@ -198,8 +197,7 @@ public class QuizService {
                         .setInput_field_placeholder("Введіть свою відповідь тут."));
     }
     private void prepareForceReplyQuiz(WebhookUpdate update){
-        log.debug("prepareForceReplyQuiz fired");
-        Quiz quiz = getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id(),update.getCallback_query().getFrom().getId());
+        Quiz quiz = getQuizByCredentials(update.getCallback_query().getFrom().getId(), update.getCallback_query().getMessage().getMessage_id());
 //        firstly we delete original message because it cant be edited to force reply
         msgMgr.deleteTelegramMessage(update.getCallback_query().getFrom().getId(),update.getCallback_query().getMessage().getMessage_id());
 //        now send message with force reply to chat and update quiz object with new message id...
@@ -209,13 +207,13 @@ public class QuizService {
     }
     private void resolveAbcdQuiz (WebhookUpdate update){
         //        prerequisite check for possible null-pointers
-        if (getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id(),update.getCallback_query().getMessage().getChat().getId()) != null
+        if (getQuizByCredentials(update.getCallback_query().getMessage().getChat().getId(), update.getCallback_query().getMessage().getMessage_id()) != null
                 && update.getCallback_query().getData() != null
                 && update.getCallback_query().getMessage().getChat().getId() != null
                 && update.getCallback_query().getMessage().getText() != null
         ){
 //        getting quiz entity from db by message id
-            Quiz quiz = getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id(),update.getCallback_query().getMessage().getChat().getId());
+            Quiz quiz = getQuizByCredentials(update.getCallback_query().getMessage().getChat().getId(), update.getCallback_query().getMessage().getMessage_id());
 //        check for null-pointers on quiz object
             if (quiz.getOptA() != null
                     && quiz.getOptB() != null
@@ -326,12 +324,14 @@ public class QuizService {
     }
     private void resolveForceReplyQuiz (WebhookUpdate update){
         //        prerequisite check for possible null-pointers
+//        too many checks - make quiz object by credential then check nulls
+        // TODO: 02.08.2023
         if (update.getMessage().getReply_to_message()!= null){
-            if (getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id(),update.getMessage().getFrom().getId()) != null
+            if (getQuizByCredentials(update.getMessage().getFrom().getId(), update.getMessage().getReply_to_message().getMessage_id()) != null
                     && update.getMessage().getText()!= null
             ){
 //        getting quiz entity from db by message id
-                Quiz quiz = getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id(),update.getMessage().getFrom().getId());
+                Quiz quiz = getQuizByCredentials(update.getMessage().getFrom().getId(), update.getMessage().getReply_to_message().getMessage_id());
 //        check for null-pointers on quiz object
                 if (quiz.getOptA() != null
                         && quiz.getOptB() != null

@@ -61,13 +61,15 @@ private String[] commands;
             //        initialise msgManager setting originalSender of message
             msgManager.setOriginalSender(update.getCallback_query().getFrom());
 //            check if it is a quiz message callback and eventually resolve a quiz
-            if(quizService.getQuizByCredentials(update.getCallback_query().getMessage().getMessage_id(),msgManager.getOriginalSender().getId())!=null){
+            if(quizService.getQuizByCredentials(msgManager.getOriginalSender().getId(), update.getCallback_query().getMessage().getMessage_id())!=null){
 //              actually resolve answer
                 quizService.resolveQuizAnswer(update);
+                log.info("Quiz callback resolved.");
             }
 //            check if it is a menu callback and eventually handle it
             else if(menuService.getMenuByCredentials(msgManager.getOriginalSender().getId(), update.getCallback_query().getMessage().getMessage_id())!=null){
                 menuService.handleMenuCallback(update);
+                log.info("Menu callback resolved");
             }
 //                nothing specific other than quiz is designed to be used by callbacks so now default behavior will be sending "Callback Answer" and deleting an inline keyboard
             else {
@@ -85,10 +87,14 @@ private String[] commands;
 //                check if it is reply to other msg
                 if (update.getMessage().getReply_to_message()!= null){
 //            check if it is quiz related (reply for force reply) message
-                    if (quizService.getQuizByCredentials(update.getMessage().getReply_to_message().getMessage_id(),msgManager.getOriginalSender().getId())!= null){
+                    if (quizService.getQuizByCredentials(msgManager.getOriginalSender().getId(), update.getMessage().getReply_to_message().getMessage_id())!= null){
                         quizService.resolveQuizAnswer(update);
+                        log.info("Quiz answer resolved.");
 //                    if it is not quiz related reply to bot message and it is not from me send message to me
-                    }else {
+                    }else if (menuService.getMenuByCredentials(msgManager.getOriginalSender().getId(), update.getMessage().getReply_to_message().getMessage_id())!=null){
+                        menuService.handleMenuReply(update);
+                        log.info("Menu answer resolved.");
+                    }{
                         if(!msgManager.getOriginalSender().getId().equals(msgManager.getME())){
                             msgManager.sendTelegramTextMessage("New reply! T: " + Utils.getCurrentDateTime()
                                     + "  FROM: "

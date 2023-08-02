@@ -26,6 +26,7 @@ public class MenuPattern {
     int rows;
     @Column(name = "cols")
     int cols;
+
     @OneToMany(mappedBy = "pattern")
     List<InlineMenuButton> buttons;
 }
