@@ -32,6 +32,7 @@ public class MenuService {
     QuizRepository quizRepo;
     @Resource(name = "hueAuthorizationService")
     private HueAuthorizationService hueAuthorizationService;
+    private Menu currentMenu;
 
     public void createMainMenu(@NotNull Long chatId){
         if (menuRepo.findByChatId(chatId)!= null){
@@ -56,25 +57,20 @@ public class MenuService {
         }
     }
     public void handleMenuCallback (@NotNull WebhookUpdate update){
-        Menu currentMenu = menuRepo.findByCredentials(msgMgr.getOriginalSender().getId(),update.getCallback_query().getMessage().getMessage_id());
+        currentMenu = menuRepo.findByCredentials(msgMgr.getOriginalSender().getId(),update.getCallback_query().getMessage().getMessage_id());
         if(currentMenu != null){
             String buttonAction = update.getCallback_query().getData();
             log.info("ButtonAction received: "+buttonAction);
             switch (buttonAction){
                 case "/testMenu" -> {
-                    saveMenu(sendNextMenuPatternByName(currentMenu, "testMenu"));
+                    saveMenu(sendNextMenuPatternByNameByEditingOld(currentMenu, "testMenu"));
                 }
                 case "/getInput" ->{
+                    currentMenu = getMenuByCredentials(update.getCallback_query().getFrom().getId(), update.getCallback_query().getMessage().getMessage_id());
 //        firstly we delete original message because it cant be edited to force reply
-                    msgMgr.deleteTelegramMessage(msgMgr.getOriginalSender().getId(), update.getCallback_query().getMessage().getMessage_id());
+                    msgMgr.deleteTelegramMessage(update.getCallback_query().getFrom().getId(),update.getCallback_query().getMessage().getMessage_id());
 //        now send message with force reply to chat and update menu object with new message id...
-                    currentMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(new SendMessage()
-                            .setText(currentMenu.getCurrentPattern().getText())
-                                            .setChat_id(msgMgr.getOriginalSender().getId())
-                            .setReply_markup(new ForceReply()
-                                    .setForce_reply(true)
-                                    .setInput_field_placeholder("Wpisz tu:")))
-                            .getResult().getMessage_id());
+                    currentMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createDataInputMenuMessage(update.getCallback_query().getFrom().getId(), currentMenu)).getResult().getMessage_id());
                     log.info("NEW MESSAGE ID: "+currentMenu.getMessageId());
 //                    and save menu obj
                     saveMenu(currentMenu);
@@ -82,7 +78,7 @@ public class MenuService {
                 case "/back" ->{
                     if (currentMenu.getLastPattern()!= null) {
                         if (currentMenu.getLastPattern() != currentMenu.getCurrentPattern()) {
-                            saveMenu(sendNextMenuPatternByName(currentMenu, currentMenu.getLastPattern().getName()));
+                            saveMenu(sendNextMenuPatternByNameByEditingOld(currentMenu, currentMenu.getLastPattern().getName()));
                         } else {
                             log.info("Can't go back in menu.");
                         }
@@ -91,15 +87,15 @@ public class MenuService {
                     }
                 }
                 case "/quiz" -> {
-                    saveMenu(sendNextMenuPatternByName(currentMenu, "quizMainChoice"));
+                    saveMenu(sendNextMenuPatternByNameByEditingOld(currentMenu, "quizMainChoice"));
                 }
                 case "/hue" -> {
-                    saveMenu(sendNextMenuPatternByName(currentMenu, "hueMainChoice"));
+                    saveMenu(sendNextMenuPatternByNameByEditingOld(currentMenu, "hueMainChoice"));
                 }
                 case "/hueCheckTokens" -> {
                     MenuPattern currentPattern = menuRepo.getPatternByName("infoWithBackButton");
                     currentPattern.setText(hueAuthorizationService.checkAndRefreshToken(hueAuthorizationService.getFirstAuthorization()));
-                    saveMenu(sendNextMenuPatternByPattern(currentMenu,currentPattern));
+                    saveMenu(sendNextMenuPatternByPatternByEditingOld(currentMenu,currentPattern));
                 }
                 case "/hmql" -> {
 //                    firstly delete menu message
@@ -115,7 +111,7 @@ public class MenuService {
         }
     }
     public void handleMenuReply (@NotNull WebhookUpdate update){
-        Menu currentMenu = getMenuByCredentials(update.getMessage().getFrom().getId(), update.getMessage().getReply_to_message().getMessage_id());
+        currentMenu = getMenuByCredentials(update.getMessage().getFrom().getId(), update.getMessage().getReply_to_message().getMessage_id());
         String menuReply = update.getMessage().getText();
         if (menuReply == null) {
             log.warn("Reply to menu does not contain text. Called by: MenuService.handleMenuReply");
@@ -126,10 +122,18 @@ public class MenuService {
                 String menu = currentMenu.getCurrentPattern().getName();
                 switch (menu){
                     case "testMenu" -> {
-                        currentMenu.setMessageId(currentMenu.getMessageId()+1);
-                        MenuPattern currentPattern = menuRepo.getPatternByName("infoWithBackButton");
-                        currentPattern.setText("Wpisałeś: \n"+menuReply);
-                        saveMenu(sendNextMenuPatternByPattern(currentMenu,currentPattern));
+//                        Please note, that it is currently only possible to edit messages without reply_markup or with inline keyboards.
+                        msgMgr.deleteTelegramMessage(currentMenu.getChatId(), currentMenu.getMessageId());
+                        currentMenu.setLastPattern(currentMenu.getCurrentPattern());
+                        currentMenu.setCurrentPattern(menuRepo.getPatternByName("infoWithBackButton"));
+                        currentMenu.getCurrentPattern().setText("Wpisałeś: "+ menuReply);
+                        currentMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessage(currentMenu)).getResult().getMessage_id());
+                        saveMenu(currentMenu);
+
+//                        currentMenu.setMessageId(currentMenu.getMessageId());
+//                        MenuPattern currentPattern = menuRepo.getPatternByName("infoWithBackButton");
+//                        currentPattern.setText("Wpisałeś: \n"+menuReply);
+//                        saveMenu(sendNextMenuPatternByPattern(currentMenu,currentPattern));
                     }
                 }
             }else {
@@ -146,43 +150,48 @@ public class MenuService {
         else log.warn("No Menu entries in db with such credentials. MessageId: "+messageId+"ChatId: "+chatId+"  getMenuByCredentials");
         return null;
     }
+
 //    CAUTION: NEED MENU OBJECT WITH CORRECT CURRENT AND LAST MENU PATTERN
-    public EditMessageText createEditedMenuMessage(@NotNull Menu menu){
-        if(menu.getCurrentPattern().getText()!=null
-                && menu.getCurrentPattern().getRows()*menu.getCurrentPattern().getCols()==menu.getCurrentPattern().getButtons().size()) {
-            ArrayList<InlineKeyboardButton> inlineButtons = new ArrayList<>();
-            ArrayList<InlineKeyboardButton> rowx = new ArrayList<>();
-            ArrayList<ArrayList<InlineKeyboardButton>> inlineLayout = new ArrayList<>();
-            for (InlineMenuButton menuButton :
-                    menu.getCurrentPattern().getButtons()) {
-                inlineButtons.add(menuButton.transformToInlineKeyboardButton());
-            }
-            for (int i = 0; i < menu.getCurrentPattern().getRows(); i++) {
-                for (int j = 0; j < menu.getCurrentPattern().getCols(); j++) {
-                    rowx.add(inlineButtons.get(0));
-                    inlineButtons.remove(0);
-                }
-                inlineLayout.add(rowx);
-                rowx = new ArrayList<>();
-            }
-            return EditMessageText.builder()
-                    .chat_id(menu.getChatId())
-                    .message_id(menu.getMessageId())
-                    .text(menu.getCurrentPattern().getText())
-                    .reply_markup(new InlineKeyboardMarkup(inlineLayout))
-                    .build();
-        }else {
-            log.warn("ERROR. Pattern is bad. createMenuMessage");
-            log.debug("Text: "+menu.getCurrentPattern().getText());
-            log.debug("Cols: "+menu.getCurrentPattern().getCols());
-            log.debug("Rows: "+menu.getCurrentPattern().getRows());
-            log.debug("Size of Buttons Array: "+menu.getCurrentPattern().getButtons().size());
-            throw new RuntimeException("Pattern is bad. Edit menu.message");
+    private EditMessageText createEditedMenuMessage(@NotNull Menu menu){
+    if(menu.getCurrentPattern().getText()!=null
+            && menu.getCurrentPattern().getRows()*menu.getCurrentPattern().getCols()==menu.getCurrentPattern().getButtons().size()) {
+        ArrayList<InlineKeyboardButton> inlineButtons = new ArrayList<>();
+        ArrayList<InlineKeyboardButton> rowx = new ArrayList<>();
+        ArrayList<ArrayList<InlineKeyboardButton>> inlineLayout = new ArrayList<>();
+        for (InlineMenuButton menuButton :
+                menu.getCurrentPattern().getButtons()) {
+            inlineButtons.add(menuButton.transformToInlineKeyboardButton());
         }
+        for (int i = 0; i < menu.getCurrentPattern().getRows(); i++) {
+            for (int j = 0; j < menu.getCurrentPattern().getCols(); j++) {
+                rowx.add(inlineButtons.get(0));
+                inlineButtons.remove(0);
+            }
+            inlineLayout.add(rowx);
+            rowx = new ArrayList<>();
+        }
+        return EditMessageText.builder()
+                .chat_id(menu.getChatId())
+                .message_id(menu.getMessageId())
+                .text(menu.getCurrentPattern().getText())
+                .reply_markup(new InlineKeyboardMarkup(inlineLayout))
+                .build();
+    }else {
+        log.warn("ERROR. Pattern is bad. createMenuMessage");
+        log.debug("Text: "+menu.getCurrentPattern().getText());
+        log.debug("Cols: "+menu.getCurrentPattern().getCols());
+        log.debug("Rows: "+menu.getCurrentPattern().getRows());
+        log.debug("Size of Buttons Array: "+menu.getCurrentPattern().getButtons().size());
+        throw new RuntimeException("Pattern is bad. Edit menu.message");
     }
-//    PRIVATE METHODS
-//
-//
+}
+    private SendMessage createDataInputMenuMessage (@NotNull Long chatId, @NotNull Menu menu){
+        return new SendMessage().setText(menu.getCurrentPattern().getText())
+                .setChat_id(chatId)
+                .setReply_markup(new ForceReply()
+                        .setForce_reply(true)
+                        .setInput_field_placeholder("Wpisz tu:"));
+        }
     private SendMessage createMenuMessage(@NotNull Menu menu){
 //        null check
     if(menu.getCurrentPattern().getText()!=null
@@ -215,20 +224,23 @@ public class MenuService {
         throw new RuntimeException("Pattern is bad.");
     }
 }
-    private Menu sendNextMenuPatternByName(Menu currentMenu, String nextPatternName){
-        currentMenu.setLastSentDate(Utils.getCurrentUnixTime());
-        currentMenu.setLastPattern(currentMenu.getCurrentPattern());
-        currentMenu.setCurrentPattern(menuRepo.getPatternByName(nextPatternName));
-        currentMenu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage(currentMenu)).getResult().getMessage_id());
-        return currentMenu;
+    private Menu sendNextMenuPatternByNameByEditingOld(Menu menu, String nextPatternName){
+        menu.setLastSentDate(Utils.getCurrentUnixTime());
+        menu.setLastPattern(menu.getCurrentPattern());
+        menu.setCurrentPattern(menuRepo.getPatternByName(nextPatternName));
+        menu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage(menu)).getResult().getMessage_id());
+        return menu;
     }
-    private Menu sendNextMenuPatternByPattern(Menu currentMenu, MenuPattern nextPattern){
-        currentMenu.setLastSentDate(Utils.getCurrentUnixTime());
-        currentMenu.setLastPattern(currentMenu.getCurrentPattern());
-        currentMenu.setCurrentPattern(nextPattern);
-        currentMenu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage(currentMenu)).getResult().getMessage_id());
-        return currentMenu;
+    private Menu sendNextMenuPatternByPatternByEditingOld(Menu menu, MenuPattern nextPattern){
+        menu.setLastSentDate(Utils.getCurrentUnixTime());
+        menu.setLastPattern(menu.getCurrentPattern());
+        menu.setCurrentPattern(nextPattern);
+        menu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage(menu)).getResult().getMessage_id());
+        return menu;
     }
+    private Menu sendNextMenuPatternByPatternByDeletingOld (Menu menu){
+// TODO: 03.08.2023  
+    return null;}
     private Menu saveMenu(Menu menu){
         return menuRepo.save(menu);
     }

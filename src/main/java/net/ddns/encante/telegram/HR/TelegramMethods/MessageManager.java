@@ -41,7 +41,6 @@ public class MessageManager {
         return request.editTelegramMessageText(msg);
     }
     public SentMessage editTelegramMessageText(Long chatId, Long messageId, String text){
-        log.info("editTelegramMessageText Fired. ");
         return request.editTelegramMessageText(EditMessageText.builder().chat_id(chatId).message_id(messageId).text(text).build());
     }
     public SentMessage editTelegramMessageReplyMarkup (Long chatId,Long messageId, InlineKeyboardMarkup replyMarkup){
