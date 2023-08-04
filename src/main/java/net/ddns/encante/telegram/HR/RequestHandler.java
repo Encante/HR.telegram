@@ -82,6 +82,7 @@ private String[] commands;
         } else if (update.getMessage() != null) {
 //        just little helpful var with chatID of who send msg
             msgManager.setOriginalSender(update.getMessage().getFrom());
+
 //      check if incoming message have any text
             if (update.getMessage().getText() != null) {
 //                check if it is reply to other msg
@@ -94,8 +95,7 @@ private String[] commands;
                     }else if (menuService.getMenuByCredentials(msgManager.getOriginalSender().getId(), update.getMessage().getReply_to_message().getMessage_id())!=null){
                         menuService.handleMenuReply(update);
                         log.info("Menu answer resolved.");
-                    }{
-                        if(!msgManager.getOriginalSender().getId().equals(msgManager.getME())){
+                    } else if(!msgManager.getOriginalSender().getId().equals(msgManager.getME())){
                             msgManager.sendTelegramTextMessage("New reply! T: " + Utils.getCurrentDateTime()
                                     + "  FROM: "
                                     + msgManager.getOriginalSender().getFirst_name()
@@ -106,7 +106,6 @@ private String[] commands;
                                     + "  CONTENT: "
                                     + update.getMessage().getText(), msgManager.getME());
                         }
-                    }
                 }
 //        check if incoming message have any and if there is do commands:
                 if (update.getMessage().getText().charAt(0) == '/') {
