@@ -5,6 +5,8 @@ import com.google.gson.GsonBuilder;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
+import lombok.extern.slf4j.Slf4j;
+import net.ddns.encante.telegram.HR.ConfigProperties;
 import net.ddns.encante.telegram.HR.Hue.HueDevice;
 import net.ddns.encante.telegram.HR.Hue.HueLinkButton;
 import net.ddns.encante.telegram.HR.Hue.HueUser;
@@ -13,22 +15,22 @@ import net.ddns.encante.telegram.HR.TelegramObjects.SentMessage;
 import net.ddns.encante.telegram.HR.Utils;
 import net.ddns.encante.telegram.HR.persistence.entities.HueAuthorizationEntity;
 import net.ddns.encante.telegram.HR.persistence.entities.HueTokensEntity;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-
+@Slf4j
 @Component
 public class UnirestRequest {
-    private static final Logger log = LoggerFactory.getLogger(UnirestRequest.class);
-    private final String BOT_TOKEN = "XXX";
+    @Autowired
+    ConfigProperties config;
+//    private final String config.getBotToken() = config.getBotToken();
     private final String HUE_API_URL = "https://api.meethue.com/route";
     private final String HUE_OAUTH_URL = "https://api.meethue.com/v2/oauth2/token";
-    private final String TELEGRAM_API_URL = "https://api.telegram.org/bot"+ BOT_TOKEN;
-    private final String SEND_MESSAGE_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/sendMessage";
-    private final String EDIT_MESSAGE_REPLY_MARKUP_URL = "https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageReplyMarkup";
+    private final String TELEGRAM_API_URL = "https://api.telegram.org/bot"+ config.getBotToken();
+    private final String SEND_MESSAGE_URL = "https://api.telegram.org/bot"+ config.getBotToken() +"/sendMessage";
+    private final String EDIT_MESSAGE_REPLY_MARKUP_URL = "https://api.telegram.org/bot"+ config.getBotToken() +"/editMessageReplyMarkup";
     private HttpResponse<JsonNode> response;
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
@@ -37,16 +39,16 @@ public class UnirestRequest {
     return gson.fromJson(response.getBody().toString(),SentMessage.class);
     }
     public SentMessage editTelegramMessageText(EditMessageText message){
-        standardAppJsonPost("https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageText",message);
+        standardAppJsonPost("https://api.telegram.org/bot"+ config.getBotToken() +"/editMessageText",message);
         log.info("UnirestRequest.editTelegramMessageText Fired. ChatId: "+message.getChat_id()+" MessageId: "+message.getMessage_id()+" text: "+message.getText());
         return gson.fromJson(response.getBody().toString(),SentMessage.class);
     }
     public SentMessage editTelegramMessageReplyMarkup (EditMessageReplyMarkup message){
-        standardAppJsonPost("https://api.telegram.org/bot"+ BOT_TOKEN +"/editMessageReplyMarkup",message);
+        standardAppJsonPost("https://api.telegram.org/bot"+ config.getBotToken() +"/editMessageReplyMarkup",message);
         return gson.fromJson(response.getBody().toString(),SentMessage.class);
     }
     public boolean deleteTelegramMessage(DeleteMessage message){
-        standardAppJsonPost("https://api.telegram.org/bot"+ BOT_TOKEN +"/deleteMessage",message);
+        standardAppJsonPost("https://api.telegram.org/bot"+ config.getBotToken() +"/deleteMessage",message);
         log.info("Deleted message with id: "+message.getMessage_id()+" chatId: "+ message.getChat_id());
         return response.isSuccess();
     }
