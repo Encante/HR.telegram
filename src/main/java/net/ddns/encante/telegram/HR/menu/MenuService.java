@@ -63,7 +63,7 @@ public class MenuService {
             log.info("ButtonAction received: "+buttonAction);
             switch (buttonAction){
                 case "/testMenu" -> {
-                    saveMenu(sendNextMenuPatternByEditingOld(currentMenu, "testMenu"));
+                    sendNextMenuPatternByEditingOldAndSave(currentMenu, "testMenu");
                 }
                 case "/getInput" ->{
                     currentMenu = getMenuByCredentials(update.getCallback_query().getFrom().getId(), update.getCallback_query().getMessage().getMessage_id());
@@ -77,7 +77,7 @@ public class MenuService {
                 case "/back" ->{
                     if (currentMenu.getLastPattern()!= null) {
                         if (currentMenu.getLastPattern() != currentMenu.getCurrentPattern()) {
-                            saveMenu(sendNextMenuPatternByEditingOld(currentMenu, currentMenu.getLastPattern().getName()));
+                            sendNextMenuPatternByEditingOldAndSave(currentMenu, currentMenu.getLastPattern().getName());
                         } else {
                             log.info("Can't go back in menu.");
                         }
@@ -86,15 +86,15 @@ public class MenuService {
                     }
                 }
                 case "/quiz" -> {
-                    saveMenu(sendNextMenuPatternByEditingOld(currentMenu, "quizMainChoice"));
+                    sendNextMenuPatternByEditingOldAndSave(currentMenu, "quizMainChoice");
                 }
                 case "/hue" -> {
-                    saveMenu(sendNextMenuPatternByEditingOld(currentMenu, "hueMainChoice"));
+                    sendNextMenuPatternByEditingOldAndSave(currentMenu, "hueMainChoice");
                 }
                 case "/hueCheckTokens" -> {
                     MenuPattern currentPattern = menuRepo.getPatternByName("infoWithBackButton");
                     currentPattern.setText(hueAuthorizationService.checkAndRefreshToken(hueAuthorizationService.getFirstAuthorization()));
-                    saveMenu(sendNextMenuPatternByEditingOld(currentMenu,currentPattern));
+                    sendNextMenuPatternByEditingOldAndSave(currentMenu,currentPattern);
                 }
                 case "/hmql" -> {
 //                    firstly delete menu message
@@ -119,15 +119,18 @@ public class MenuService {
                     log.warn("Reply to menu does not contain text. Called by: MenuService.handleMenuReply");
             //            delete old menu message
                     msgMgr.deleteTelegramMessage(currentMenu.getChatId(), currentMenu.getMessageId());
-                    saveMenu(sendNextMenuPatternByDeletingOld(currentMenu, currentMenu.getCurrentPattern()));
-                }
-                String menu = currentMenu.getCurrentPattern().getName();
-                switch (menu){
-                    case "testMenu" -> {
+
+//                    send again current menu pattern
+                    sendNextMenuPatternByDeletingOldAndSave(currentMenu, currentMenu.getCurrentPattern());
+                }else {
+                    String menu = currentMenu.getCurrentPattern().getName();
+                    switch (menu) {
+                        case "testMenu" -> {
 //                        Please note, that it is currently only possible to edit messages without reply_markup or with inline keyboards.< thats why we have to delete old menu message
-                        MenuPattern mp = menuRepo.getPatternByName("infoWithBackButton");
-                        mp.setText("Wpisałeś: "+ menuReply);
-                        saveMenu(sendNextMenuPatternByDeletingOld(currentMenu, mp));
+                            MenuPattern mp = menuRepo.getPatternByName("infoWithBackButton");
+                            mp.setText("Wpisałeś: " + menuReply);
+                            sendNextMenuPatternByDeletingOldAndSave(currentMenu, mp);
+                        }
                     }
                 }
             }else {
@@ -218,21 +221,21 @@ public class MenuService {
         throw new RuntimeException("Pattern is bad.");
     }
 }
-    private Menu sendNextMenuPatternByEditingOld(Menu menu, String nextPatternName){
+    private Menu sendNextMenuPatternByEditingOldAndSave(Menu menu, String nextPatternName){
         menu.setLastSentDate(Utils.getCurrentUnixTime());
         menu.setLastPattern(menu.getCurrentPattern());
         menu.setCurrentPattern(menuRepo.getPatternByName(nextPatternName));
         menu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage(menu)).getResult().getMessage_id());
         return saveMenu(menu);
     }
-    private Menu sendNextMenuPatternByEditingOld(Menu menu, MenuPattern nextPattern){
+    private Menu sendNextMenuPatternByEditingOldAndSave(Menu menu, MenuPattern nextPattern){
         menu.setLastSentDate(Utils.getCurrentUnixTime());
         menu.setLastPattern(menu.getCurrentPattern());
         menu.setCurrentPattern(nextPattern);
         menu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage(menu)).getResult().getMessage_id());
         return saveMenu(menu);
     }
-    private Menu sendNextMenuPatternByDeletingOld (Menu menu, MenuPattern nextPattern){
+    private Menu sendNextMenuPatternByDeletingOldAndSave(Menu menu, MenuPattern nextPattern){
         menu.setLastSentDate(Utils.getCurrentUnixTime());
         menu.setLastPattern(menu.getCurrentPattern());
         menu.setCurrentPattern(nextPattern);
@@ -240,7 +243,7 @@ public class MenuService {
         menu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessage(menu)).getResult().getMessage_id());
         return saveMenu(menu);
     }
-    private Menu sendNextMenuPatternByDeletingOld (Menu menu, String nextPatternName){
+    private Menu sendNextMenuPatternByDeletingOldAndSave(Menu menu, String nextPatternName){
         menu.setLastSentDate(Utils.getCurrentUnixTime());
         menu.setLastPattern(menu.getCurrentPattern());
         menu.setCurrentPattern(menuRepo.getPatternByName(nextPatternName));

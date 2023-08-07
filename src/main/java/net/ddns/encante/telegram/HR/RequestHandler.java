@@ -82,31 +82,32 @@ private String[] commands;
         } else if (update.getMessage() != null) {
 //        just little helpful var with chatID of who send msg
             msgManager.setOriginalSender(update.getMessage().getFrom());
-
+//                check if it is reply to other msg
+            if (update.getMessage().getReply_to_message()!= null){
+//            check if it is quiz related (reply for force reply) message
+                if (quizService.getQuizByCredentials(msgManager.getOriginalSender().getId(), update.getMessage().getReply_to_message().getMessage_id())!= null){
+                    quizService.resolveQuizAnswer(update);
+                    log.info("Quiz answer resolved.");
+//                    if it is not quiz related reply to bot message and it is not from me send message to me
+                }else if (menuService.getMenuByCredentials(msgManager.getOriginalSender().getId(), update.getMessage().getReply_to_message().getMessage_id())!=null){
+                    menuService.handleMenuReply(update);
+                    log.info("Menu answer resolved.");
+                } else if(!msgManager.getOriginalSender().getId().equals(msgManager.getME())){
+                    msgManager.sendTelegramTextMessage("New reply! T: " + Utils.getCurrentDateTime()
+                            + "  FROM: "
+                            + msgManager.getOriginalSender().getFirst_name()
+                            + " "
+                            + update.getMessage().getFrom().getLast_name()
+                            + "  CHAT ID: "
+                            + msgManager.getOriginalSender().getId()
+                            + "  CONTENT: "
+                            + update.getMessage().getText(), msgManager.getME());
+                }
+            }
 //      check if incoming message have any text
             if (update.getMessage().getText() != null) {
-//                check if it is reply to other msg
-                if (update.getMessage().getReply_to_message()!= null){
-//            check if it is quiz related (reply for force reply) message
-                    if (quizService.getQuizByCredentials(msgManager.getOriginalSender().getId(), update.getMessage().getReply_to_message().getMessage_id())!= null){
-                        quizService.resolveQuizAnswer(update);
-                        log.info("Quiz answer resolved.");
-//                    if it is not quiz related reply to bot message and it is not from me send message to me
-                    }else if (menuService.getMenuByCredentials(msgManager.getOriginalSender().getId(), update.getMessage().getReply_to_message().getMessage_id())!=null){
-                        menuService.handleMenuReply(update);
-                        log.info("Menu answer resolved.");
-                    } else if(!msgManager.getOriginalSender().getId().equals(msgManager.getME())){
-                            msgManager.sendTelegramTextMessage("New reply! T: " + Utils.getCurrentDateTime()
-                                    + "  FROM: "
-                                    + msgManager.getOriginalSender().getFirst_name()
-                                    + " "
-                                    + update.getMessage().getFrom().getLast_name()
-                                    + "  CHAT ID: "
-                                    + msgManager.getOriginalSender().getId()
-                                    + "  CONTENT: "
-                                    + update.getMessage().getText(), msgManager.getME());
-                        }
-                }
+
+
 //        check if incoming message have any and if there is do commands:
                 if (update.getMessage().getText().charAt(0) == '/') {
                     this.commands = update.getMessage().getText().split(" ");
@@ -217,6 +218,7 @@ private String[] commands;
                 }
 //                if message has no text and is not from me send me an info
             } else {
+
                 if (!msgManager.getOriginalSender().getId().equals(msgManager.getME())) {
                     msgManager.sendTelegramTextMessage("New message T: " + Utils.getCurrentDateTime()
                             + "  FROM: "
