@@ -24,36 +24,33 @@ import java.util.Base64;
 @Component
 public class UnirestRequest {
     @Autowired
-    ConfigProperties config;
-//    private final String config.getBotToken() = config.getBotToken();
+    private ConfigProperties cfgProps;
     private final String HUE_API_URL = "https://api.meethue.com/route";
     private final String HUE_OAUTH_URL = "https://api.meethue.com/v2/oauth2/token";
-    private final String TELEGRAM_API_URL = "https://api.telegram.org/bot"+ config.getBotToken();
-    private final String SEND_MESSAGE_URL = "https://api.telegram.org/bot"+ config.getBotToken() +"/sendMessage";
-    private final String EDIT_MESSAGE_REPLY_MARKUP_URL = "https://api.telegram.org/bot"+ config.getBotToken() +"/editMessageReplyMarkup";
+    private final String TELEGRAM_API_URL = "https://api.telegram.org/bot";
     private HttpResponse<JsonNode> response;
     Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public SentMessage sendTelegramMessageObj(SendMessage message){
-        standardAppJsonPost(SEND_MESSAGE_URL,message);
+        standardAppJsonPost(TELEGRAM_API_URL+ cfgProps.getBotToken() +"/sendMessage",message);
     return gson.fromJson(response.getBody().toString(),SentMessage.class);
     }
     public SentMessage editTelegramMessageText(EditMessageText message){
-        standardAppJsonPost("https://api.telegram.org/bot"+ config.getBotToken() +"/editMessageText",message);
+        standardAppJsonPost("https://api.telegram.org/bot"+ cfgProps.getBotToken() +"/editMessageText",message);
         log.info("UnirestRequest.editTelegramMessageText Fired. ChatId: "+message.getChat_id()+" MessageId: "+message.getMessage_id()+" text: "+message.getText());
         return gson.fromJson(response.getBody().toString(),SentMessage.class);
     }
     public SentMessage editTelegramMessageReplyMarkup (EditMessageReplyMarkup message){
-        standardAppJsonPost("https://api.telegram.org/bot"+ config.getBotToken() +"/editMessageReplyMarkup",message);
+        standardAppJsonPost("https://api.telegram.org/bot"+ cfgProps.getBotToken() +"/editMessageReplyMarkup",message);
         return gson.fromJson(response.getBody().toString(),SentMessage.class);
     }
     public boolean deleteTelegramMessage(DeleteMessage message){
-        standardAppJsonPost("https://api.telegram.org/bot"+ config.getBotToken() +"/deleteMessage",message);
+        standardAppJsonPost("https://api.telegram.org/bot"+ cfgProps.getBotToken() +"/deleteMessage",message);
         log.info("Deleted message with id: "+message.getMessage_id()+" chatId: "+ message.getChat_id());
         return response.isSuccess();
     }
     public void answerCallbackQuery(AnswerCallbackQuery answer){
-        standardAppJsonPost(TELEGRAM_API_URL +"/answerCallbackQuery", answer);
+        standardAppJsonPost(TELEGRAM_API_URL+ cfgProps.getBotToken() +"/answerCallbackQuery", answer);
     }
 
     public HueAuthorizationEntity requestHueAuthentication(HueAuthorizationEntity authorization){
