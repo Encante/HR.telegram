@@ -64,10 +64,13 @@ public class QuizService {
             return null;
         }
     }
+    public int countRemainingQuizToSend(){
+        return quizRepository.findAllQuizEntitiesToSend().size();
+    }
 //    gets next quiz from db to send, checks if quiz is not already sent but unanswered
     
     private Quiz getNextQuizToSendFromDb(){
-        if(quizRepository.findAllQuizEntitiesToSend().size()>0)
+        if(countRemainingQuizToSend()>0)
             return quizRepository.findAllQuizEntitiesToSend().get(0);
         else {
             log.warn("No entries in db. Invoker: getNextQuizToSendFromDb()");

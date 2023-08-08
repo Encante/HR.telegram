@@ -9,30 +9,28 @@ import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardButton;
 import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.WebhookUpdate;
 import net.ddns.encante.telegram.HR.Utils;
-import net.ddns.encante.telegram.HR.persistence.repository.QuizRepository;
 import net.ddns.encante.telegram.HR.persistence.service.HueAuthorizationService;
 import net.ddns.encante.telegram.HR.persistence.service.QuizService;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 
 @Slf4j
 @Service("menuService")
 public class MenuService {
-    @Resource(name = "quizService")
     private QuizService quizService;
-    @Autowired
     private MenuRepository menuRepo;
-    @Autowired
-    MessageManager msgMgr;
-    @Autowired
-    QuizRepository quizRepo;
-    @Resource(name = "hueAuthorizationService")
+    private MessageManager msgMgr;
     private HueAuthorizationService hueAuthorizationService;
     private Menu currentMenu;
+
+    public MenuService(QuizService quizService, MenuRepository menuRepository, MessageManager msgMgr, HueAuthorizationService hueAuthorizationService){
+        this.quizService = quizService;
+        this.menuRepo = menuRepository;
+        this.msgMgr = msgMgr;
+        this.hueAuthorizationService = hueAuthorizationService;
+    }
 
     public void createMainMenu(@NotNull Long chatId){
         if (menuRepo.findByChatId(chatId)!= null){
@@ -100,7 +98,7 @@ public class MenuService {
 //                    firstly delete menu message
                     msgMgr.deleteTelegramMessage(msgMgr.getOriginalSender().getId(), currentMenu.getMessageId());
 //                    send response
-                    msgMgr.sendBackTelegramTextMessage("Zostało " + quizRepo.findAllQuizEntitiesToSend().size() + " pytań.");
+                    msgMgr.sendBackTelegramTextMessage("Zostało " + quizService.countRemainingQuizToSend() + " pytań.");
                 }
                 case "/testWeekend" -> {
                     msgMgr.deleteTelegramMessage(msgMgr.getOriginalSender().getId(), currentMenu.getMessageId());

@@ -1,6 +1,7 @@
 package net.ddns.encante.telegram.HR.TelegramMethods;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import net.ddns.encante.telegram.HR.RemoteRequest.UnirestRequest;
 import net.ddns.encante.telegram.HR.TelegramObjects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.HR.TelegramObjects.SentMessage;
@@ -10,24 +11,23 @@ import net.ddns.encante.telegram.HR.persistence.entities.Quiz;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 
+@Getter
+@Setter
 @Service
-@Data
 public class MessageManager {
-    @Autowired
-    UnirestRequest request;
+    private UnirestRequest request;
     private static final Logger log = LoggerFactory.getLogger(MessageManager.class);
     User originalSender;
     private final Long ME = 5580797031L;
     private final Long YASIA = 566760042L;
     private final Long CHOMIK = 6182762959L;
-
-
-
+    public MessageManager(UnirestRequest request){
+        this.request = request;
+    }
     public SentMessage sendTelegramObjAsMessage(SendMessage message){
         return request.sendTelegramMessageObj(message);
     }
