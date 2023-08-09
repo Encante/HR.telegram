@@ -4,7 +4,7 @@ plugins {
 	id 'java'
 }
 
-group = 'net.ddns.encante.telegram.HR'
+group = 'net.ddns.encante.telegram.hr'
 version = '0.0.1'
 
 configurations {
@@ -45,7 +45,7 @@ dependencies {
 jar {duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
 
 	manifest {
-		attributes "Main-Class": "net.ddns.encante.telegram.HR.HR.telegram.Application"
+		attributes "Main-Class": "net.ddns.encante.telegram.hr.Application"
 	}
 
 	from {
