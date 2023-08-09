@@ -1,9 +1,11 @@
-package net.ddns.encante.telegram.hr.telegram.api.objects;
+package net.ddns.encante.telegram.hr.telegram.entity;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import net.ddns.encante.telegram.hr.telegram.api.objects.*;
+import net.ddns.encante.telegram.hr.telegram.api.objects.MessageEntity;
 import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;
@@ -34,7 +36,7 @@ public class Message {
     String media_group_id;
     String author_signature;
     String text;
-    ArrayList<MessageEntity> entities;
+    ArrayList<net.ddns.encante.telegram.hr.telegram.api.objects.MessageEntity> entities;
     Animation animation;
     Audio audio;
     Document document;

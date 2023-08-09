@@ -8,7 +8,7 @@ import net.ddns.encante.telegram.hr.request.UnirestRequest;
 import net.ddns.encante.telegram.hr.telegram.api.methods.*;
 import net.ddns.encante.telegram.hr.telegram.api.objects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.hr.telegram.api.objects.SentMessage;
-import net.ddns.encante.telegram.hr.telegram.api.objects.User;
+import net.ddns.encante.telegram.hr.telegram.entity.User;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
