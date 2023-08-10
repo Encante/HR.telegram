@@ -13,7 +13,7 @@ import net.ddns.encante.telegram.hr.telegram.api.methods.SendMessage;
 import net.ddns.encante.telegram.hr.telegram.api.objects.ForceReply;
 import net.ddns.encante.telegram.hr.telegram.api.objects.InlineKeyboardButton;
 import net.ddns.encante.telegram.hr.telegram.api.objects.InlineKeyboardMarkup;
-import net.ddns.encante.telegram.hr.telegram.entity.WebhookUpdate;
+import net.ddns.encante.telegram.hr.telegram.api.objects.WebhookUpdate;
 import net.ddns.encante.telegram.hr.telegram.service.MessageManager;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;

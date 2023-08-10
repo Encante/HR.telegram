@@ -1,11 +1,9 @@
-package net.ddns.encante.telegram.hr.telegram.entity;
+package net.ddns.encante.telegram.hr.telegram.api.objects;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import net.ddns.encante.telegram.hr.telegram.api.objects.*;
-import net.ddns.encante.telegram.hr.telegram.api.objects.MessageEntity;
 import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;

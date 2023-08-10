@@ -11,7 +11,7 @@ import net.ddns.encante.telegram.hr.telegram.api.methods.SendMessage;
 import net.ddns.encante.telegram.hr.telegram.api.objects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.hr.telegram.api.objects.ReplyKeyboardMarkup;
 import net.ddns.encante.telegram.hr.telegram.api.objects.ReplyKeyboardRemove;
-import net.ddns.encante.telegram.hr.telegram.entity.WebhookUpdate;
+import net.ddns.encante.telegram.hr.telegram.api.objects.WebhookUpdate;
 import net.ddns.encante.telegram.hr.telegram.repository.WebhookUpdateRepository;
 import net.ddns.encante.telegram.hr.telegram.service.MessageManager;
 import net.ddns.encante.telegram.hr.telegram.service.WebhookUpdateService;

@@ -1,4 +1,4 @@
-package net.ddns.encante.telegram.hr.telegram.entity;
+package net.ddns.encante.telegram.hr.telegram.api.objects;
 
 import lombok.AccessLevel;
 import lombok.Getter;

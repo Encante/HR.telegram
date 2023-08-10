@@ -1,4 +1,4 @@
-package net.ddns.encante.telegram.hr.telegram.entity;
+package net.ddns.encante.telegram.hr.telegram.api.objects;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,8 +7,6 @@ import javax.persistence.*;
 
 @Getter
 @Setter
-@Entity
-@Table(name = "Callback_Queries")
 public class CallbackQuery{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

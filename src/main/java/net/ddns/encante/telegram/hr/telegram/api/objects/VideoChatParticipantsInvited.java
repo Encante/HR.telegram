@@ -4,7 +4,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import net.ddns.encante.telegram.hr.telegram.entity.User;
 
 import java.util.ArrayList;
 

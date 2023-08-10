@@ -1,11 +1,9 @@
-package net.ddns.encante.telegram.hr.telegram.entity;
+package net.ddns.encante.telegram.hr.telegram.api.objects;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import net.ddns.encante.telegram.hr.telegram.entity.CallbackQuery;
-import net.ddns.encante.telegram.hr.telegram.entity.Message;
 
 // klasa na updaty wysyłane webhookami
 //i nie tylko
