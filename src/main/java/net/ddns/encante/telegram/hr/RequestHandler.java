@@ -1,7 +1,7 @@
 package net.ddns.encante.telegram.hr;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import lombok.extern.slf4j.Slf4j;
 import net.ddns.encante.telegram.hr.hue.entity.HueAuthorization;
 import net.ddns.encante.telegram.hr.hue.service.HueAuthorizationService;
 import net.ddns.encante.telegram.hr.menu.service.MenuService;
@@ -12,35 +12,28 @@ import net.ddns.encante.telegram.hr.telegram.api.objects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.hr.telegram.api.objects.ReplyKeyboardMarkup;
 import net.ddns.encante.telegram.hr.telegram.api.objects.ReplyKeyboardRemove;
 import net.ddns.encante.telegram.hr.telegram.api.objects.WebhookUpdate;
-import net.ddns.encante.telegram.hr.telegram.repository.WebhookUpdateRepository;
 import net.ddns.encante.telegram.hr.telegram.service.MessageManager;
 import net.ddns.encante.telegram.hr.telegram.service.WebhookUpdateService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import javax.annotation.Resource;
-
+@Slf4j
 @RestController
 public class RequestHandler {
-Gson gson = new GsonBuilder().setPrettyPrinting().create();
-@Resource(name = "webhookUpdateService")
-private WebhookUpdateService webhookUpdateService;
-@Resource(name = "quizService")
+private Gson gson;
+private WebhookUpdateService webhookService;
 private QuizService quizService;
-@Resource(name = "hueAuthorizationService")
 private HueAuthorizationService hueAuthorizationService;
-@Resource(name = "menuService")
 private MenuService menuService;
-@Autowired
-private WebhookUpdateRepository webhookUpdateRepository;
-@Autowired
 private MessageManager msgManager;
-private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
 private String[] commands;
 
-
+public RequestHandler(Gson gson, WebhookUpdateService wus, QuizService qs, HueAuthorizationService has, MenuService ms, MessageManager mgr){
+    this.gson=gson;
+    this.webhookService=wus;
+    this.quizService = qs;
+    this.hueAuthorizationService=has;
+    this.menuService=ms;
+    this.msgManager=mgr;
+}
     //        when receiving message:
     @PostMapping("/HR4telegram")
     public void postHandler(@RequestBody WebhookUpdate update) {// do WebhookUpdate object from JSON
@@ -49,7 +42,7 @@ private String[] commands;
 //        log.debug(gson.toJson(JsonParser.parseString(content)));
         log.debug(gson.toJson(update));
 //        store update in the DB
-        webhookUpdateService.saveWebhookUpdate(update);
+        webhookService.saveWebhookUpdate(update);
 //            check if it is callback
         if (update.getCallback_query() != null) {
             //        initialise msgManager setting originalSender of message
@@ -162,8 +155,8 @@ private String[] commands;
                         }
                         case "/searchUserById" -> {
                             if (checkCommandLenght(2, "/searchUserById")) {
-                                if (webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])) != null) {
-                                    msgManager.sendBackTelegramTextMessage("To " + webhookUpdateRepository.findUserEntityByUserId(Long.decode(commands[1])).getFirstName());
+                                if (webhookService.getUserEntityByUserId(Long.decode(commands[1])) != null) {
+                                    msgManager.sendBackTelegramTextMessage("To " + webhookService.getUserEntityByUserId(Long.decode(commands[1])).getFirstName());
                                 } else
                                     msgManager.sendBackTelegramTextMessage("User with id " + commands[1] + " not in DB!");
                             }

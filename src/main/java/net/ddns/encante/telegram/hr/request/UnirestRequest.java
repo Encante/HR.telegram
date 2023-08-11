@@ -1,7 +1,6 @@
 package net.ddns.encante.telegram.hr.request;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import kong.unirest.HttpResponse;
 import kong.unirest.JsonNode;
 import kong.unirest.Unirest;
@@ -15,7 +14,6 @@ import net.ddns.encante.telegram.hr.hue.entity.HueAuthorization;
 import net.ddns.encante.telegram.hr.hue.entity.HueTokens;
 import net.ddns.encante.telegram.hr.telegram.api.methods.*;
 import net.ddns.encante.telegram.hr.telegram.api.objects.SentMessage;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -23,16 +21,16 @@ import java.util.Base64;
 @Slf4j
 @Component
 public class UnirestRequest {
-    @Autowired
     private ConfigProperties cfg;
     private final String HUE_API_URL = "https://api.meethue.com/route";
     private final String HUE_OAUTH_URL = "https://api.meethue.com/v2/oauth2/token";
     private final String TELEGRAM_API_URL = "https://api.telegram.org/bot";
     private HttpResponse<JsonNode> response;
-    Gson gson = new GsonBuilder().setPrettyPrinting().create();
+    private Gson gson;
     
-    public UnirestRequest (ConfigProperties cfg){
+    public UnirestRequest (ConfigProperties cfg, Gson gson){
         this.cfg = cfg;
+        this.gson = gson;
     }
 
     public SentMessage sendTelegramMessageObj(SendMessage message){

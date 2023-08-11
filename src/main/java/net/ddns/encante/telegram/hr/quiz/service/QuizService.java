@@ -2,9 +2,9 @@ package net.ddns.encante.telegram.hr.quiz.service;
 
 import lombok.extern.slf4j.Slf4j;
 import net.ddns.encante.telegram.hr.Utils;
+import net.ddns.encante.telegram.hr.events.EventType;
 import net.ddns.encante.telegram.hr.events.entity.Event;
 import net.ddns.encante.telegram.hr.events.repository.EventRepository;
-import net.ddns.encante.telegram.hr.events.EventType;
 import net.ddns.encante.telegram.hr.quiz.entity.Quiz;
 import net.ddns.encante.telegram.hr.quiz.repository.QuizRepository;
 import net.ddns.encante.telegram.hr.telegram.api.methods.AnswerCallbackQuery;
@@ -15,7 +15,6 @@ import net.ddns.encante.telegram.hr.telegram.api.objects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.hr.telegram.api.objects.SentMessage;
 import net.ddns.encante.telegram.hr.telegram.api.objects.WebhookUpdate;
 import net.ddns.encante.telegram.hr.telegram.service.MessageManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -28,14 +27,15 @@ import java.util.List;
 @Slf4j
 
 public class QuizService {
-    @Autowired
     private QuizRepository quizRepository;
-    @Autowired
     private MessageManager msgMgr;
-    @Autowired
     private EventRepository eventsRepo;
 
-
+public QuizService(QuizRepository repository, MessageManager msgMgr, EventRepository eventsRepo){
+    this.quizRepository=repository;
+    this.msgMgr=msgMgr;
+    this.eventsRepo=eventsRepo;
+}
     
     public Quiz saveQuiz(Quiz quiz) {
 //        no checking for existing records @ db right now

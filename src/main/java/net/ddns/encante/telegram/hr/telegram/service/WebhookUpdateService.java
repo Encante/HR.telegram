@@ -4,39 +4,39 @@ import net.ddns.encante.telegram.hr.telegram.api.objects.*;
 import net.ddns.encante.telegram.hr.telegram.entity.MessageEntity;
 import net.ddns.encante.telegram.hr.telegram.entity.*;
 import net.ddns.encante.telegram.hr.telegram.repository.WebhookUpdateRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 
 @Service("webhookUpdateService")
 public class WebhookUpdateService {
-    @Autowired
-    private WebhookUpdateRepository updateRepository;
-
+    private WebhookUpdateRepository repository;
+public WebhookUpdateService(WebhookUpdateRepository repository){
+    this.repository=repository;
+}
     
     public WebhookUpdate saveWebhookUpdate (WebhookUpdate update){
         WebhookUpdateEntity updateEntity = convertWebhookUpdateObjToEntity(update);
 //        check if update or user or chat or message exist already in db
         updateEntity = checkDbForExistingWebhookUpdates(updateEntity);
-        return convertWebhookUpdateEntityToObj(updateRepository.save(updateEntity));
+        return convertWebhookUpdateEntityToObj(repository.save(updateEntity));
     }
     
     public boolean deleteWebhookUpdateById(Long updateId){
-        updateRepository.deleteById(updateId);
+        repository.deleteById(updateId);
         return true;
     }
     
     public WebhookUpdate getWebhookUpdateById(Long updateId){
-        return convertWebhookUpdateEntityToObj(updateRepository.findById(updateId).orElseThrow(() -> new EntityNotFoundException("Webhook update not found")));
+        return convertWebhookUpdateEntityToObj(repository.findById(updateId).orElseThrow(() -> new EntityNotFoundException("Webhook update not found")));
     }
 //
 //    CHECK DB FOR EXISTING RECORDS METHODS
 //
     private WebhookUpdateEntity checkDbForExistingWebhookUpdates (WebhookUpdateEntity update){
 //        if there is update with this id in base simply return existing record
-        if (updateRepository.findWebhookUpdateEntityByEntityId(update.getUpdateId()) != null)
-            return updateRepository.findWebhookUpdateEntityByEntityId(update.getUpdateId());
+        if (repository.findWebhookUpdateEntityByEntityId(update.getUpdateId()) != null)
+            return repository.findWebhookUpdateEntityByEntityId(update.getUpdateId());
 //        if not check other parts of update - message
         else {
             if (update.getMessage() != null) update.setMessage(checkDbForExistingMessages(update.getMessage()));
@@ -46,8 +46,8 @@ public class WebhookUpdateService {
         }
     }
     private MessageEntity checkDbForExistingMessages (MessageEntity messageEntity){
-        if (updateRepository.findMessageEntityByMessageId(messageEntity.getMessageId()) != null){
-            return updateRepository.findMessageEntityByMessageId(messageEntity.getMessageId());
+        if (repository.findMessageEntityByMessageId(messageEntity.getMessageId()) != null){
+            return repository.findMessageEntityByMessageId(messageEntity.getMessageId());
         }
         else {
             if (messageEntity.getFrom() != null)
@@ -60,19 +60,23 @@ public class WebhookUpdateService {
         }
     }
     private ChatEntity checkDbForExistingChats (ChatEntity chat){
-        if (updateRepository.findChatEntityByChatId(chat.getChatId()) != null)
-            return updateRepository.findChatEntityByChatId(chat.getChatId());
+        if (repository.findChatEntityByChatId(chat.getChatId()) != null)
+            return repository.findChatEntityByChatId(chat.getChatId());
         else return chat;
     }
-    UserEntity checkDbForExistingUsers (UserEntity user){
-        if (updateRepository.findUserEntityByUserId(user.getUserId()) != null)
-            return updateRepository.findUserEntityByUserId(user.getUserId());
+
+    private UserEntity checkDbForExistingUsers (UserEntity user){
+        if (repository.findUserEntityByUserId(user.getUserId()) != null)
+            return repository.findUserEntityByUserId(user.getUserId());
         else return user;
+    }
+    public UserEntity getUserEntityByUserId (Long userId){
+        return repository.findUserEntityByUserId(userId);
     }
 
     private CallbackQueryEntity checkDbForExistingCallbackQueries (CallbackQueryEntity cbq){
-        if (updateRepository.findCallbackQueryEntityByCallbackId(cbq.getCallbackId()) != null)
-            return updateRepository.findCallbackQueryEntityByCallbackId(cbq.getCallbackId());
+        if (repository.findCallbackQueryEntityByCallbackId(cbq.getCallbackId()) != null)
+            return repository.findCallbackQueryEntityByCallbackId(cbq.getCallbackId());
         else {
             if (cbq.getMessage() != null) cbq.setMessage(checkDbForExistingMessages(cbq.getMessage()));
             cbq.setFrom(checkDbForExistingUsers(cbq.getFrom()));
@@ -148,7 +152,6 @@ public class WebhookUpdateService {
         entity.setCallbackQuery(convertCallbackQueryObjToEntity(update.getCallback_query()));
         return entity;
     }
-
     private MessageEntity convertMessageObjToEntity(Message message){
         MessageEntity entityMessage = new MessageEntity();
         entityMessage.setMessageId(message.getMessage_id());
