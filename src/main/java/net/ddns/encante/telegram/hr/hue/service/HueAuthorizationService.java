@@ -16,6 +16,7 @@ public class HueAuthorizationService{
     private HueAuthorizationRepository repository;
     MessageManager msgManager;
     UnirestRequest request;
+    String err;
     public HueAuthorizationService(HueAuthorizationRepository repository, MessageManager msgManager,UnirestRequest request){
         this.repository=repository;
         this.msgManager=msgManager;
@@ -107,10 +108,26 @@ public class HueAuthorizationService{
         }else
             msgManager.sendAndLogErrorMsg("ERROR. No authorization with state: "+ state+" in DB. Invoker: HueAuthorizationServiceImpl.authenticateApp.");
     }
-    
-    public String checkAndRefreshToken(@NotNull HueAuthorization authorization){
+
+    public String checkAndRefreshToken(){
+        HueAuthorization auth = getFirstAuthorization();
+        if (auth == null) {
+            err="Error code: HAS.cART001. ";
+            log.warn(err+" getFirstAuthorization returned null.");
+            msgManager.sendBackTelegramTextMessage(err);
+            throw new RuntimeException(err);
+        }
+        if (!checkHueAuthorization(auth)){
+            return refreshAndSaveHueToken(auth);
+//        if token is valid
+        }else {
+            log.debug("Token valid and no need to be refreshed.");
+            return "Token valid and no need to be refreshed.";
+        }
+    }
+    private String checkAndRefreshToken(@NotNull HueAuthorization authorization){
         if (!checkHueAuthorization(authorization)){
-            return refreshHueToken(authorization);
+            return refreshAndSaveHueToken(authorization);
 //        if token is valid
         }else {
             log.debug("Token valid and no need to be refreshed.");
@@ -138,7 +155,7 @@ public class HueAuthorizationService{
             throw new RuntimeException(err);
         }
     }
-    private String refreshHueToken (@NotNull HueAuthorization authorization){
+    private String refreshAndSaveHueToken(@NotNull HueAuthorization authorization){
 //        authorization check for null pointers
         if(authorization.getClientId() != null
         && authorization.getClientSecret()!= null

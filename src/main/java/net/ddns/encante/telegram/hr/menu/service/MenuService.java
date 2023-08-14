@@ -45,7 +45,7 @@ public class MenuService {
 //            set up new menu
             menu.setChatId(chatId);
             menu.setLastSentDate(Utils.getCurrentUnixTime());
-            menu.setCurrentPattern(menuRepo.getPatternByName("mainMenu"));
+            menu.setCurrentPattern(menuRepo.getPatternByName("MainMenu"));
             menu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessage(menu)).getResult().getMessage_id());
             saveMenu(menu);
         }else {
@@ -53,7 +53,7 @@ public class MenuService {
             Menu menu = new Menu();
             menu.setChatId(chatId);
             menu.setLastSentDate(Utils.getCurrentUnixTime());
-            menu.setCurrentPattern(menuRepo.getPatternByName("mainMenu"));
+            menu.setCurrentPattern(menuRepo.getPatternByName("MainMenu"));
             menu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessage(menu)).getResult().getMessage_id());
             saveMenu(menu);
         }
@@ -65,37 +65,42 @@ public class MenuService {
             log.info("ButtonAction received: "+buttonAction);
             switch (buttonAction){
                 case "/testMenu" -> {
-                    sendNextMenuPatternByEditingOldAndSave(currentMenu, "testMenu");
+                    sendNextMenuPatternByEditingOldAndSave(currentMenu, "TestMenu");
                 }
                 case "/getInput" ->{
-                    currentMenu = getMenuByCredentials(update.getCallback_query().getFrom().getId(), update.getCallback_query().getMessage().getMessage_id());
 //        firstly we delete original message because it cant be edited to force reply
                     msgMgr.deleteTelegramMessage(update.getCallback_query().getFrom().getId(),update.getCallback_query().getMessage().getMessage_id());
 //        now send message with force reply to chat and update menu object with new message id...
-                    currentMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createDataInputMenuMessage(update.getCallback_query().getFrom().getId(), currentMenu)).getResult().getMessage_id());
+                    currentMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createDataInputMenuMessage(msgMgr.getOriginalSender().getId(), currentMenu)).getResult().getMessage_id());
 //                    and save menu obj
                     saveMenu(currentMenu);
                 }
                 case "/back" ->{
-                    if (currentMenu.getLastPattern()!= null) {
-                        if (currentMenu.getLastPattern() != currentMenu.getCurrentPattern()) {
-                            sendNextMenuPatternByEditingOldAndSave(currentMenu, currentMenu.getLastPattern().getName());
-                        } else {
-                            log.info("Can't go back in menu.");
-                        }
-                    }else {
-                        log.warn("No last pattern in Menu object. Object invalid.");
+                    if (currentMenu.getLastPattern() == null) {
+                        String err = "Error code: MS.hMC001. ";
+                        log.warn(err+"No last pattern in Menu object. Object invalid.");
+                        msgMgr.sendBackTelegramTextMessage(err);
+                        throw new RuntimeException(err);
                     }
+                    if (currentMenu.getCurrentPattern().getUpperPatternName() == null) {
+                        String err = "Error code: MS.hMC002. ";
+                        log.warn(err+ "No upper pattern in MenuPattern: "+currentMenu.getCurrentPattern().getName()+". Object invalid");
+                        msgMgr.sendBackTelegramTextMessage(err);
+                        throw new RuntimeException(err);
+                    }
+                    currentMenu.setLastPattern(currentMenu.getCurrentPattern());
+                    sendNextMenuPatternByEditingOldAndSave(currentMenu, currentMenu.getCurrentPattern().getUpperPatternName());
                 }
                 case "/quiz" -> {
-                    sendNextMenuPatternByEditingOldAndSave(currentMenu, "quizMainChoice");
+                    sendNextMenuPatternByEditingOldAndSave(currentMenu, "QuizMainChoice");
                 }
                 case "/hue" -> {
-                    sendNextMenuPatternByEditingOldAndSave(currentMenu, "hueMainChoice");
+                    sendNextMenuPatternByEditingOldAndSave(currentMenu, "HueMainChoice");
                 }
                 case "/hueCheckTokens" -> {
-                    MenuPattern currentPattern = menuRepo.getPatternByName("infoWithBackButton");
-                    currentPattern.setText(hueAuthorizationService.checkAndRefreshToken(hueAuthorizationService.getFirstAuthorization()));
+                    MenuPattern currentPattern = menuRepo.getPatternByName("InfoWithBackButton");
+                    currentPattern.setText(hueAuthorizationService.checkAndRefreshToken());
+                    currentPattern.setUpperPatternName("HueMainChoice");
                     sendNextMenuPatternByEditingOldAndSave(currentMenu,currentPattern);
                 }
                 case "/hmql" -> {
@@ -104,7 +109,7 @@ public class MenuService {
 //                    send response
                     msgMgr.sendBackTelegramTextMessage("Zostało " + quizService.countRemainingQuizToSend() + " pytań.");
                 }
-                case "/testWeekend" -> {
+                case "/TestWeekend" -> {
                     msgMgr.deleteTelegramMessage(msgMgr.getOriginalSender().getId(), currentMenu.getMessageId());
                     quizService.testQuizForWeekend();
                 }
@@ -127,10 +132,11 @@ public class MenuService {
                 }else {
                     String menu = currentMenu.getCurrentPattern().getName();
                     switch (menu) {
-                        case "testMenu" -> {
+                        case "TestMenu" -> {
 //                        Please note, that it is currently only possible to edit messages without reply_markup or with inline keyboards.< thats why we have to delete old menu message
                             MenuPattern mp = menuRepo.getPatternByName("infoWithBackButton");
                             mp.setText("Wpisałeś: " + menuReply);
+                            mp.setUpperPatternName("TestMenu");
                             sendNextMenuPatternByDeletingOldAndSave(currentMenu, mp);
                         }
                     }

@@ -167,9 +167,6 @@ public RequestHandler(Gson gson, WebhookUpdateService wus, QuizService qs, HueAu
                                 if (commands[1].equalsIgnoreCase("link")) {
                                     hueAuthorizationService.sendAuthorizationLink(commands[2]);
                                 }
-                                if (commands[1].equalsIgnoreCase("checktokens")) {
-                                    hueAuthorizationService.checkAndRefreshToken(hueAuthorizationService.getFirstAuthorization());
-                                }
                                 if (commands[1].equalsIgnoreCase("add")) {
                                     if (checkCommandLenght(5, "/hueapp add")) {
                                         HueAuthorization authorization = new HueAuthorization();

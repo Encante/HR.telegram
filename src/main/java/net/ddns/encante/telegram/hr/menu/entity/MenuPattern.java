@@ -20,6 +20,8 @@ public class MenuPattern {
 
     @Column(name = "name")
     String name;
+    @Column(name = "upper_pattern")
+    String upperPatternName;
     @Column(name = "text")
     String text;
     @Column(name = "rows")
