@@ -11,8 +11,8 @@ import java.util.List;
 @Repository
 public interface QuizRepository extends JpaRepository<Quiz, Long> {
     Quiz findFirstByOrderByKeyIdAsc();
-//    returns list of all quiz entities that were either not yet send or has been sent but remain answered badly but not the ones that are waiting in chat to be answered (q.answer is null for this cases)
-    @Query("SELECT q FROM Quiz q WHERE q.dateSent IS NULL OR (q.success = 0 AND q.lastAnswer IS NOT NULL AND q.answersLeft > 1)")
+//    returns list of all quiz entities that were either not yet send or has been sent but remain answered badly but not the ones that are waiting in chat to be answered (q.lastAnswer is null for this cases)
+    @Query("SELECT q FROM Quiz q WHERE q.dateSent IS NULL OR (q.success = 0 AND q.lastAnswer IS NOT NULL AND q.answersDepleted = 0)")
     List<Quiz> findAllQuizEntitiesToSend();
 //    returns list of all quiz entities that are waiting in chat to be answered
     @Query("SELECT q FROM Quiz q WHERE q.success = 0 AND q.lastAnswer IS NULL")

@@ -109,7 +109,7 @@ public class MenuService {
 //                    send response
                     msgMgr.sendBackTelegramTextMessage("Zostało " + quizService.countRemainingQuizToSend() + " pytań.");
                 }
-                case "/TestWeekend" -> {
+                case "/testWeekend" -> {
                     msgMgr.deleteTelegramMessage(msgMgr.getOriginalSender().getId(), currentMenu.getMessageId());
                     quizService.testQuizForWeekend();
                 }
