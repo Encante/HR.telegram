@@ -162,12 +162,11 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
         }
         else resetQuizList(retriesFromLastWeek);
     }
-    public void testQuizForWeekend(){
+    public String testQuizForWeekend(){
         int lastWeekEvents = eventsRepo.findAllEventsFromLastWeek(Utils.getCurrentUnixTime()).size();
         int goodAnswerCount = eventsRepo.findGoodAnswerEventsFromLastWeek(Utils.getCurrentUnixTime()).size();
         int rate =  Math.round(((float)goodAnswerCount/lastWeekEvents)*100);
-        String summary = "W zeszłym tygodniu miałaś "+goodAnswerCount+" dobrych odpowiedzi na "+ lastWeekEvents+" i miałaś "+rate+"% odpowiedzi poprawnych.";
-        msgMgr.sendBackTelegramTextMessage(summary);
+        return "W zeszłym tygodniu miałaś "+goodAnswerCount+" dobrych odpowiedzi na "+ lastWeekEvents+" i miałaś "+rate+"% odpowiedzi poprawnych.";
     }
 
 

@@ -1,5 +1,6 @@
 package net.ddns.encante.telegram.hr.menu.service;
 
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.ddns.encante.telegram.hr.Utils;
 import net.ddns.encante.telegram.hr.hue.service.HueAuthorizationService;
@@ -27,7 +28,10 @@ public class MenuService {
     private MenuRepository menuRepo;
     private MessageManager msgMgr;
     private HueAuthorizationService hueAuthorizationService;
-    private Menu currentMenu;
+    private Menu newMenu;
+    private Menu oldMenu;
+    private MenuPattern newPattern;
+    private MenuPattern oldPattern;
 
     public MenuService(QuizService quizService, MenuRepository menuRepository, MessageManager msgMgr, HueAuthorizationService hueAuthorizationService){
         this.quizService = quizService;
@@ -37,107 +41,101 @@ public class MenuService {
     }
 
     public void createMainMenu(@NotNull Long chatId){
-        if (menuRepo.findByChatId(chatId)!= null){
-            log.debug("Menu istniejące w bazie.");
-            Menu menu = menuRepo.findByChatId(chatId);
-//            delete old menu message
-            msgMgr.deleteTelegramMessage(msgMgr.getOriginalSender().getId(), menu.getMessageId());
-//            set up new menu
-            menu.setChatId(chatId);
-            menu.setLastSentDate(Utils.getCurrentUnixTime());
-            menu.setCurrentPattern(menuRepo.getPatternByName("MainMenu"));
-            menu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessage(menu)).getResult().getMessage_id());
-            saveMenu(menu);
+        if (menuRepo.findByChatId(chatId)== null){
+            log.debug("New menu.");
+            newMenu = new Menu(chatId,Utils.getCurrentUnixTime(),menuRepo.getPatternByName("MainMenu"));
+            newMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessage(newMenu)).getResult().getMessage_id());
+            saveMenu();
         }else {
-            log.debug("Nowe menu.");
-            Menu menu = new Menu();
-            menu.setChatId(chatId);
-            menu.setLastSentDate(Utils.getCurrentUnixTime());
-            menu.setCurrentPattern(menuRepo.getPatternByName("MainMenu"));
-            menu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessage(menu)).getResult().getMessage_id());
-            saveMenu(menu);
+            log.debug("Menu existing in DB");
+            oldMenu = menuRepo.findByChatId(chatId);
+            if (oldMenu.getMessageId() == null) {
+                msgMgr.sendAndLogErrorMsg("MS.cMM001","Can't delete old menu message. Menu object doesn't have a messageId assigned");
+            }else{
+                //            delete old menu message
+                msgMgr.deleteTelegramMessage(msgMgr.getOriginalSender().getId(), oldMenu.getMessageId());
+            }
+//            set up new menu
+            newMenu = new Menu(chatId,Utils.getCurrentUnixTime(),menuRepo.getPatternByName("MainMenu"));
+            newMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessage(newMenu)).getResult().getMessage_id());
+            saveMenu();
         }
     }
     public void handleMenuCallback (@NotNull WebhookUpdate update){
-        currentMenu = menuRepo.findByCredentials(msgMgr.getOriginalSender().getId(),update.getCallback_query().getMessage().getMessage_id());
-        if(currentMenu != null){
+        oldMenu = menuRepo.findByCredentials(msgMgr.getOriginalSender().getId(),update.getCallback_query().getMessage().getMessage_id());
+        if(oldMenu == null){
+            msgMgr.sendAndLogErrorMsg("MS.hMC001","Can't find menu in DB");
+        }else{
             String buttonAction = update.getCallback_query().getData();
-            log.info("ButtonAction received: "+buttonAction);
-            switch (buttonAction){
-                case "/testMenu" -> {
-                    sendNextMenuPatternByEditingOldAndSave(currentMenu, "TestMenu");
-                }
-                case "/getInput" ->{
-//        firstly we delete original message because it cant be edited to force reply
-                    msgMgr.deleteTelegramMessage(update.getCallback_query().getFrom().getId(),update.getCallback_query().getMessage().getMessage_id());
-//        now send message with force reply to chat and update menu object with new message id...
-                    currentMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createDataInputMenuMessage(msgMgr.getOriginalSender().getId(), currentMenu)).getResult().getMessage_id());
-//                    and save menu obj
-                    saveMenu(currentMenu);
-                }
-                case "/back" ->{
-                    if (currentMenu.getLastPattern() == null) {
-                        String err = "Error code: MS.hMC001. ";
-                        log.warn(err+"No last pattern in Menu object. Object invalid.");
-                        msgMgr.sendBackTelegramTextMessage(err);
-                        throw new RuntimeException(err);
+            if (buttonAction == null) {
+                msgMgr.sendAndLogErrorMsg("MS.hMC002","Button Action is null.");
+            }else {
+                log.debug("ButtonAction received: "+buttonAction);
+                switch (buttonAction){
+                    case "/testMenu" -> {
+                        sendNextMenuPatternByEditingOldAndSave("TestMenu");
                     }
-                    if (currentMenu.getCurrentPattern().getUpperPatternName() == null) {
-                        String err = "Error code: MS.hMC002. ";
-                        log.warn(err+ "No upper pattern in MenuPattern: "+currentMenu.getCurrentPattern().getName()+". Object invalid");
-                        msgMgr.sendBackTelegramTextMessage(err);
-                        throw new RuntimeException(err);
+                    case "/getInput" ->{
+                        newMenu=oldMenu;
+                        sendDataInputMenuMessageAndSave("Wpisz tu:");
                     }
-                    currentMenu.setLastPattern(currentMenu.getCurrentPattern());
-                    sendNextMenuPatternByEditingOldAndSave(currentMenu, currentMenu.getCurrentPattern().getUpperPatternName());
-                }
-                case "/quiz" -> {
-                    sendNextMenuPatternByEditingOldAndSave(currentMenu, "QuizMainChoice");
-                }
-                case "/hue" -> {
-                    sendNextMenuPatternByEditingOldAndSave(currentMenu, "HueMainChoice");
-                }
-                case "/hueCheckTokens" -> {
-                    MenuPattern currentPattern = menuRepo.getPatternByName("InfoWithBackButton");
-                    currentPattern.setText(hueAuthorizationService.checkAndRefreshToken());
-                    currentPattern.setUpperPatternName("HueMainChoice");
-                    sendNextMenuPatternByEditingOldAndSave(currentMenu,currentPattern);
-                }
-                case "/hmql" -> {
-//                    firstly delete menu message
-                    msgMgr.deleteTelegramMessage(msgMgr.getOriginalSender().getId(), currentMenu.getMessageId());
+                    case "/back" ->{
+                        if (oldMenu.getCurrentPattern().getUpperPatternName() == null) {
+                            msgMgr.sendAndLogErrorMsg("MS.hMC003", "No upper pattern in MenuPattern: "+ newMenu.getCurrentPattern().getName()+". Object invalid");
+                        }else {
+                            newMenu=oldMenu;
+                            newMenu.setLastPattern(oldMenu.getCurrentPattern());
+                            sendNextMenuPatternByEditingOldAndSave(newMenu.getLastPattern().getUpperPatternName());
+                        }
+                    }
+                    case "/quiz" -> {
+                        sendNextMenuPatternByEditingOldAndSave("QuizMainChoice");
+                    }
+                    case "/hue" -> {
+                        sendNextMenuPatternByEditingOldAndSave("HueMainChoice");
+                    }
+                    case "/hueCheckTokens" -> {
+                        sendInfoMenuWithBackButton(hueAuthorizationService.checkAndRefreshToken());
+                    }
+                    case "/hmql" -> {
 //                    send response
-                    msgMgr.sendBackTelegramTextMessage("Zostało " + quizService.countRemainingQuizToSend() + " pytań.");
-                }
-                case "/testWeekend" -> {
-                    msgMgr.deleteTelegramMessage(msgMgr.getOriginalSender().getId(), currentMenu.getMessageId());
-                    quizService.testQuizForWeekend();
+                        sendInfoMenuWithBackButton("Zostało " + quizService.countRemainingQuizToSend() + " pytań.");
+                    }
+                    case "/testWeekend" -> {
+                        sendInfoMenuWithBackButton(quizService.testQuizForWeekend());
+                    }
                 }
             }
         }
     }
     public void handleMenuReply (@NotNull WebhookUpdate update){
-        currentMenu = getMenuByCredentials(update.getMessage().getFrom().getId(), update.getMessage().getReply_to_message().getMessage_id());
+        oldMenu = getMenuByCredentials(update.getMessage().getFrom().getId(), update.getMessage().getReply_to_message().getMessage_id());
         String menuReply = update.getMessage().getText();
 //        if we don't get text in reply send warning and send menu with forceReply again
-        if (currentMenu!= null){
-            if (currentMenu.getCurrentPattern()!=null){
+        if (oldMenu == null || oldMenu.getCurrentPattern()==null) {
+            msgMgr.sendAndLogErrorMsg("MS.hMR001", "oldMenu field is null, or oldMenu.currentPattern is null.");
+            throw new RuntimeException("MS.hMR001");
+        }else {
+            // TODO: 31.08.2023 Te trzy ify na dole zacząłem przepisywać. dokończyć i skasować
+        }
+        if (newMenu != null){
+            if (newMenu.getCurrentPattern()!=null){
                 if (menuReply == null) {
                     log.warn("Reply to menu does not contain text. Called by: MenuService.handleMenuReply");
             //            delete old menu message
-                    msgMgr.deleteTelegramMessage(currentMenu.getChatId(), currentMenu.getMessageId());
+                    msgMgr.deleteTelegramMessage(newMenu.getChatId(), newMenu.getMessageId());
 
 //                    send again current menu pattern
-                    sendNextMenuPatternByDeletingOldAndSave(currentMenu, currentMenu.getCurrentPattern());
+                    sendNextMenuPatternByDeletingOldAndSave(newMenu, newMenu.getCurrentPattern());
                 }else {
-                    String menu = currentMenu.getCurrentPattern().getName();
+                    String menu = this.newMenu.getCurrentPattern().getName();
                     switch (menu) {
                         case "TestMenu" -> {
 //                        Please note, that it is currently only possible to edit messages without reply_markup or with inline keyboards.< thats why we have to delete old menu message
                             MenuPattern mp = menuRepo.getPatternByName("infoWithBackButton");
                             mp.setText("Wpisałeś: " + menuReply);
                             mp.setUpperPatternName("TestMenu");
-                            sendNextMenuPatternByDeletingOldAndSave(currentMenu, mp);
+                            sendNextMenuPatternByDeletingOldAndSave(this.newMenu, mp);
                         }
                     }
                 }
@@ -150,7 +148,7 @@ public class MenuService {
             throw new RuntimeException("No menu with such credentials in db. Called by MenuService.handleMenuReply");
         }
     }
-    public Menu getMenuByCredentials(@NotNull Long chatId, @NotNull Long messageId){
+    public Menu getMenuByCredentials(@NonNull Long chatId, @NonNull Long messageId){
         if (menuRepo.findByCredentials(chatId,messageId)!=null) return menuRepo.findByCredentials(chatId, messageId);
         else log.warn("No Menu entries in db with such credentials. MessageId: "+messageId+"ChatId: "+chatId+"  getMenuByCredentials");
         return null;
@@ -190,13 +188,52 @@ public class MenuService {
         throw new RuntimeException("Pattern is bad. Edit menu.message");
     }
 }
-    private SendMessage createDataInputMenuMessage (@NotNull Long chatId, @NotNull Menu menu){
-        return new SendMessage().setText(menu.getCurrentPattern().getText())
-                .setChat_id(chatId)
-                .setReply_markup(new ForceReply()
-                        .setForce_reply(true)
-                        .setInput_field_placeholder("Wpisz tu:"));
+    private SendMessage createDataInputMenuMessage (String inputFieldPlaceholder){
+        if (newMenu == null) {
+            msgMgr.sendAndLogErrorMsg("MS.cDIMM001","NewMenu field is null.");
+            throw new RuntimeException("MS.cDIMM001");
+        }else {
+            return new SendMessage().setText(newMenu.getCurrentPattern().getText())
+                    .setChat_id(newMenu.getChatId())
+                    .setReply_markup(new ForceReply()
+                            .setForce_reply(true)
+                            .setInput_field_placeholder(inputFieldPlaceholder));
         }
+    }
+    private void sendDataInputMenuMessageAndSave(String inputFieldPlaceholder){
+        if (newMenu == null) {
+            msgMgr.sendAndLogErrorMsg("MS.sDIMM001","NewMenu field is null.");
+            throw new RuntimeException("MS.sDIMM001");
+        }else{
+            deleteOldMenuMessage();
+            SendMessage msg = new SendMessage().setText(newMenu.getCurrentPattern().getText())
+                    .setChat_id(newMenu.getChatId())
+                    .setReply_markup(new ForceReply()
+                            .setForce_reply(true)
+                            .setInput_field_placeholder(inputFieldPlaceholder))
+            newMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(msg).getResult().getMessage_id());
+            saveMenu();
+        }
+    }
+    private void sendInfoMenuWithBackButton(String info){
+        if (oldMenu == null) {
+            msgMgr.sendAndLogErrorMsg("MS.sIMWBB","OldMenu field is null.");
+            throw new RuntimeException("MS.sIMWBB");
+        }else {
+            newPattern = menuRepo.getPatternByName("InfoWithBackButton");
+            newPattern.setText(info);
+            newPattern.setUpperPatternName(oldMenu.getCurrentPattern().getName());
+            sendNextMenuPatternByEditingOldAndSave(newPattern);
+        }
+    }
+    private void deleteOldMenuMessage(){
+        if (oldMenu == null || oldMenu.getMessageId() ==null) {
+            msgMgr.sendAndLogErrorMsg("MS.dOMM","OldMenu field is null.");
+            throw new RuntimeException("MS.dOMM");
+        }else {
+            msgMgr.deleteTelegramMessage(oldMenu.getChatId(), oldMenu.getMessageId());
+        }
+    }
     private SendMessage createMenuMessage(@NotNull Menu menu){
 //        null check
     if(menu.getCurrentPattern().getText()!=null
@@ -229,37 +266,66 @@ public class MenuService {
         throw new RuntimeException("Pattern is bad.");
     }
 }
-    private Menu sendNextMenuPatternByEditingOldAndSave(Menu menu, String nextPatternName){
-        menu.setLastSentDate(Utils.getCurrentUnixTime());
-        menu.setLastPattern(menu.getCurrentPattern());
-        menu.setCurrentPattern(menuRepo.getPatternByName(nextPatternName));
-        menu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage(menu)).getResult().getMessage_id());
-        return saveMenu(menu);
+    private Menu sendNextMenuPatternByEditingOldAndSave(@NonNull String nextPatternName){
+        if (oldMenu == null) {
+            msgMgr.sendAndLogErrorMsg("MS.sNMPBEOAS001","OldMenu field is null.");
+            throw new RuntimeException("MS.sNMPBEOAS001");
+        }else {
+            newMenu = oldMenu;
+            newMenu.setLastSentDate(Utils.getCurrentUnixTime());
+            newMenu.setLastPattern(oldMenu.getCurrentPattern());
+            newMenu.setCurrentPattern(menuRepo.getPatternByName(nextPatternName));
+            newMenu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage(newMenu)).getResult().getMessage_id());
+            return saveMenu();
+        }
     }
-    private Menu sendNextMenuPatternByEditingOldAndSave(Menu menu, MenuPattern nextPattern){
-        menu.setLastSentDate(Utils.getCurrentUnixTime());
-        menu.setLastPattern(menu.getCurrentPattern());
-        menu.setCurrentPattern(nextPattern);
-        menu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage(menu)).getResult().getMessage_id());
-        return saveMenu(menu);
+    private Menu sendNextMenuPatternByEditingOldAndSave(@NonNull MenuPattern nextPattern){
+        if (oldMenu == null) {
+            msgMgr.sendAndLogErrorMsg("MS.sNMPBEOAS002","OldMenu field is null.");
+            throw new RuntimeException("MS.sNMPBEOAS002")
+        }else {
+            newMenu=oldMenu;
+            newMenu.setLastSentDate(Utils.getCurrentUnixTime());
+            newMenu.setLastPattern(oldMenu.getCurrentPattern());
+            newMenu.setCurrentPattern(nextPattern);
+            newMenu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage(newMenu)).getResult().getMessage_id());
+            return saveMenu();
+        }
     }
-    private Menu sendNextMenuPatternByDeletingOldAndSave(Menu menu, MenuPattern nextPattern){
-        menu.setLastSentDate(Utils.getCurrentUnixTime());
-        menu.setLastPattern(menu.getCurrentPattern());
-        menu.setCurrentPattern(nextPattern);
-        msgMgr.deleteTelegramMessage(menu.getChatId(), menu.getMessageId());
-        menu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessage(menu)).getResult().getMessage_id());
-        return saveMenu(menu);
+    private Menu sendNextMenuPatternByDeletingOldAndSave(@NonNull MenuPattern nextPattern){
+        if (oldMenu == null) {
+            msgMgr.sendAndLogErrorMsg("MS.sNMPBDOAS001","OldMenu field is null.");
+            throw new RuntimeException("MS.sNMPBDOAS001");
+        }else {
+            deleteOldMenuMessage();
+            newMenu=oldMenu;
+            newMenu.setLastSentDate(Utils.getCurrentUnixTime());
+            newMenu.setLastPattern(oldMenu.getCurrentPattern());
+            newMenu.setCurrentPattern(nextPattern);
+            newMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessage(newMenu)).getResult().getMessage_id());
+            return saveMenu();
+        }
     }
-    private Menu sendNextMenuPatternByDeletingOldAndSave(Menu menu, String nextPatternName){
-        menu.setLastSentDate(Utils.getCurrentUnixTime());
-        menu.setLastPattern(menu.getCurrentPattern());
-        menu.setCurrentPattern(menuRepo.getPatternByName(nextPatternName));
-        msgMgr.deleteTelegramMessage(menu.getChatId(), menu.getMessageId());
-        menu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessage(menu)).getResult().getMessage_id());
-        return saveMenu(menu);
+    private Menu sendNextMenuPatternByDeletingOldAndSave(@NonNull String nextPatternName){
+        if (oldMenu == null) {
+            msgMgr.sendAndLogErrorMsg("MS.sNMPBDOAS002","OldMenu field is null.");
+            throw new RuntimeException("MS.sNMPBDOAS002");
+        }else {
+            deleteOldMenuMessage();
+            newMenu=oldMenu;
+            newMenu.setLastSentDate(Utils.getCurrentUnixTime());
+            newMenu.setLastPattern(oldMenu.getCurrentPattern());
+            newMenu.setCurrentPattern(menuRepo.getPatternByName(nextPatternName));
+            newMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessage(newMenu)).getResult().getMessage_id());
+            return saveMenu();
+        }
     }
-    private Menu saveMenu(Menu menu){
-        return menuRepo.save(menu);
+    private Menu saveMenu(){
+        if (newMenu == null) {
+            msgMgr.sendAndLogErrorMsg("MS.sM001","NewMenu field is null.");
+            throw new RuntimeException("MS.sM001");
+        }else {
+            return menuRepo.save(newMenu);
+        }
     }
 }

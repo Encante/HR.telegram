@@ -242,7 +242,7 @@ public RequestHandler(Gson gson, WebhookUpdateService wus, QuizService qs, HueAu
         if (commands.length >= atLeast){
             return true;
         }else {
-            msgManager.sendAndLogErrorMsg("Bad command lenght - insuficient parameters from command "+ invoker);
+            msgManager.sendAndLogErrorMsg("RH.cCL","Bad command lenght - insuficient parameters from command "+ invoker);
             return false;
         }
     }

@@ -84,10 +84,10 @@ public class HueAuthorizationService{
                 saveOrUpdateAuthorizationBasedOnClientId(authorization);
 //                if authorization doesn't contain clientid we throw an exception
             }else {
-                msgManager.sendAndLogErrorMsg("Authorization entity not valid. clientId is null. Invoker: HueAuthorizationServiceImpl.sendAuthorizationLink.");
+                msgManager.sendAndLogErrorMsg("HAS.sAL001","Authorization entity not valid. clientId is null.");
             }
         } else {
-            msgManager.sendAndLogErrorMsg("No authorization for app with name '" + displayName + "' in DB. Invoker: HueAuthorizationServiceImpl.sendAuthorizationLink");
+            msgManager.sendAndLogErrorMsg("HAS.sAL001","No authorization for app with name '" + displayName + "' in DB.");
         }
     }
     
@@ -103,10 +103,10 @@ public class HueAuthorizationService{
                 log.debug("JUST FOR DEBUGGING PURPOSES LETS CHECK IF ORIGINAL SENDER IS SET FOR MSGMANAGER(authenticateApp): "+msgManager.getOriginalSender().getId());
                 msgManager.sendTelegramTextMessage("Tokens retrieved! App " + authorization.getDisplayName() + " authorized!", msgManager.getME());
 //                if any of required authorization fields are missing
-            }else msgManager.sendAndLogErrorMsg("ERROR.Part of Authorization missing. Invoker: HueAuthorizationServiceImpl.authenticateApp");
+            }else msgManager.sendAndLogErrorMsg("HAS.aA001","Part of Authorization missing.");
 //            if there isn't any authorization with given state
         }else
-            msgManager.sendAndLogErrorMsg("ERROR. No authorization with state: "+ state+" in DB. Invoker: HueAuthorizationServiceImpl.authenticateApp.");
+            msgManager.sendAndLogErrorMsg("HAS.aA002","No authorization with state: "+ state+" in DB.");
     }
 
     public String checkAndRefreshToken(){
@@ -150,9 +150,8 @@ public class HueAuthorizationService{
                 return false;
             }
         }else {
-            String err = "ERROR. Access token or username is null. Invoker: checkAndRefreshHueAuthorization";
-            msgManager.sendAndLogErrorMsg(err);
-            throw new RuntimeException(err);
+            msgManager.sendAndLogErrorMsg("HAS.cHA001","Access token or username is null." );
+            throw new RuntimeException("HAS.cHA001");
         }
     }
     private String refreshAndSaveHueToken(@NotNull HueAuthorization authorization){
@@ -167,9 +166,8 @@ public class HueAuthorizationService{
             return "HUE Token refreshed and saved succesfully.";
 //            authorization has some unexpected nulls
         }else {
-            String err = "ERROR. ClientId, ClientSecret or RefreshToken is null. Invoker: HueAuthorizationServiceImpl.refreshHueToken";
-            msgManager.sendAndLogErrorMsg(err);
-            return err;
+            msgManager.sendAndLogErrorMsg("HAS.rASHT001","ClientId, ClientSecret or RefreshToken is null.");
+            return "Error code: HAS.rASHT001";
         }
     }
     private HueAuthorization checkDbForExistingClientId(HueAuthorization ent){

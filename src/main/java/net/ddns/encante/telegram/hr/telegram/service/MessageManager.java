@@ -54,23 +54,22 @@ public class MessageManager {
         request.answerCallbackQuery(answer);
     }
 
-    public void sendAndLogErrorMsg(@NotNull String error) {
-            log.warn(error);
-            sendTelegramTextMessage(error, ME);
+    public void sendAndLogErrorMsg(@NotNull String errorCode, String errorMessage) {
+            sendBackTelegramTextMessage("Error code: "+errorCode+".");
+            log.warn("Error code: "+errorCode+". "+errorMessage);
     }
 
     public SentMessage sendBackTelegramTextMessage(String text) {
-        if (originalSender != null) {
+        if (this.originalSender == null) {
+            sendTelegramTextMessage("Error code: MM.sBTTM001.",ME);
+            log.warn("Error code: MM.sBTTM001. No original sender in MessageManager. Original text to send back: "+text);
+            throw new RuntimeException("Error code: MM.sBTTM001.");
+        }else {
             return request.sendTelegramMessageObj(new SendMessage()
                     .setText(text)
                     .setChat_id(originalSender.getId()));
-        } else {
-            String err = "ERROR - backToSender is null. Method: sendBackTelegramTextMessage. Text: " + text;
-            sendAndLogErrorMsg(err);
-            throw new RuntimeException(err);
         }
     }
-
     public void sendQuizResultInfo(Quiz quiz, Long whoTo) {
         if (quiz.getSuccess() == true) {
             sendTelegramTextMessage("Dobra odpowiedź na pytanie: " + quiz.getQuestion(), whoTo);
@@ -79,30 +78,18 @@ public class MessageManager {
         }
     }
     public SentMessage greet() {
-        if (originalSender != null) {
-            if (originalSender.getLast_name() != null) {
-                return sendBackTelegramTextMessage("Hey " + originalSender.getFirst_name() + " " + originalSender.getLast_name() + "! Have a nice day =]");
-            } else {
-                return sendBackTelegramTextMessage("Hello " + originalSender.getFirst_name() + "! Have a nice day =]");
-            }
+        if (originalSender.getLast_name() == null) {
+            return sendBackTelegramTextMessage("Hello " + originalSender.getFirst_name() + "! Have a nice day =]");
         } else {
-            String error = "ERROR - backToSender is null. Method: greet.";
-            sendAndLogErrorMsg(error);
-            throw new RuntimeException(error);
+            return sendBackTelegramTextMessage("Hey " + originalSender.getFirst_name() + " " + originalSender.getLast_name() + "! Have a nice day =]");
         }
     }
 
     public SentMessage greetFirstTime() {
-        if (originalSender != null) {
-            if (originalSender.getLast_name() != null) {
-                return sendBackTelegramTextMessage("Hello " + originalSender.getFirst_name() + " " + originalSender.getLast_name() + "! Nice to see you! Hope You'll have a good time =]");
-            } else {
-                return sendBackTelegramTextMessage("Hello " + originalSender.getFirst_name() + "! Nice to see you! Hope You'll have a good time =]");
-            }
+        if (originalSender.getLast_name() == null) {
+            return sendBackTelegramTextMessage("Hello " + originalSender.getFirst_name() + "! Nice to see you! Hope You'll have a good time =]");
         } else {
-            String err = "ERROR! backToSender is null. Invoker: greetFirstTime";
-            sendAndLogErrorMsg(err);
-            throw new RuntimeException(err);
+            return sendBackTelegramTextMessage("Hello " + originalSender.getFirst_name() + " " + originalSender.getLast_name() + "! Nice to see you! Hope You'll have a good time =]");
         }
     }
 
