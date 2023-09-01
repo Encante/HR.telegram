@@ -55,7 +55,7 @@ public RequestHandler(Gson gson, WebhookUpdateService wus, QuizService qs, HueAu
             }
 //            check if it is a menu callback and eventually handle it
             else if(menuService.getMenuByCredentials(msgManager.getOriginalSender().getId(), update.getCallback_query().getMessage().getMessage_id())!=null){
-                menuService.handleMenuCallback(update);
+                menuService.handleMenuButton(update);
                 log.info("Menu callback resolved");
             }
 //                nothing specific other than quiz is designed to be used by callbacks so now default behavior will be sending "Callback Answer" and deleting an inline keyboard
@@ -77,7 +77,7 @@ public RequestHandler(Gson gson, WebhookUpdateService wus, QuizService qs, HueAu
                     log.info("quiz answer resolved.");
 //                    if it is not quiz related reply to bot message and it is not from me send message to me
                 }else if (menuService.getMenuByCredentials(msgManager.getOriginalSender().getId(), update.getMessage().getReply_to_message().getMessage_id())!=null){
-                    menuService.handleMenuReply(update);
+                    menuService.handleMenuInput(update);
                     log.info("Menu answer resolved.");
                 } else if(!msgManager.getOriginalSender().getId().equals(msgManager.getME())){
                     msgManager.sendTelegramTextMessage("New reply! T: " + Utils.getCurrentDateTime()
