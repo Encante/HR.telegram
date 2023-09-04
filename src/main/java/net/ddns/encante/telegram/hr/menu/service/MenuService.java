@@ -15,7 +15,9 @@ import net.ddns.encante.telegram.hr.telegram.api.objects.ForceReply;
 import net.ddns.encante.telegram.hr.telegram.api.objects.InlineKeyboardButton;
 import net.ddns.encante.telegram.hr.telegram.api.objects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.hr.telegram.api.objects.WebhookUpdate;
+import net.ddns.encante.telegram.hr.telegram.entity.UserEntity;
 import net.ddns.encante.telegram.hr.telegram.service.MessageManager;
+import net.ddns.encante.telegram.hr.telegram.service.WebhookUpdateService;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
@@ -25,19 +27,20 @@ import java.util.ArrayList;
 @Service("menuService")
 public class MenuService {
     private QuizService quizService;
+    private WebhookUpdateService webhookService;
     private MenuRepository menuRepo;
     private MessageManager msgMgr;
     private HueAuthorizationService hueAuthorizationService;
     private Menu newMenu;
     private Menu oldMenu;
     private MenuPattern newPattern;
-    private MenuPattern oldPattern;
 
-    public MenuService(QuizService quizService, MenuRepository menuRepository, MessageManager msgMgr, HueAuthorizationService hueAuthorizationService){
+    public MenuService(QuizService quizService, MenuRepository menuRepository, MessageManager msgMgr, HueAuthorizationService hueAuthorizationService, WebhookUpdateService wus){
         this.quizService = quizService;
         this.menuRepo = menuRepository;
         this.msgMgr = msgMgr;
         this.hueAuthorizationService = hueAuthorizationService;
+        this.webhookService = wus;
     }
 
     public void createMainMenu(@NotNull Long chatId){
@@ -127,6 +130,9 @@ public class MenuService {
                     case "/snqChom" -> {
                         sendNextInfoMenuWithBackButton("Quiz "+quizService.sendNextQuizToId(msgMgr.getCHOMIK()).getQuestion() + " wysłany do Chomika.",buttonAction);
                     }
+                    case "/snqId" -> {
+                        sendNextInfoTextInputMenuAndSave("Wpisz ID użytkownika", "Wpisz tu",buttonAction);
+                    }
                 }
             }
         }
@@ -164,7 +170,15 @@ public class MenuService {
                         }
                     }
                     case "QuizSendChoice" -> {
-// TODO: 04.09.2023  
+                        String invoker = oldMenu.getInvoker();
+                        if (invoker == null) {
+                            msgMgr.sendAndLogErrorMsg("MS.hMI001","Invoker is null.");
+                        } else if (invoker.equals("/snqId")) {
+                            UserEntity user = webhookService.getUserEntityByUserId(Long.decode(menuReply));
+                            if (user == null) {
+                                sendNextInfoMenuWithBackButton("Nie ma użytkownika z takim ID w bazie.",menu);
+                            }else sendNextInfoMenuWithBackButton("Quiz "+quizService.sendNextQuizToId(user.getUserId()).getQuestion() + " wysłany do użytkownika "+user.getFirstName()+".",menu);
+                        }
                     }
                 }
             }
