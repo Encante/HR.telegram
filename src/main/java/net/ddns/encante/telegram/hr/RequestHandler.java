@@ -130,13 +130,13 @@ public RequestHandler(Gson gson, WebhookUpdateService wus, QuizService qs, HueAu
                         case "/quiz" -> {
                             if (checkCommandLenght(2, "/quiz")) {
                                 if (commands[1].equalsIgnoreCase("me"))
-                                    quizService.sendQuizToId(msgManager.getME());
-                                if (commands[1].equalsIgnoreCase("yas")) quizService.sendQuizToYasia();
+                                    quizService.sendNextQuizToId(msgManager.getME());
+                                if (commands[1].equalsIgnoreCase("yas")) quizService.sendNextQuizToYasia();
                                 if (commands[1].equalsIgnoreCase("chom"))
-                                    quizService.sendQuizToId(msgManager.getCHOMIK());
+                                    quizService.sendNextQuizToId(msgManager.getCHOMIK());
                                 if (commands[1].equalsIgnoreCase("id")) {
                                     if (checkCommandLenght(3, "/quiz id"))
-                                        quizService.sendQuizToId(Long.decode(commands[2]));
+                                        quizService.sendNextQuizToId(Long.decode(commands[2]));
                                 }
                             }
                         }

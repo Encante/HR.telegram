@@ -74,8 +74,8 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
         if(countRemainingQuizToSend()>0)
             return quizRepository.findAllQuizEntitiesToSend().get(0);
         else {
-            log.warn("No entries in db. Invoker: getNextQuizToSendFromDb()");
-            throw new RuntimeException("No entries in db.");
+            log.debug("No entries in db. Invoker: getNextQuizToSendFromDb()");
+            return null;
         }
     }
     
@@ -119,8 +119,14 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
         }
     }
     
-    public void sendQuizToId(Long chatId){
-        //                            get next not sent quiz from db
+    public Quiz sendNextQuizToId(Long chatId){
+        if (getNextQuizToSendFromDb() == null) {
+            List<Quiz> allQuizes = quizRepository.findAllByOrderByKeyIdAsc();
+            Collections.shuffle(allQuizes);
+            allQuizes.subList(1,allQuizes.size()).clear();
+            resetQuizList(allQuizes);
+        }
+//                            get next not sent quiz from db
         Quiz quiz = getNextQuizToSendFromDb();
         quiz.setChatId(chatId);
 //                            send quiz message
@@ -130,27 +136,28 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
         quiz.setChatId(sentQuizMsg.getResult().getChat().getId());
         quiz.setDateSent(sentQuizMsg.getResult().getDate());
         quiz.setLastAnswer(null);
-//                            save updated quiz to db
-        saveQuiz(quiz);
+//        send raport
         msgMgr.sendTelegramTextMessage("quiz "+ quiz.getQuestion() +" wysłany", msgMgr.getME());
         log.debug("quiz "+quiz.getKeyId()+ " wyslany <<<<<<<<<");
+//                            save updated quiz to db
+        return saveQuiz(quiz);
     }
     @Async
     @Scheduled(cron = "0 55 7 ? * SAT")
     public void prepareQuizForWeekend(){
         List<Quiz> retriesFromLastWeek = quizRepository.findAllRetriesFromLastWeek(Utils.getCurrentUnixTime());
-        List<Quiz> allQuizFromLastWeek = quizRepository.findAllQuizFromLastWeek(Utils.getCurrentUnixTime());
+        List<Quiz> notSentYet = quizRepository.findAllQuizEntitiesToSend();
         int lastWeekEvents = eventsRepo.findAllEventsFromLastWeek(Utils.getCurrentUnixTime()).size();
         int goodAnswerCount = eventsRepo.findGoodAnswerEventsFromLastWeek(Utils.getCurrentUnixTime()).size();
         int rate =  Math.round(((float)goodAnswerCount/lastWeekEvents)*100);
         String summary = "W zeszłym tygodniu miałaś "+goodAnswerCount+" dobrych odpowiedzi na "+ lastWeekEvents+". Miałaś "+rate+"% odpowiedzi poprawnych.";
         msgMgr.sendTelegramTextMessage(summary,msgMgr.getME());
         msgMgr.sendTelegramTextMessage(summary, msgMgr.getYASIA());
-        if (retriesFromLastWeek.size()<24){
+        if (retriesFromLastWeek.size()+notSentYet.size()<24){
             List<Quiz>allOtherRetries = quizRepository.findAllRetries();
             allOtherRetries.removeAll(retriesFromLastWeek);
             Collections.shuffle(allOtherRetries);
-            for (int i = retriesFromLastWeek.size(); i < 24; i++) {
+            for (int i = retriesFromLastWeek.size()+notSentYet.size(); i < 24; i++) {
                 retriesFromLastWeek.add(allOtherRetries.get(0));
                 allOtherRetries.remove(0);
             }
@@ -161,6 +168,8 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
             resetQuizList(retriesFromLastWeek);
         }
         else resetQuizList(retriesFromLastWeek);
+        log.info("Lista weekendowych Quizow przygotowana.");
+        msgMgr.sendTelegramTextMessage("Lista weekendowych Quizow przygotowana.",msgMgr.getME());
     }
     public String testQuizForWeekend(){
         int lastWeekEvents = eventsRepo.findAllEventsFromLastWeek(Utils.getCurrentUnixTime()).size();
@@ -172,8 +181,8 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
 
     @Async
     @Scheduled(cron = "0 0 8-18 ? * *")
-    public void sendQuizToYasia(){
-        sendQuizToId(msgMgr.getYASIA());
+    public void sendNextQuizToYasia(){
+    sendNextQuizToId(msgMgr.getYASIA());
     }
     private SendMessage createAbcdQuizMessage (Quiz quiz){
         String[] keys = {quiz.getOptA(), quiz.getOptB(), quiz.getOptC(), quiz.getOptD()};
@@ -427,7 +436,6 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
             q.setAnswersDepleted(false);
             quizRepository.save(q);
         }
-        log.info("Lista weekendowych Quizow przygotowana.");
-        msgMgr.sendTelegramTextMessage("Lista weekendowych Quizow przygotowana.",msgMgr.getME());
+        log.debug("List of Quizes reseted.");
     }
 }

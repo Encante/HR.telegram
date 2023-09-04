@@ -115,6 +115,18 @@ public class MenuService {
                     case "/mmsmChomik" ->{
                         sendNextInfoTextInputMenuAndSave("Wiadomość do Chomika: ","Wpisz tutaj: ",buttonAction);
                     }
+                    case "/sendNextQuiz" ->{
+                        sendNextMenuPatternByEditingOldAndSave("QuizSendChoice", buttonAction);
+                    }
+                    case "/snqMe" -> {
+                        sendNextInfoMenuWithBackButton("Quiz "+quizService.sendNextQuizToId(msgMgr.getME()).getQuestion() + " wysłany do Michała.",buttonAction);
+                    }
+                    case "/snqYas" -> {
+                        sendNextInfoMenuWithBackButton("Quiz "+quizService.sendNextQuizToId(msgMgr.getYASIA()).getQuestion() + " wysłany do Яни.",buttonAction);
+                    }
+                    case "/snqChom" -> {
+                        sendNextInfoMenuWithBackButton("Quiz "+quizService.sendNextQuizToId(msgMgr.getCHOMIK()).getQuestion() + " wysłany do Chomika.",buttonAction);
+                    }
                 }
             }
         }
@@ -141,18 +153,18 @@ public class MenuService {
                         String whoTo = oldMenu.getInvoker();
                         switch (whoTo){
                             case "/mmsmMe" -> {
-                                msgMgr.sendTelegramTextMessage(menuReply, msgMgr.getME());
-                                sendNextInfoMenuWithBackButton("Wiadomość: '"+menuReply+"' wysłana do Michała.","MessageSender");
+                                sendNextInfoMenuWithBackButton("Wiadomość: '"+msgMgr.sendTelegramTextMessage(menuReply, msgMgr.getME()).getResult().getText()+"' wysłana do Michała.","MessageSender");
                             }
                             case "/mmsmYana" -> {
-                                msgMgr.sendTelegramTextMessage(menuReply, msgMgr.getYASIA());
-                                sendNextInfoMenuWithBackButton("Wiadomość: '"+menuReply+"' wysłana do Яни.","MessageSender");
+                                sendNextInfoMenuWithBackButton("Wiadomość: '"+msgMgr.sendTelegramTextMessage(menuReply, msgMgr.getYASIA()).getResult().getText()+"' wysłana do Яни.",menu);
                             }
                             case "/mmsmChomik" -> {
-                                msgMgr.sendTelegramTextMessage(menuReply, msgMgr.getCHOMIK());
-                                sendNextInfoMenuWithBackButton("Wiadomość: '"+menuReply+"' wysłana do Chomika.","MessageSender");
+                                sendNextInfoMenuWithBackButton("Wiadomość: '"+msgMgr.sendTelegramTextMessage(menuReply, msgMgr.getCHOMIK()).getResult().getText()+"' wysłana do Chomika.",menu);
                             }
                         }
+                    }
+                    case "QuizSendChoice" -> {
+// TODO: 04.09.2023  
                     }
                 }
             }
