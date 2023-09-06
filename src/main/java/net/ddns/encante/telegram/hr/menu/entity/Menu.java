@@ -28,13 +28,15 @@ public class Menu {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "current_pattern_key", referencedColumnName = "key_id")
     MenuPattern currentPattern;
-    @Column(name = "invoker")
-    String invoker;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "menu_invoker_key")
+    @Column(name = "menu_invoker")
+    MenuData data;
 
-    public Menu(Long chatId, Long lastSentDate, MenuPattern currentPattern, String invoker) {
+    public Menu(Long chatId, Long lastSentDate, MenuPattern currentPattern, MenuData data) {
         this.chatId = chatId;
         this.lastSentDate = lastSentDate;
         this.currentPattern = currentPattern;
-        this.invoker = invoker;
+        this.data = data;
     }
 }

@@ -74,7 +74,7 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
         if(countRemainingQuizToSend()>0)
             return quizRepository.findAllQuizEntitiesToSend().get(0);
         else {
-            log.debug("No entries in db. Invoker: getNextQuizToSendFromDb()");
+            log.debug("No entries in db. MenuData: getNextQuizToSendFromDb()");
             return null;
         }
     }
@@ -94,8 +94,8 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
                 return createForceReplyQuizMessageWithButton(quiz);
             }else return createAbcdQuizMessage(quiz);
         }else {
-            log.warn("quiz object incomplete. Can't create quiz message. Invoker: QuizServiceImpl.createMessage");
-            throw new RuntimeException("quiz object incomplete. Can't create quiz message. Invoker: QuizServiceImpl.createMessage");
+            log.warn("quiz object incomplete. Can't create quiz message. MenuData: QuizServiceImpl.createMessage");
+            throw new RuntimeException("quiz object incomplete. Can't create quiz message. MenuData: QuizServiceImpl.createMessage");
         }
     }
     
@@ -342,8 +342,8 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
                 saveQuiz(quiz);
 //        if quiz object is incompatibile (unexpected nulls)
             }else {
-                log.warn("ERROR. Unexpected null on quiz object. Invoker: QuizServiceImpl.resolveQuizAnswer.");
-                throw new RuntimeException("ERROR. Unexpected null on quiz object. Invoker: QuizServiceImpl.resolveQuizAnswer.");
+                log.warn("ERROR. Unexpected null on quiz object. MenuData: QuizServiceImpl.resolveQuizAnswer.");
+                throw new RuntimeException("ERROR. Unexpected null on quiz object. MenuData: QuizServiceImpl.resolveQuizAnswer.");
             }
 //        if prerequisite checks failed:
         }else {
@@ -425,8 +425,8 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
                     }
                     //        if prerequisite checks failed:
                 }else {
-                    log.warn("ERROR. Unexpected null on quiz object. Invoker: QuizService.resolveForceReplyQuiz.");
-                    throw new RuntimeException("ERROR. Unexpected null on quiz object. Invoker: QuizService.resolveForceReplyQuiz");
+                    log.warn("ERROR. Unexpected null on quiz object. MenuData: QuizService.resolveForceReplyQuiz.");
+                    throw new RuntimeException("ERROR. Unexpected null on quiz object. MenuData: QuizService.resolveForceReplyQuiz");
                 }
     }
     private void resetQuizList(List<Quiz> listToReset){

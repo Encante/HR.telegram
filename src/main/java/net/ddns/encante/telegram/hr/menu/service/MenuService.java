@@ -6,6 +6,7 @@ import net.ddns.encante.telegram.hr.Utils;
 import net.ddns.encante.telegram.hr.hue.service.HueAuthorizationService;
 import net.ddns.encante.telegram.hr.menu.entity.InlineMenuButton;
 import net.ddns.encante.telegram.hr.menu.entity.Menu;
+import net.ddns.encante.telegram.hr.menu.entity.MenuData;
 import net.ddns.encante.telegram.hr.menu.entity.MenuPattern;
 import net.ddns.encante.telegram.hr.menu.repository.MenuRepository;
 import net.ddns.encante.telegram.hr.quiz.service.QuizService;
@@ -31,9 +32,10 @@ public class MenuService {
     private MenuRepository menuRepo;
     private MessageManager msgMgr;
     private HueAuthorizationService hueAuthorizationService;
-    private Menu newMenu;
-    private Menu oldMenu;
+    //private Menu newMenu;
+    private Menu menu;
     private MenuPattern newPattern;
+    private MenuData data;
 
     public MenuService(QuizService quizService, MenuRepository menuRepository, MessageManager msgMgr, HueAuthorizationService hueAuthorizationService, WebhookUpdateService wus){
         this.quizService = quizService;
@@ -44,15 +46,15 @@ public class MenuService {
     }
 
     public void createMainMenu(@NotNull Long chatId){
-        oldMenu = menuRepo.findByChatId(chatId);
-        if (oldMenu == null){
+        menu = menuRepo.findByChatId(chatId);
+        if (menu == null){
             log.debug("New menu.");
             newMenu = new Menu(chatId,Utils.getCurrentUnixTime(),menuRepo.getPatternByName("MainMenu"),"new");
             newMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessageWithButtons()).getResult().getMessage_id());
             saveMenu();
         }else {
             log.debug("Menu existing in DB");
-            if (oldMenu.getMessageId() == null) {
+            if (menu.getMessageId() == null) {
                 msgMgr.sendAndLogErrorMsg("MS.cMM001","Can't delete old menu message. Menu object doesn't have a messageId assigned");
             }else{
                 //            set up new menu
@@ -61,8 +63,8 @@ public class MenuService {
         }
     }
     public void handleMenuButton(@NotNull WebhookUpdate update){
-        oldMenu = menuRepo.findByCredentials(msgMgr.getOriginalSender().getId(),update.getCallback_query().getMessage().getMessage_id());
-        if(oldMenu == null){
+        menu = menuRepo.findByCredentials(msgMgr.getOriginalSender().getId(),update.getCallback_query().getMessage().getMessage_id());
+        if(menu == null){
             msgMgr.sendAndLogErrorMsg("MS.hMC001","Can't find menu in DB");
         }else{
             String buttonAction = update.getCallback_query().getData();
@@ -78,12 +80,12 @@ public class MenuService {
                         sendNextInfoTextInputMenuAndSave("Wpisz tu: ","Wpisz tu:",buttonAction);
                     }
                     case "/back" ->{
-                        if (oldMenu == null || oldMenu.getCurrentPattern() == null || oldMenu.getCurrentPattern().getUpperPatternName() == null) {
+                        if (menu == null || menu.getCurrentPattern() == null || menu.getCurrentPattern().getUpperPatternName() == null) {
                             msgMgr.sendAndLogErrorMsg("MS.hMC003", "No upper pattern in MenuPattern: "+ newMenu.getCurrentPattern().getName()+". Object invalid");
                         }else {
-                            newMenu=oldMenu;
+                            newMenu= menu;
                             newMenu.setLastSentDate(Utils.getCurrentUnixTime());
-                            newMenu.setLastPattern(oldMenu.getCurrentPattern());
+                            newMenu.setLastPattern(menu.getCurrentPattern());
                             sendNextMenuPatternByEditingOldAndSave(newMenu.getLastPattern().getUpperPatternName(),buttonAction);
                         }
                     }
@@ -118,6 +120,9 @@ public class MenuService {
                     case "/mmsmChomik" ->{
                         sendNextInfoTextInputMenuAndSave("Wiadomość do Chomika: ","Wpisz tutaj: ",buttonAction);
                     }
+                    case "/mmsmId", "/snqId" -> {
+                        sendNextInfoTextInputMenuAndSave("Wpisz ID użytkownika", "Wpisz tu", buttonAction);
+                    }
                     case "/sendNextQuiz" ->{
                         sendNextMenuPatternByEditingOldAndSave("QuizSendChoice", buttonAction);
                     }
@@ -130,19 +135,16 @@ public class MenuService {
                     case "/snqChom" -> {
                         sendNextInfoMenuWithBackButton("Quiz "+quizService.sendNextQuizToId(msgMgr.getCHOMIK()).getQuestion() + " wysłany do Chomika.",buttonAction);
                     }
-                    case "/snqId" -> {
-                        sendNextInfoTextInputMenuAndSave("Wpisz ID użytkownika", "Wpisz tu",buttonAction);
-                    }
                 }
             }
         }
     }
     public void handleMenuInput(@NotNull WebhookUpdate update){
-        oldMenu = getMenuByCredentials(update.getMessage().getFrom().getId(), update.getMessage().getReply_to_message().getMessage_id());
+        menu = getMenuByCredentials(update.getMessage().getFrom().getId(), update.getMessage().getReply_to_message().getMessage_id());
         String menuReply = update.getMessage().getText();
 //        if we don't get text in reply send warning and send menu with forceReply again
-        if (oldMenu == null || oldMenu.getCurrentPattern()==null) {
-            msgMgr.sendAndLogErrorMsg("MS.hMR001", "oldMenu field is null, or oldMenu.currentPattern is null.");
+        if (menu == null || menu.getCurrentPattern()==null || menu.getData() == null) {
+            msgMgr.sendAndLogErrorMsg("MS.hMR001", "oldMenu field is invalid");
             throw new RuntimeException("MS.hMR001");
         }else {
             if (menuReply == null) {
@@ -150,14 +152,14 @@ public class MenuService {
                 sendNextInfoTextInputMenuAndSave("Nie wpisałeś tekstu. Wpisz tekst: ", "Wpisz tu: ",newMenu.getInvoker());
             }else {
 //                    This is name of the menu that requested input.
-                String menu = oldMenu.getCurrentPattern().getName();
+                String menu = this.menu.getCurrentPattern().getName();
                 switch (menu){
                     case "TestMenu" -> {
                         sendNextInfoMenuWithBackButton("Wpisałeś: " + menuReply,menu);
                     }
                     case "MessageSender" -> {
-                        String whoTo = oldMenu.getInvoker();
-                        switch (whoTo){
+                        String invoker = this.menu.getData();
+                        switch (invoker){
                             case "/mmsmMe" -> {
                                 sendNextInfoMenuWithBackButton("Wiadomość: '"+msgMgr.sendTelegramTextMessage(menuReply, msgMgr.getME()).getResult().getText()+"' wysłana do Michała.","MessageSender");
                             }
@@ -167,14 +169,23 @@ public class MenuService {
                             case "/mmsmChomik" -> {
                                 sendNextInfoMenuWithBackButton("Wiadomość: '"+msgMgr.sendTelegramTextMessage(menuReply, msgMgr.getCHOMIK()).getResult().getText()+"' wysłana do Chomika.",menu);
                             }
+                            case "/mmsmId" -> {
+                                UserEntity user = webhookService.getUserEntityByUserId(Long.decode(menuReply.replaceAll("[^\\d-]", "0")));//we only want numbers in our ID
+                                if (user == null) {
+                                    sendNextInfoMenuWithBackButton("Nie ma użytkownika z takim ID w bazie.",menu);
+                                }else sendNextInfoTextInputMenuAndSave("Jaka ma być wiadomość?","Wpisz wiadomość",">mmsmIdInput");
+                            }
+                            case ">mmsmIdInput" ->{
+                                sendNextInfoMenuWithBackButton("Wiadomość: '"+msgMgr.sendTelegramTextMessage(menuReply,user.getUserId()).getResult().getText()+"' wysłana do użytkownika "+user.getFirstName(),menu);
+                            }
                         }
                     }
                     case "QuizSendChoice" -> {
-                        String invoker = oldMenu.getInvoker();
+                        String invoker = this.menu.getData();
                         if (invoker == null) {
-                            msgMgr.sendAndLogErrorMsg("MS.hMI001","Invoker is null.");
+                            msgMgr.sendAndLogErrorMsg("MS.hMI001","MenuData is null.");
                         } else if (invoker.equals("/snqId")) {
-                            UserEntity user = webhookService.getUserEntityByUserId(Long.decode(menuReply));
+                            UserEntity user = webhookService.getUserEntityByUserId(Long.decode(menuReply.replaceAll("[^\\d-]", "0")));//we only want numbers in our ID
                             if (user == null) {
                                 sendNextInfoMenuWithBackButton("Nie ma użytkownika z takim ID w bazie.",menu);
                             }else sendNextInfoMenuWithBackButton("Quiz "+quizService.sendNextQuizToId(user.getUserId()).getQuestion() + " wysłany do użytkownika "+user.getFirstName()+".",menu);
@@ -192,27 +203,27 @@ public class MenuService {
      * @return
      */
     public Menu getMenuByCredentials(@NonNull Long chatId, @NonNull Long messageId){
-        oldMenu = menuRepo.findByCredentials(chatId,messageId);
-        if (oldMenu == null) {
+        menu = menuRepo.findByCredentials(chatId,messageId);
+        if (menu == null) {
             msgMgr.sendAndLogErrorMsg("MS.gMBC001", "No Menu entries in db with such credentials. MessageId: "+messageId+"ChatId: "+chatId);
             return null;
-        }else return oldMenu;
+        }else return menu;
     }
     /**
-     * Deletes oldMenu message and sends new menu using oldMenu field data but changing reply markup to Force Reply.
-     * "Please note, that it is currently only possible to edit messages without reply_markup or with inline keyboards."< That's why we have to delete old menu message
-     * @param inputFieldPlaceholder
+     * Deletes *menu* message and sends new menu using *menu* field data but changing reply markup to Force Reply.
+     * "Please note, that it is currently only possible to edit messages without reply_markup or with inline keyboards."< That's why we have to delete old menu message.
+     * @param inputFieldPlaceholder message that will appear in input text window.
+     * @return saved Menu obj.
      */
-    private Menu sendNextTextInputMenuAndSave(String inputFieldPlaceholder, @NonNull String invoker){
-        if (oldMenu == null) {
-            msgMgr.sendAndLogErrorMsg("MS.sDIMM001","OldMenu field is null.");
+    private Menu sendNextTextInputMenuAndSave(String inputFieldPlaceholder){
+        if (menu == null) {
+            msgMgr.sendAndLogErrorMsg("MS.sDIMM001","menu field is null.");
             throw new RuntimeException("MS.sDIMM001");
         }else{
-            deleteOldMenuMessage();
-            newMenu=oldMenu;
-            newMenu.setInvoker(invoker);
-            newMenu.setLastSentDate(Utils.getCurrentUnixTime());
-            newMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessageWithTextInput(inputFieldPlaceholder)).getResult().getMessage_id());
+            deleteMenuMessage();
+            menu.setData(data);
+            menu.setLastSentDate(Utils.getCurrentUnixTime());
+            menu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessageWithTextInput(inputFieldPlaceholder)).getResult().getMessage_id());
             return saveMenu();
         }
     }
@@ -225,12 +236,12 @@ public class MenuService {
      * @return
      */
     private Menu sendNextInfoTextInputMenuAndSave(String info, String inputFieldPlaceholder, @NonNull String invoker){
-        if (oldMenu == null || oldMenu.getCurrentPattern() == null) {
+        if (menu == null || menu.getCurrentPattern() == null) {
             msgMgr.sendAndLogErrorMsg("MS.sNITIM001","OldMenu field is null.");
             throw new RuntimeException("MS.sNITIM001");
         }else {
-            deleteOldMenuMessage();
-            newMenu=oldMenu;
+            deleteMenuMessage();
+            newMenu= menu;
             String originalPatternText = newMenu.getCurrentPattern().getText();
             newMenu.getCurrentPattern().setText(info);
             newMenu.setInvoker(invoker);
@@ -248,15 +259,19 @@ public class MenuService {
     private void sendNextInfoMenuWithBackButton(String info, String invoker){
         newPattern = menuRepo.getPatternByName("InfoWithBackButton");
         newPattern.setText(info);
-        newPattern.setUpperPatternName(oldMenu.getCurrentPattern().getName());
+        newPattern.setUpperPatternName(menu.getCurrentPattern().getName());
         sendNextMenuPatternByDeletingOldAndSave(newPattern,invoker);
     }
-    private void deleteOldMenuMessage(){
-        if (oldMenu == null || oldMenu.getMessageId() ==null) {
-            msgMgr.sendAndLogErrorMsg("MS.dOMM001","OldMenu field is null.");
+
+    /**
+     * Deletes menu message based on menu field.
+     */
+    private void deleteMenuMessage(){
+        if (menu == null || menu.getMessageId() ==null) {
+            msgMgr.sendAndLogErrorMsg("MS.dOMM001","menu field is null.");
             throw new RuntimeException("MS.dOMM001");
         }else {
-            msgMgr.deleteTelegramMessage(oldMenu.getChatId(), oldMenu.getMessageId());
+            msgMgr.deleteTelegramMessage(menu.getChatId(), menu.getMessageId());
         }
     }
 
@@ -368,59 +383,60 @@ public class MenuService {
                     .build();
         }
     }
-    private Menu sendNextMenuPatternByEditingOldAndSave(@NonNull String nextPatternName, @NonNull String invoker){
-        if (oldMenu == null || oldMenu.getCurrentPattern() == null) {
-            msgMgr.sendAndLogErrorMsg("MS.sNMPBEOAS001","OldMenu field is null.");
+    private Menu sendNextMenuPatternByEditingOldAndSave(@NonNull String nextPatternName){
+        if (menu == null || menu.getCurrentPattern() == null || this.invoker == null) {
+            msgMgr.sendAndLogErrorMsg("MS.sNMPBEOAS001","OldMenu field is invalid or invoker is null.");
             throw new RuntimeException("MS.sNMPBEOAS001");
         }else {
-            newMenu = oldMenu;
+
+            newMenu = menu;
             newMenu.setLastSentDate(Utils.getCurrentUnixTime());
             newMenu.setInvoker(invoker);
-            newMenu.setLastPattern(oldMenu.getCurrentPattern());
+            newMenu.setLastPattern(menu.getCurrentPattern());
             newMenu.setCurrentPattern(menuRepo.getPatternByName(nextPatternName));
             newMenu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage()).getResult().getMessage_id());
             return saveMenu();
         }
     }
     private Menu sendNextMenuPatternByEditingOldAndSave(@NonNull MenuPattern nextPattern, @NonNull String invoker){
-        if (oldMenu == null || oldMenu.getCurrentPattern() == null) {
+        if (menu == null || menu.getCurrentPattern() == null) {
             msgMgr.sendAndLogErrorMsg("MS.sNMPBEOAS002","OldMenu field is null.");
             throw new RuntimeException("MS.sNMPBEOAS002");
         }else {
-            newMenu=oldMenu;
+            newMenu= menu;
             newMenu.setLastSentDate(Utils.getCurrentUnixTime());
             newMenu.setInvoker(invoker);
-            newMenu.setLastPattern(oldMenu.getCurrentPattern());
+            newMenu.setLastPattern(menu.getCurrentPattern());
             newMenu.setCurrentPattern(nextPattern);
             newMenu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage()).getResult().getMessage_id());
             return saveMenu();
         }
     }
     private Menu sendNextMenuPatternByDeletingOldAndSave(@NonNull MenuPattern nextPattern, @NonNull String invoker){
-        if (oldMenu == null || oldMenu.getCurrentPattern() == null) {
+        if (menu == null || menu.getCurrentPattern() == null) {
             msgMgr.sendAndLogErrorMsg("MS.sNMPBDOAS001","OldMenu field is null.");
             throw new RuntimeException("MS.sNMPBDOAS001");
         }else {
-            deleteOldMenuMessage();
-            newMenu=oldMenu;
+            deleteMenuMessage();
+            newMenu= menu;
             newMenu.setLastSentDate(Utils.getCurrentUnixTime());
             newMenu.setInvoker(invoker);
-            newMenu.setLastPattern(oldMenu.getCurrentPattern());
+            newMenu.setLastPattern(menu.getCurrentPattern());
             newMenu.setCurrentPattern(nextPattern);
             newMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessageWithButtons()).getResult().getMessage_id());
             return saveMenu();
         }
     }
-    private Menu sendNextMenuPatternByDeletingOldAndSave(@NonNull String nextPatternName, @NonNull String invoker){
-        if (oldMenu == null  || oldMenu.getCurrentPattern() == null) {
-            msgMgr.sendAndLogErrorMsg("MS.sNMPBDOAS002","OldMenu field is null.");
+    private Menu sendNextMenuPatternByDeletingOldAndSave(@NonNull String nextPatternName){
+        if (menu == null  || menu.getCurrentPattern() == null || invoker == null) {
+            msgMgr.sendAndLogErrorMsg("MS.sNMPBDOAS002","menu field or invoker is null.");
             throw new RuntimeException("MS.sNMPBDOAS002");
         }else {
-            deleteOldMenuMessage();
-            newMenu=oldMenu;
+            deleteMenuMessage();
+            newMenu= menu;
             newMenu.setLastSentDate(Utils.getCurrentUnixTime());
             newMenu.setInvoker(invoker);
-            newMenu.setLastPattern(oldMenu.getCurrentPattern());
+            newMenu.setLastPattern(menu.getCurrentPattern());
             newMenu.setCurrentPattern(menuRepo.getPatternByName(nextPatternName));
             newMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessageWithButtons()).getResult().getMessage_id());
             return saveMenu();
@@ -428,15 +444,15 @@ public class MenuService {
     }
 
     /**
-     * Saves newMenu field to DB
-     * @return
+     * Saves menu field to DB
+     * @return saved Menu obj.
      */
     private Menu saveMenu(){
-        if (newMenu == null) {
+        if (menu == null) {
             msgMgr.sendAndLogErrorMsg("MS.sM001","NewMenu field is null.");
             throw new RuntimeException("MS.sM001");
         }else {
-            return menuRepo.save(newMenu);
+            return menuRepo.save(menu);
         }
     }
 }
