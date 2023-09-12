@@ -20,7 +20,7 @@ public class Application {
 	public static void main(String[] args) {
 		ApplicationContext ctx = SpringApplication.run(Application.class, args);
 		MessageManager msgSender = ctx.getBean(MessageManager.class);
-		msgSender.sendTelegramTextMessage("Bot odpalony \n T: " + Utils.getCurrentDateTime(),msgSender.getME());
-		msgSender.sendTelegramTextMessage("Już wróciłem! :) Przepraszam za SPAM! \nBot jest włączony.", msgSender.getYASIA());
+		msgSender.sendTelegramMessage("Bot odpalony \n T: " + Utils.getCurrentDateTime(),msgSender.getME());
+		msgSender.sendTelegramMessage("Już wróciłem! :) Przepraszam za SPAM! \nBot jest włączony.", msgSender.getYASIA());
 		}
 }

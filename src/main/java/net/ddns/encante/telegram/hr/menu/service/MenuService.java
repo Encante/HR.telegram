@@ -45,12 +45,12 @@ public class MenuService {
         this.webhookService = wus;
     }
 
-    public void createMainMenu(@NotNull Long chatId){
+    public void sendMainMenu(@NotNull Long chatId){
         menu = menuRepo.findByChatId(chatId);
         if (menu == null){
             log.debug("New menu.");
             newMenu = new Menu(chatId,Utils.getCurrentUnixTime(),menuRepo.getPatternByName("MainMenu"),"new");
-            newMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessageWithButtons()).getResult().getMessage_id());
+            newMenu.setMessageId(msgMgr.sendTelegramMessage(createMenuMessageWithButtons()).getResult().getMessage_id());
             saveMenu();
         }else {
             log.debug("Menu existing in DB");
@@ -161,13 +161,13 @@ public class MenuService {
                         String invoker = this.menu.getData();
                         switch (invoker){
                             case "/mmsmMe" -> {
-                                sendNextInfoMenuWithBackButton("Wiadomość: '"+msgMgr.sendTelegramTextMessage(menuReply, msgMgr.getME()).getResult().getText()+"' wysłana do Michała.","MessageSender");
+                                sendNextInfoMenuWithBackButton("Wiadomość: '"+msgMgr.sendTelegramMessage(menuReply, msgMgr.getME()).getResult().getText()+"' wysłana do Michała.","MessageSender");
                             }
                             case "/mmsmYana" -> {
-                                sendNextInfoMenuWithBackButton("Wiadomość: '"+msgMgr.sendTelegramTextMessage(menuReply, msgMgr.getYASIA()).getResult().getText()+"' wysłana do Яни.",menu);
+                                sendNextInfoMenuWithBackButton("Wiadomość: '"+msgMgr.sendTelegramMessage(menuReply, msgMgr.getYASIA()).getResult().getText()+"' wysłana do Яни.",menu);
                             }
                             case "/mmsmChomik" -> {
-                                sendNextInfoMenuWithBackButton("Wiadomość: '"+msgMgr.sendTelegramTextMessage(menuReply, msgMgr.getCHOMIK()).getResult().getText()+"' wysłana do Chomika.",menu);
+                                sendNextInfoMenuWithBackButton("Wiadomość: '"+msgMgr.sendTelegramMessage(menuReply, msgMgr.getCHOMIK()).getResult().getText()+"' wysłana do Chomika.",menu);
                             }
                             case "/mmsmId" -> {
                                 UserEntity user = webhookService.getUserEntityByUserId(Long.decode(menuReply.replaceAll("[^\\d-]", "0")));//we only want numbers in our ID
@@ -176,7 +176,7 @@ public class MenuService {
                                 }else sendNextInfoTextInputMenuAndSave("Jaka ma być wiadomość?","Wpisz wiadomość",">mmsmIdInput");
                             }
                             case ">mmsmIdInput" ->{
-                                sendNextInfoMenuWithBackButton("Wiadomość: '"+msgMgr.sendTelegramTextMessage(menuReply,user.getUserId()).getResult().getText()+"' wysłana do użytkownika "+user.getFirstName(),menu);
+                                sendNextInfoMenuWithBackButton("Wiadomość: '"+msgMgr.sendTelegramMessage(menuReply,user.getUserId()).getResult().getText()+"' wysłana do użytkownika "+user.getFirstName(),menu);
                             }
                         }
                     }
@@ -223,7 +223,7 @@ public class MenuService {
             deleteMenuMessage();
             menu.setData(data);
             menu.setLastSentDate(Utils.getCurrentUnixTime());
-            menu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessageWithTextInput(inputFieldPlaceholder)).getResult().getMessage_id());
+            menu.setMessageId(msgMgr.sendTelegramMessage(createMenuMessageWithTextInput(inputFieldPlaceholder)).getResult().getMessage_id());
             return saveMenu();
         }
     }
@@ -246,7 +246,7 @@ public class MenuService {
             newMenu.getCurrentPattern().setText(info);
             newMenu.setInvoker(invoker);
             newMenu.setLastSentDate(Utils.getCurrentUnixTime());
-            newMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessageWithTextInput(inputFieldPlaceholder)).getResult().getMessage_id());
+            newMenu.setMessageId(msgMgr.sendTelegramMessage(createMenuMessageWithTextInput(inputFieldPlaceholder)).getResult().getMessage_id());
             newMenu.getCurrentPattern().setText(originalPatternText);
             return saveMenu();
         }
@@ -394,7 +394,7 @@ public class MenuService {
             newMenu.setInvoker(invoker);
             newMenu.setLastPattern(menu.getCurrentPattern());
             newMenu.setCurrentPattern(menuRepo.getPatternByName(nextPatternName));
-            newMenu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage()).getResult().getMessage_id());
+            newMenu.setMessageId(msgMgr.editTelegramMessage(createEditedMenuMessage()).getResult().getMessage_id());
             return saveMenu();
         }
     }
@@ -408,7 +408,7 @@ public class MenuService {
             newMenu.setInvoker(invoker);
             newMenu.setLastPattern(menu.getCurrentPattern());
             newMenu.setCurrentPattern(nextPattern);
-            newMenu.setMessageId(msgMgr.editTelegramTextMessage(createEditedMenuMessage()).getResult().getMessage_id());
+            newMenu.setMessageId(msgMgr.editTelegramMessage(createEditedMenuMessage()).getResult().getMessage_id());
             return saveMenu();
         }
     }
@@ -423,7 +423,7 @@ public class MenuService {
             newMenu.setInvoker(invoker);
             newMenu.setLastPattern(menu.getCurrentPattern());
             newMenu.setCurrentPattern(nextPattern);
-            newMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessageWithButtons()).getResult().getMessage_id());
+            newMenu.setMessageId(msgMgr.sendTelegramMessage(createMenuMessageWithButtons()).getResult().getMessage_id());
             return saveMenu();
         }
     }
@@ -438,7 +438,7 @@ public class MenuService {
             newMenu.setInvoker(invoker);
             newMenu.setLastPattern(menu.getCurrentPattern());
             newMenu.setCurrentPattern(menuRepo.getPatternByName(nextPatternName));
-            newMenu.setMessageId(msgMgr.sendTelegramObjAsMessage(createMenuMessageWithButtons()).getResult().getMessage_id());
+            newMenu.setMessageId(msgMgr.sendTelegramMessage(createMenuMessageWithButtons()).getResult().getMessage_id());
             return saveMenu();
         }
     }

@@ -130,14 +130,14 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
         Quiz quiz = getNextQuizToSendFromDb();
         quiz.setChatId(chatId);
 //                            send quiz message
-        SentMessage sentQuizMsg = msgMgr.sendTelegramObjAsMessage(createQuizMessage(quiz));
+        SentMessage sentQuizMsg = msgMgr.sendTelegramMessage(createQuizMessage(quiz));
 //                            update quiz obj
         quiz.setMessageId(sentQuizMsg.getResult().getMessage_id());
         quiz.setChatId(sentQuizMsg.getResult().getChat().getId());
         quiz.setDateSent(sentQuizMsg.getResult().getDate());
         quiz.setLastAnswer(null);
 //        send raport
-        msgMgr.sendTelegramTextMessage("quiz "+ quiz.getQuestion() +" wysłany", msgMgr.getME());
+        msgMgr.sendTelegramMessage("quiz "+ quiz.getQuestion() +" wysłany", msgMgr.getME());
         log.debug("quiz "+quiz.getKeyId()+ " wyslany <<<<<<<<<");
 //                            save updated quiz to db
         return saveQuiz(quiz);
@@ -151,8 +151,8 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
         int goodAnswerCount = eventsRepo.findGoodAnswerEventsFromLastWeek(Utils.getCurrentUnixTime()).size();
         int rate =  Math.round(((float)goodAnswerCount/lastWeekEvents)*100);
         String summary = "W zeszłym tygodniu miałaś "+goodAnswerCount+" dobrych odpowiedzi na "+ lastWeekEvents+". Miałaś "+rate+"% odpowiedzi poprawnych.";
-        msgMgr.sendTelegramTextMessage(summary,msgMgr.getME());
-        msgMgr.sendTelegramTextMessage(summary, msgMgr.getYASIA());
+        msgMgr.sendTelegramMessage(summary,msgMgr.getME());
+        msgMgr.sendTelegramMessage(summary, msgMgr.getYASIA());
         if (retriesFromLastWeek.size()+notSentYet.size()<24){
             List<Quiz>allOtherRetries = quizRepository.findAllRetries();
             allOtherRetries.removeAll(retriesFromLastWeek);
@@ -169,7 +169,7 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
         }
         else resetQuizList(retriesFromLastWeek);
         log.info("Lista weekendowych Quizow przygotowana.");
-        msgMgr.sendTelegramTextMessage("Lista weekendowych Quizow przygotowana.",msgMgr.getME());
+        msgMgr.sendTelegramMessage("Lista weekendowych Quizow przygotowana.",msgMgr.getME());
     }
     public String testQuizForWeekend(){
         int lastWeekEvents = eventsRepo.findAllEventsFromLastWeek(Utils.getCurrentUnixTime()).size();
@@ -222,7 +222,7 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
 //        firstly we delete original message because it cant be edited to force reply
         msgMgr.deleteTelegramMessage(update.getCallback_query().getFrom().getId(),update.getCallback_query().getMessage().getMessage_id());
 //        now send message with force reply to chat and update quiz object with new message id...
-        quiz.setMessageId(msgMgr.sendTelegramObjAsMessage(createForceReplyQuizMessageWithForceReply(update.getCallback_query().getFrom().getId(), quiz)).getResult().getMessage_id());
+        quiz.setMessageId(msgMgr.sendTelegramMessage(createForceReplyQuizMessageWithForceReply(update.getCallback_query().getFrom().getId(), quiz)).getResult().getMessage_id());
 //        and save new message id to quiz in db
         saveQuiz(quiz);
     }
@@ -230,7 +230,7 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
 //        firstly we delete original message because it cant be edited to force reply
         msgMgr.deleteTelegramMessage(quiz.getChatId(),quiz.getMessageId());
 //        now send message with force reply to chat and update quiz object with new message id...
-        quiz.setMessageId(msgMgr.sendTelegramObjAsMessage(createForceReplyQuizMessageWithForceReply(quiz.getChatId(), quiz)).getResult().getMessage_id());
+        quiz.setMessageId(msgMgr.sendTelegramMessage(createForceReplyQuizMessageWithForceReply(quiz.getChatId(), quiz)).getResult().getMessage_id());
 //        and save new message id to quiz in db
         saveQuiz(quiz);
     }
@@ -255,7 +255,7 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
                 quiz.setDateAnswered(Utils.getCurrentUnixTime());
                 quiz.setLastAnswer(update.getCallback_query().getData());
                 //              edit sent quiz message: add answer. We would do it anyway so we'll do it at start
-                msgMgr.editTelegramTextMessage(EditMessageText.builder()
+                msgMgr.editTelegramMessage(EditMessageText.builder()
                         .chat_id(update.getCallback_query().getFrom().getId())
                         .message_id(update.getCallback_query().getMessage().getMessage_id())
                         .text(update.getCallback_query().getMessage().getText()+"\nTwoja odpowiedź: "+ update.getCallback_query().getData())
@@ -335,7 +335,7 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
 //        by callback (popup message with response)...
                 msgMgr.answerCallbackQuery(quiz.getReactionForAnswerCallback());
 //        and by message (reply to original message)
-                msgMgr.sendTelegramObjAsMessage(quiz.getReactionForAnswerMessage());
+                msgMgr.sendTelegramMessage(quiz.getReactionForAnswerMessage());
 //        send me an info about quiz answer:
                 msgMgr.sendQuizResultInfo(quiz,msgMgr.getME());
 //        after modifications save quiz to and end method
@@ -373,7 +373,7 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
                         //              edit sent quiz message: add user answer. We would do it anyway so we'll do it at start
 //                we actually can't edit it, because of telegram restrictions, so we are deleting it and sending again and saving new messageId to quiz object
                         msgMgr.deleteTelegramMessage(quiz.getChatId(), quiz.getMessageId());
-                        quiz.setMessageId(msgMgr.sendTelegramTextMessage(quiz.getQuestion() + "\nTwoja odpowiedź: " + quiz.getLastAnswer(), quiz.getChatId()).getResult().getMessage_id());
+                        quiz.setMessageId(msgMgr.sendTelegramMessage(quiz.getQuestion() + "\nTwoja odpowiedź: " + quiz.getLastAnswer(), quiz.getChatId()).getResult().getMessage_id());
                         //        actual check
 //        if answer is good-
                         if (quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer()) || quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer() + " ")) {
@@ -417,7 +417,7 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
                         }
 //        either way it was good or bad answer now is the time to send reaction
 //                by message (reply to original message)
-                        msgMgr.sendTelegramObjAsMessage(quiz.getReactionForAnswerMessage());
+                        msgMgr.sendTelegramMessage(quiz.getReactionForAnswerMessage());
 //        send me an info about quiz answer:
                         msgMgr.sendQuizResultInfo(quiz, msgMgr.getME());
 //        after modifications save quiz to and end method
@@ -437,5 +437,8 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
             quizRepository.save(q);
         }
         log.debug("List of Quizes reseted.");
+    }
+    private sendQuizResultInfo (Long whoTo){
+    if
     }
 }

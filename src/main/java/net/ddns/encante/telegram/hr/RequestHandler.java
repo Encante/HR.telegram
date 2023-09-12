@@ -8,7 +8,6 @@ import net.ddns.encante.telegram.hr.menu.service.MenuService;
 import net.ddns.encante.telegram.hr.quiz.service.QuizService;
 import net.ddns.encante.telegram.hr.telegram.api.methods.AnswerCallbackQuery;
 import net.ddns.encante.telegram.hr.telegram.api.methods.SendMessage;
-import net.ddns.encante.telegram.hr.telegram.api.objects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.hr.telegram.api.objects.ReplyKeyboardMarkup;
 import net.ddns.encante.telegram.hr.telegram.api.objects.ReplyKeyboardRemove;
 import net.ddns.encante.telegram.hr.telegram.api.objects.WebhookUpdate;
@@ -63,7 +62,7 @@ public RequestHandler(Gson gson, WebhookUpdateService wus, QuizService qs, HueAu
 //            answer callback query
                 msgManager.answerCallbackQuery(new AnswerCallbackQuery(update.getCallback_query().getId(), "Callback Answer!", false));
 //            delete keyboard after pressing a key
-                msgManager.editTelegramMessageText(update.getCallback_query().getFrom().getId(),update.getCallback_query().getMessage().getMessage_id(),update.getCallback_query().getMessage().getText());
+                msgManager.editTelegramMessage(update.getCallback_query().getFrom().getId(),update.getCallback_query().getMessage().getMessage_id(),update.getCallback_query().getMessage().getText());
             }
 //      if it doesnt have callback querry, check if it has any message obj
         } else if (update.getMessage() != null) {
@@ -80,7 +79,7 @@ public RequestHandler(Gson gson, WebhookUpdateService wus, QuizService qs, HueAu
                     menuService.handleMenuInput(update);
                     log.info("Menu answer resolved.");
                 } else if(!msgManager.getOriginalSender().getId().equals(msgManager.getME())){
-                    msgManager.sendTelegramTextMessage("New reply! T: " + Utils.getCurrentDateTime()
+                    msgManager.sendTelegramMessage("New reply! T: " + Utils.getCurrentDateTime()
                             + "  FROM: "
                             + msgManager.getOriginalSender().getFirst_name()
                             + " "
@@ -99,34 +98,8 @@ public RequestHandler(Gson gson, WebhookUpdateService wus, QuizService qs, HueAu
                 if (update.getMessage().getText().charAt(0) == '/') {
                     this.commands = update.getMessage().getText().split(" ");
                     switch (commands[0]) {
-//                        basic command to check if bot is running
-                        case "/hi" -> msgManager.greet();
-                        case "/menu" -> menuService.createMainMenu(msgManager.getOriginalSender().getId());
+                        case "/menu" -> menuService.sendMainMenu(msgManager.getOriginalSender().getId());
                         case "/start" -> msgManager.greetFirstTime();
-//                        send message through bot
-                        case "/sm" -> {
-                            if (checkCommandLenght(3, "/sm")) {
-//                                send message to me - checking purposes
-                                if (commands[1].equalsIgnoreCase("m")) {
-                                    msgManager.sendTelegramTextMessage(update.getMessage().getText().substring(6), msgManager.getME());
-                                }
-//                                send message to Yas
-                                if (commands[1].equalsIgnoreCase("y")) {
-                                    msgManager.sendTelegramTextMessage(update.getMessage().getText().substring(6), msgManager.getYASIA());
-                                }
-//                                send msg to chom
-                                if (commands[1].equalsIgnoreCase("c")) {
-                                    msgManager.sendTelegramTextMessage(update.getMessage().getText().substring(6), msgManager.getCHOMIK());
-                                }
-                            }
-                        }
-                        case "/smi" -> {
-                            String[] names = {"Inline", "she", "goes"};
-                            msgManager.sendTelegramObjAsMessage(new SendMessage()
-                                    .setText("Inline message")
-                                    .setReply_markup(new InlineKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
-                                    .setChat_id(msgManager.getOriginalSender().getId()));
-                        }
                         case "/quiz" -> {
                             if (checkCommandLenght(2, "/quiz")) {
                                 if (commands[1].equalsIgnoreCase("me"))
@@ -142,13 +115,13 @@ public RequestHandler(Gson gson, WebhookUpdateService wus, QuizService qs, HueAu
                         }
                         case "/smk" -> {
                             String[] names = {"Reply", "she", "goes"};
-                            msgManager.sendTelegramObjAsMessage(new SendMessage()
+                            msgManager.sendTelegramMessage(new SendMessage()
                                     .setText("Message with keyboard")
                                     .setReply_markup(new ReplyKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
                                     .setChat_id(msgManager.getOriginalSender().getId()));
                         }
                         case "/rmk" -> {
-                            msgManager.sendTelegramObjAsMessage(new SendMessage()
+                            msgManager.sendTelegramMessage(new SendMessage()
                                     .setText("Keyboard removed! Have fun you little shmuck ;)")
                                     .setChat_id(msgManager.getOriginalSender().getId())
                                     .setReply_markup(new ReplyKeyboardRemove()));
@@ -190,7 +163,7 @@ public RequestHandler(Gson gson, WebhookUpdateService wus, QuizService qs, HueAu
                 }
                 //        if not from me, send message to me
                 if (!msgManager.getOriginalSender().getId().equals(msgManager.getME())) {
-                    msgManager.sendTelegramTextMessage("New message T: " + Utils.getCurrentDateTime()
+                    msgManager.sendTelegramMessage("New message T: " + Utils.getCurrentDateTime()
                             + "  FROM: "
                             + msgManager.getOriginalSender().getFirst_name()
                             + " "
@@ -204,7 +177,7 @@ public RequestHandler(Gson gson, WebhookUpdateService wus, QuizService qs, HueAu
             } else {
 
                 if (!msgManager.getOriginalSender().getId().equals(msgManager.getME())) {
-                    msgManager.sendTelegramTextMessage("New message T: " + Utils.getCurrentDateTime()
+                    msgManager.sendTelegramMessage("New message T: " + Utils.getCurrentDateTime()
                             + "  FROM: "
                             + msgManager.getOriginalSender().getFirst_name()
                             + " "
@@ -217,7 +190,7 @@ public RequestHandler(Gson gson, WebhookUpdateService wus, QuizService qs, HueAu
             //        update not contains message object and is not a callback and not from me - send me an info
         }else {
             if (!msgManager.getOriginalSender().getId().equals(msgManager.getME())){
-                msgManager.sendTelegramTextMessage("New message. T: " + Utils.getCurrentDateTime()
+                msgManager.sendTelegramMessage("New message. T: " + Utils.getCurrentDateTime()
                         + "  FROM: "
                         + msgManager.getOriginalSender().getFirst_name()
                         + " "

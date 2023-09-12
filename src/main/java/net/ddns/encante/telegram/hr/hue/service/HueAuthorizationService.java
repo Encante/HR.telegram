@@ -101,7 +101,7 @@ public class HueAuthorizationService{
             && authorization.getClientSecret()!= null){
                 saveOrUpdateAuthorizationBasedOnClientId(request.requestHueAuthentication(authorization));
                 log.debug("JUST FOR DEBUGGING PURPOSES LETS CHECK IF ORIGINAL SENDER IS SET FOR MSGMANAGER(authenticateApp): "+msgManager.getOriginalSender().getId());
-                msgManager.sendTelegramTextMessage("Tokens retrieved! App " + authorization.getDisplayName() + " authorized!", msgManager.getME());
+                msgManager.sendTelegramMessage("Tokens retrieved! App " + authorization.getDisplayName() + " authorized!", msgManager.getME());
 //                if any of required authorization fields are missing
             }else msgManager.sendAndLogErrorMsg("HAS.aA001","Part of Authorization missing.");
 //            if there isn't any authorization with given state
