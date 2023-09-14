@@ -51,7 +51,7 @@ public class MessageManager {
         request.answerCallbackQuery(answer);
     }
 
-    public void sendAndLogErrorMsg(@NotNull String errorCode, String errorMessage) {
+    public void sendAndLogErrorMsg (@NotNull String errorCode, String errorMessage) {
             sendBackTelegramTextMessage("Error code: "+errorCode+".");
             log.warn("Error code: "+errorCode+". "+errorMessage);
     }

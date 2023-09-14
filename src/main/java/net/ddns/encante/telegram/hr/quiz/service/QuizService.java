@@ -27,6 +27,9 @@ import java.util.List;
 @Slf4j
 
 public class QuizService {
+    private final String ERR_QUIZ_FIELD = "Quiz field does not contain required attributes.";
+    private String errorCode;
+    Quiz quiz;
     private QuizRepository quizRepository;
     private MessageManager msgMgr;
     private EventRepository eventsRepo;
@@ -184,7 +187,19 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
     public void sendNextQuizToYasia(){
     sendNextQuizToId(msgMgr.getYASIA());
     }
-    private SendMessage createAbcdQuizMessage (Quiz quiz){
+    private SendMessage createAbcdQuizMessage (){
+        if (quiz.getOptA() == null
+        || quiz.getOptB() == null
+        || quiz.getOptC() == null
+        || quiz.getOptD() == null
+        || quiz.getQuestion() == null
+        || quiz.getChatId() == null
+        || quiz.getAnswersLeft() == null
+        ) {// TODO: 14.09.2023  
+            errorCode="QS.cAQM"
+            msgMgr.sendAndLogErrorMsg(errorCode, ERR_QUIZ_FIELD);
+            throw new RuntimeException(errorCode);
+        }
         String[] keys = {quiz.getOptA(), quiz.getOptB(), quiz.getOptC(), quiz.getOptD()};
         SendMessage msg = new SendMessage().setText(quiz.getQuestion()).setChat_id(quiz.getChatId());
         switch (quiz.getAnswersLeft()) {
@@ -198,13 +213,18 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
                     .setReply_markup(new InlineKeyboardMarkup
                             .KeyboardBuilder(1, 2, keys).build());
             default -> {
-                log.warn("Bad 'answers left' number cant create quiz message");
-                throw new RuntimeException("Bad answers left number cant create quiz message");
+                errorCode="QS.cAQM01";
+                msgMgr.sendAndLogErrorMsg(errorCode,"Unexpected answersLeft number cant create quiz message");
+                throw new RuntimeException(errorCode);
             }
         }
         return msg;
     }
-    private SendMessage createForceReplyQuizMessageWithButton(Quiz quiz){
+    private SendMessage createForceReplyQuizMessageWithButton(){
+        if (quiz.getQuestion() == null
+        || quiz.getChatId() == null) {
+            msgMgr.sendAndLogErrorMsg("QS.cFRQMWB","Quiz field does not contain required attributes.");
+        }
         String[] key = {"відповісти"};
         return new SendMessage().setText(quiz.getQuestion())
                 .setChat_id(quiz.getChatId())
