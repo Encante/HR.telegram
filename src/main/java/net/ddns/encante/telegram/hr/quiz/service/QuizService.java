@@ -5,6 +5,7 @@ import net.ddns.encante.telegram.hr.Utils;
 import net.ddns.encante.telegram.hr.events.EventType;
 import net.ddns.encante.telegram.hr.events.entity.Event;
 import net.ddns.encante.telegram.hr.events.repository.EventRepository;
+import net.ddns.encante.telegram.hr.exceptions.UnexpectedStateException;
 import net.ddns.encante.telegram.hr.quiz.entity.Quiz;
 import net.ddns.encante.telegram.hr.quiz.repository.QuizRepository;
 import net.ddns.encante.telegram.hr.telegram.api.methods.AnswerCallbackQuery;
@@ -27,9 +28,7 @@ import java.util.List;
 @Slf4j
 
 public class QuizService {
-    private final String ERR_QUIZ_FIELD = "Quiz field does not contain required attributes.";
-    private String errorCode;
-    Quiz quiz;
+    private Quiz quiz;
     private QuizRepository quizRepository;
     private MessageManager msgMgr;
     private EventRepository eventsRepo;
@@ -39,10 +38,18 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
     this.msgMgr=msgMgr;
     this.eventsRepo=eventsRepo;
 }
-    
-    public Quiz saveQuiz(Quiz quiz) {
-//        no checking for existing records @ db right now
-        return quizRepository.save(quiz);
+
+    /**
+     * Checked for nulls
+     * @return
+     */
+    private Quiz saveQuiz() {
+        if (this.quiz == null) {
+            throw new UnexpectedStateException("QS.sQ", "Quiz field in QuizService is null",msgMgr);
+        }else {
+            //        no checking for existing records @ db right now
+            return quizRepository.save(quiz);
+        }
     }
     
     public boolean deleteQuizById(final Long quizId){
@@ -59,14 +66,17 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
             throw new RuntimeException("No entries in db.");
         }
     }
-    
+
+    /**
+     * Checked for nulls
+     * @param chatId
+     * @param messageId
+     * @return
+     */
     public Quiz getQuizByCredentials(Long chatId, Long messageId){
-        if (quizRepository.findByCredentials(messageId, chatId)!= null)
-        return quizRepository.findByCredentials(messageId, chatId);
-        else {
-            log.warn("No quiz entries in db with such credentials. MessageId: "+messageId+"ChatId: "+chatId+"  getQuizByCredentials");
-            return null;
-        }
+        this.quiz=quizRepository.findByCredentials(chatId, messageId);
+            if (quiz == null) throw new UnexpectedStateException("QS.gQBC","No quiz in DB with such credentials. ChatId: "+chatId+" messageId: "+messageId,msgMgr);
+            else return quiz;
     }
     public int countRemainingQuizToSend(){
         return quizRepository.findAllQuizEntitiesToSend().size();
@@ -195,11 +205,7 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
         || quiz.getQuestion() == null
         || quiz.getChatId() == null
         || quiz.getAnswersLeft() == null
-        ) {// TODO: 14.09.2023  
-            errorCode="QS.cAQM"
-            msgMgr.sendAndLogErrorMsg(errorCode, ERR_QUIZ_FIELD);
-            throw new RuntimeException(errorCode);
-        }
+        ) throw new UnexpectedStateException("QS.cAQM","Quiz field does not contain required attributes.",msgMgr);
         String[] keys = {quiz.getOptA(), quiz.getOptB(), quiz.getOptC(), quiz.getOptD()};
         SendMessage msg = new SendMessage().setText(quiz.getQuestion()).setChat_id(quiz.getChatId());
         switch (quiz.getAnswersLeft()) {
@@ -212,74 +218,95 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
             case 2 -> msg
                     .setReply_markup(new InlineKeyboardMarkup
                             .KeyboardBuilder(1, 2, keys).build());
-            default -> {
-                errorCode="QS.cAQM01";
-                msgMgr.sendAndLogErrorMsg(errorCode,"Unexpected answersLeft number cant create quiz message");
-                throw new RuntimeException(errorCode);
-            }
+            default -> throw new UnexpectedStateException("QS.cAQM01", "Unexpected answersLeft number cant create quiz message", msgMgr);
         }
         return msg;
     }
     private SendMessage createForceReplyQuizMessageWithButton(){
         if (quiz.getQuestion() == null
-        || quiz.getChatId() == null) {
-            msgMgr.sendAndLogErrorMsg("QS.cFRQMWB","Quiz field does not contain required attributes.");
-        }
+        || quiz.getChatId() == null) throw new UnexpectedStateException("QS.cFRQMWB","Quiz field does not contain required attributes.",msgMgr);
         String[] key = {"відповісти"};
         return new SendMessage().setText(quiz.getQuestion())
                 .setChat_id(quiz.getChatId())
                 .setReply_markup(new InlineKeyboardMarkup.KeyboardBuilder(1,1,key).build());
     }
-    private SendMessage createForceReplyQuizMessageWithForceReply(Long chatId, Quiz quiz){
-        return new SendMessage().setText(quiz.getQuestion())
-                .setChat_id(chatId)
-                .setReply_markup(new ForceReply()
-                        .setForce_reply(true)
-                        .setInput_field_placeholder("Введіть свою відповідь тут."));
+
+    /**
+     * Checked for nulls
+     * @param chatId
+     * @return
+     */
+    private SendMessage createForceReplyQuizMessageWithForceReply(Long chatId){
+        if (quiz == null
+        || quiz.getQuestion() == null) throw new UnexpectedStateException("QS.cFRQMWFR", "Quiz field is null or question is missing.",msgMgr);
+        else {
+            return new SendMessage().setText(quiz.getQuestion())
+                    .setChat_id(chatId)
+                    .setReply_markup(new ForceReply()
+                            .setForce_reply(true)
+                            .setInput_field_placeholder("Введіть свою відповідь тут."));
+        }
     }
     private void sendForceReplyQuizWithForceReply(WebhookUpdate update){
-        Quiz quiz = getQuizByCredentials(update.getCallback_query().getFrom().getId(), update.getCallback_query().getMessage().getMessage_id());
-//        firstly we delete original message because it cant be edited to force reply
-        msgMgr.deleteTelegramMessage(update.getCallback_query().getFrom().getId(),update.getCallback_query().getMessage().getMessage_id());
-//        now send message with force reply to chat and update quiz object with new message id...
-        quiz.setMessageId(msgMgr.sendTelegramMessage(createForceReplyQuizMessageWithForceReply(update.getCallback_query().getFrom().getId(), quiz)).getResult().getMessage_id());
-//        and save new message id to quiz in db
-        saveQuiz(quiz);
-    }
-    private void sendForceReplyQuizWithForceReply(Quiz quiz){
+        this.quiz = getQuizByCredentials(update.getCallback_query().getFrom().getId(), update.getCallback_query().getMessage().getMessage_id());
 //        firstly we delete original message because it cant be edited to force reply
         msgMgr.deleteTelegramMessage(quiz.getChatId(),quiz.getMessageId());
 //        now send message with force reply to chat and update quiz object with new message id...
-        quiz.setMessageId(msgMgr.sendTelegramMessage(createForceReplyQuizMessageWithForceReply(quiz.getChatId(), quiz)).getResult().getMessage_id());
+        quiz.setMessageId(msgMgr.sendTelegramMessage(createForceReplyQuizMessageWithForceReply(update.getCallback_query().getFrom().getId())).getResult().getMessage_id());
 //        and save new message id to quiz in db
-        saveQuiz(quiz);
+        saveQuiz();
+    }
+
+    /**
+     * Checked for nulls
+     */
+    private void sendForceReplyQuizWithForceReply(){
+        if (quiz == null
+        || quiz.getChatId() == null
+        || quiz.getMessageId() == null) throw new UnexpectedStateException("QS.sFRQWFR","Quiz field is null or missing chatId or messageId",msgMgr);
+        else {
+//        firstly we delete original message because it cant be edited to force reply
+            msgMgr.deleteTelegramMessage(quiz.getChatId(),quiz.getMessageId());
+//        now send message with force reply to chat and update quiz object with new message id...
+            quiz.setMessageId(msgMgr.sendTelegramMessage(createForceReplyQuizMessageWithForceReply(quiz.getChatId())).getResult().getMessage_id());
+//        and save new message id to quiz in db
+            saveQuiz();
+        }
     }
     private void resolveAbcdQuiz (WebhookUpdate update){
-        //        prerequisite check for possible null-pointers
-        if (getQuizByCredentials(update.getCallback_query().getMessage().getChat().getId(), update.getCallback_query().getMessage().getMessage_id()) != null
-                && update.getCallback_query().getData() != null
-                && update.getCallback_query().getMessage().getChat().getId() != null
-                && update.getCallback_query().getMessage().getText() != null
-        ){
-//        getting quiz entity from db by message id
-            Quiz quiz = getQuizByCredentials(update.getCallback_query().getMessage().getChat().getId(), update.getCallback_query().getMessage().getMessage_id());
-//        check for null-pointers on quiz object
-            if (quiz.getOptA() != null
-                    && quiz.getOptB() != null
-                    && quiz.getOptC() != null
-                    && quiz.getOptD() != null
-                    && quiz.getCorrectAnswer() != null
-                    && quiz.getAnswersLeft() != null
-                    && quiz.getRetriesCount() != null
-            ){
+        if (update == null
+        || update.getCallback_query() == null
+        || update.getCallback_query().getMessage() == null
+        || update.getCallback_query().getMessage().getChat() == null
+        || update.getCallback_query().getMessage().getChat().getId() == null
+        || update.getCallback_query().getMessage().getMessage_id() == null
+        || update.getCallback_query().getData() == null) throw new UnexpectedStateException("QS.rAQ00", "Webhook update obj invalid.", msgMgr);
+//        null check on update obj
+        else {
+            this.quiz = getQuizByCredentials(update.getCallback_query().getMessage().getChat().getId(), update.getCallback_query().getMessage().getMessage_id());
+            if (quiz == null
+                    || quiz.getOptA() == null
+                    || quiz.getOptB() == null
+                    || quiz.getOptC() == null
+                    || quiz.getOptD() == null
+                    || quiz.getCorrectAnswer() == null
+                    || quiz.getAnswersLeft() == null
+                    || quiz.getRetriesCount() == null) throw new UnexpectedStateException("QS.rAQ01","Quiz field incomplete. Check quiz object in db.",msgMgr);
+//        null checks on quiz
+            else {
                 quiz.setDateAnswered(Utils.getCurrentUnixTime());
                 quiz.setLastAnswer(update.getCallback_query().getData());
-                //              edit sent quiz message: add answer. We would do it anyway so we'll do it at start
+//              edit sent quiz message: add answer. We would do it anyway so we'll do it at start
                 msgMgr.editTelegramMessage(EditMessageText.builder()
-                        .chat_id(update.getCallback_query().getFrom().getId())
-                        .message_id(update.getCallback_query().getMessage().getMessage_id())
+                        .chat_id(quiz.getChatId())
+                        .message_id(quiz.getMessageId())
                         .text(update.getCallback_query().getMessage().getText()+"\nTwoja odpowiedź: "+ update.getCallback_query().getData())
-                        .build());
+                        .build()
+                );
+                /// TODO: 18.09.2023  
+            }
+        }
+
 //        actual check
 //        if answer is good-
                 if (quiz.getLastAnswer().equals(quiz.getCorrectAnswer())){
@@ -361,93 +388,91 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
 //        after modifications save quiz to and end method
                 saveQuiz(quiz);
 //        if quiz object is incompatibile (unexpected nulls)
-            }else {
-                log.warn("ERROR. Unexpected null on quiz object. MenuData: QuizServiceImpl.resolveQuizAnswer.");
-                throw new RuntimeException("ERROR. Unexpected null on quiz object. MenuData: QuizServiceImpl.resolveQuizAnswer.");
             }
-//        if prerequisite checks failed:
-        }else {
-            log.warn("ERROR. Prerequisite check failed for QuizServiceImpl.resolveQuizAnswer.");
-            throw new RuntimeException("ERROR. Prerequisite check failed for QuizServiceImpl.resolve answer.");
-        }
-    }
     private void resolveForceReplyQuiz (WebhookUpdate update){
-            //        getting quiz entity from db by credentials
-                Quiz quiz = getQuizByCredentials(update.getMessage().getFrom().getId(), update.getMessage().getReply_to_message().getMessage_id());
-                //        check for null-pointers on quiz object
-                if (quiz != null
-                        && quiz.getOptA() != null
-                        && quiz.getOptB() != null
-                        && quiz.getOptC() != null
-                        && quiz.getOptD() != null
-                        && quiz.getCorrectAnswer() != null
-                        && quiz.getAnswersLeft() != null
-                        && quiz.getRetriesCount() != null) {
-//                    check if update actually contains any text
-                    if (update.getMessage().getText() == null) {
+        if (update == null
+        || update.getMessage() == null
+        || update.getMessage().getFrom() == null
+        || update.getMessage().getFrom().getId() == null
+        || update.getMessage().getReply_to_message() == null
+        || update.getMessage().getReply_to_message().getMessage_id() == null) throw new UnexpectedStateException("QS.rFRQ", "Webhook update object invalid.",msgMgr);
+//        check for nulls on update obj
+        else {
+//        getting quiz entity from db by credentials
+            this.quiz = getQuizByCredentials(update.getMessage().getFrom().getId(), update.getMessage().getReply_to_message().getMessage_id());
+//        check for null-pointers on quiz object
+            if (quiz == null
+                    || quiz.getOptA() == null
+                    || quiz.getOptB() == null
+                    || quiz.getOptC() == null
+                    || quiz.getOptD() == null
+                    || quiz.getCorrectAnswer() == null
+                    || quiz.getAnswersLeft() == null
+                    || quiz.getRetriesCount() == null) throw new UnexpectedStateException("QS.rFRQ01","Quiz field incomplete. Check quiz object in db.",msgMgr);
+            else if (update.getMessage().getText() == null){
 //                        send again quiz question asking to reply correctly
-                        sendForceReplyQuizWithForceReply(quiz);
-                    }else {
-                        quiz.setDateAnswered(Utils.getCurrentUnixTime());
-                        quiz.setLastAnswer(update.getMessage().getText());
-                        //              edit sent quiz message: add user answer. We would do it anyway so we'll do it at start
+                msgMgr.sendBackTelegramTextMessage("Nie wpisano odpowiedzi. Spróbuj jeszcze raz.");
+                sendForceReplyQuizWithForceReply();
+            }
+//        null checks passed
+            else {
+                quiz.setDateAnswered(Utils.getCurrentUnixTime());
+                quiz.setLastAnswer(update.getMessage().getText());
+//              edit sent quiz message: add user answer. We would do it anyway so we'll do it at start
 //                we actually can't edit it, because of telegram restrictions, so we are deleting it and sending again and saving new messageId to quiz object
-                        msgMgr.deleteTelegramMessage(quiz.getChatId(), quiz.getMessageId());
-                        quiz.setMessageId(msgMgr.sendTelegramMessage(quiz.getQuestion() + "\nTwoja odpowiedź: " + quiz.getLastAnswer(), quiz.getChatId()).getResult().getMessage_id());
-                        //        actual check
+                msgMgr.deleteTelegramMessage(quiz.getChatId(), quiz.getMessageId());
+                quiz.setMessageId(msgMgr.sendTelegramMessage(quiz.getQuestion() + "\nTwoja odpowiedź: " + quiz.getLastAnswer(), quiz.getChatId()).getResult().getMessage_id());
+//        actual check
 //        if answer is good-
-                        if (quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer()) || quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer() + " ")) {
+                if (quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer()) || quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer() + " ")) {
 //            write result to quiz object
-                            quiz.setSuccess(true);
-//                        save an event to table
-                            eventsRepo.save(new Event().date(Utils.getCurrentUnixTime()).type(EventType.QUIZ_FR_GOOD_ANSWER));
+                    quiz.setSuccess(true);
+//                        if it's Yana answer save an event for statistics
+                    if (quiz.getChatId().equals(msgMgr.getYASIA())) eventsRepo.save(new Event().date(Utils.getCurrentUnixTime()).type(EventType.QUIZ_FR_GOOD_ANSWER));
 //            reset available answers. Will need it for future reuse of quiz.
-                            quiz.setAnswersLeft(5);
+                    quiz.setAnswersLeft(5);
 //                    set up message reaction for answer
-                            quiz.setReactionForAnswerMessage(new SendMessage()
-                                    .setText("Dobra odpowiedź! ;)")
-                                    .setReply_to_message_id(update.getMessage().getMessage_id())
-                                    .setChat_id(update.getMessage().getFrom().getId()));
-//                    if answer is bad:
-                        } else {
+                    quiz.setReactionForAnswerMessage(new SendMessage()
+                            .setText("Dobra odpowiedź! :)")
+                            .setReply_to_message_id(update.getMessage().getMessage_id())
+                            .setChat_id(quiz.getChatId()));
+//                if answer is bad:
+                }else {
 //            write answer details to quiz object
-                            quiz.setSuccess(false);
-                            quiz.setAnswersLeft(quiz.getAnswersLeft() - 1);
-                            quiz.setRetriesCount(quiz.getRetriesCount() + 1);
-//                        save an event to the table
-                            eventsRepo.save(new Event().date(Utils.getCurrentUnixTime()).type(EventType.QUIZ_FR_BAD_ANSWER));
+                    quiz.setSuccess(false);
+                    quiz.setAnswersLeft(quiz.getAnswersLeft() - 1);
+                    quiz.setRetriesCount(quiz.getRetriesCount() + 1);
+//                        save an event to the table if it's Yana answer
+                    if (quiz.getChatId().equals(msgMgr.getYASIA())) eventsRepo.save(new Event().date(Utils.getCurrentUnixTime()).type(EventType.QUIZ_FR_BAD_ANSWER));
 //                    react for answer:
 //                    check if it isn't last answer
-                            if (quiz.getAnswersLeft() > 1) {
+                    if (quiz.getAnswersLeft() > 1) {
 //                set up reaction for answer by message
-                                int answersLeft = quiz.getAnswersLeft() - 1;
-                                quiz.setReactionForAnswerMessage(new SendMessage()
-                                        .setText("Niestety zła odpowiedź :( Pozostało " + answersLeft + " prób.")
-                                        .setReply_to_message_id(update.getMessage().getMessage_id())
-                                        .setChat_id(update.getMessage().getFrom().getId()));
+                        int answersLeft = quiz.getAnswersLeft() - 1;
+                        quiz.setReactionForAnswerMessage(new SendMessage()
+                                .setText("Niestety zła odpowiedź :( Pozostało " + answersLeft + " prób.")
+                                .setReply_to_message_id(update.getMessage().getMessage_id())
+                                .setChat_id(update.getMessage().getFrom().getId()));
 //            if it was last try prepare correct answer to be sent in response
-                            } else {
-                                quiz.setReactionForAnswerMessage(new SendMessage()
-                                        .setText("Niestety zła odpowiedź :( Prawidłowa odpowiedź to: " + quiz.getCorrectAnswer())
-                                        .setReply_to_message_id(update.getMessage().getMessage_id())
-                                        .setChat_id(update.getMessage().getFrom().getId()));
-                                quiz.setAnswersLeft(5);
-                                quiz.setAnswersDepleted(true);
-                            }
-                        }
+                    }else {
+                        quiz.setReactionForAnswerMessage(new SendMessage()
+                                .setText("Niestety zła odpowiedź :( Prawidłowa odpowiedź to: " + quiz.getCorrectAnswer())
+                                .setReply_to_message_id(update.getMessage().getMessage_id())
+                                .setChat_id(update.getMessage().getFrom().getId()));
+//                    again "reset" quiz object but this time set answers depleted flag for quiz to know that it's not marked to send
+                        quiz.setAnswersLeft(5);
+                        quiz.setAnswersDepleted(true);
+                    }
+                }
 //        either way it was good or bad answer now is the time to send reaction
 //                by message (reply to original message)
-                        msgMgr.sendTelegramMessage(quiz.getReactionForAnswerMessage());
+                msgMgr.sendTelegramMessage(quiz.getReactionForAnswerMessage());
 //        send me an info about quiz answer:
-                        msgMgr.sendQuizResultInfo(quiz, msgMgr.getME());
+                sendQuizResultInfo(msgMgr.getME());
 //        after modifications save quiz to and end method
-                        saveQuiz(quiz);
-                    }
-                    //        if prerequisite checks failed:
-                }else {
-                    log.warn("ERROR. Unexpected null on quiz object. MenuData: QuizService.resolveForceReplyQuiz.");
-                    throw new RuntimeException("ERROR. Unexpected null on quiz object. MenuData: QuizService.resolveForceReplyQuiz");
-                }
+                saveQuiz();
+            }
+        }
     }
     private void resetQuizList(List<Quiz> listToReset){
         for (Quiz q :
@@ -458,7 +483,14 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
         }
         log.debug("List of Quizes reseted.");
     }
-    private sendQuizResultInfo (Long whoTo){
-    if
+    private void sendQuizResultInfo (Long whoTo){
+    if (quiz == null ||
+    quiz.getSuccess() == null ||
+    quiz.getQuestion() == null ||
+    quiz.getLastAnswer() == null) throw new UnexpectedStateException("QS.sQRI","Quiz is null or question or lastAnswer missing.",msgMgr);
+        else {
+            if (quiz.getSuccess()) msgMgr.sendTelegramMessage("Dobra odpowiedź na pytanie: " + quiz.getQuestion(), whoTo);
+            else msgMgr.sendTelegramMessage("Zła odpowiedź na pytanie: " + quiz.getQuestion() + " Odpowiedź: " + quiz.getLastAnswer(), whoTo);
+        }
     }
 }

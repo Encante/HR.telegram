@@ -4,13 +4,11 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.ddns.encante.telegram.hr.Utils;
-import net.ddns.encante.telegram.hr.quiz.entity.Quiz;
 import net.ddns.encante.telegram.hr.request.UnirestRequest;
 import net.ddns.encante.telegram.hr.telegram.api.methods.*;
 import net.ddns.encante.telegram.hr.telegram.api.objects.InlineKeyboardMarkup;
 import net.ddns.encante.telegram.hr.telegram.api.objects.SentMessage;
 import net.ddns.encante.telegram.hr.telegram.api.objects.User;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
@@ -51,10 +49,6 @@ public class MessageManager {
         request.answerCallbackQuery(answer);
     }
 
-    public void sendAndLogErrorMsg (@NotNull String errorCode, String errorMessage) {
-            sendBackTelegramTextMessage("Error code: "+errorCode+".");
-            log.warn("Error code: "+errorCode+". "+errorMessage);
-    }
 
     public SentMessage sendBackTelegramTextMessage(String text) {
         if (this.originalSender == null) {
@@ -65,13 +59,6 @@ public class MessageManager {
             return request.sendTelegramMessageObj(new SendMessage()
                     .setText(text)
                     .setChat_id(originalSender.getId()));
-        }
-    }
-    public void sendQuizResultInfo(Quiz quiz, Long whoTo) {
-        if (quiz.getSuccess() == true) {
-            sendTelegramMessage("Dobra odpowiedź na pytanie: " + quiz.getQuestion(), whoTo);
-        } else if (quiz.getSuccess() == false) {
-            sendTelegramMessage("Zła odpowiedź na pytanie: " + quiz.getQuestion() + " Odpowiedź: " + quiz.getLastAnswer(), whoTo);
         }
     }
 

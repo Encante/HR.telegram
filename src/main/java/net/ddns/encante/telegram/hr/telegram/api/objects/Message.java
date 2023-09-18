@@ -4,7 +4,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import org.springframework.lang.NonNull;
 
 import java.util.ArrayList;
 
@@ -16,9 +15,7 @@ public class Message {
     Long message_thread_id;
     User from;
     Chat sender_chat;
-    @NonNull
     Long date;
-    @NonNull
     Chat chat;
     User forward_from_chat;
     Long forward_from_message_id;

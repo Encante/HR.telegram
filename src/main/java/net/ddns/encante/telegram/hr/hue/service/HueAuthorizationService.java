@@ -2,6 +2,7 @@ package net.ddns.encante.telegram.hr.hue.service;
 
 import lombok.extern.slf4j.Slf4j;
 import net.ddns.encante.telegram.hr.Utils;
+import net.ddns.encante.telegram.hr.exceptions.UnexpectedStateException;
 import net.ddns.encante.telegram.hr.hue.entity.HueAuthorization;
 import net.ddns.encante.telegram.hr.hue.repository.HueAuthorizationRepository;
 import net.ddns.encante.telegram.hr.request.UnirestRequest;
@@ -84,10 +85,10 @@ public class HueAuthorizationService{
                 saveOrUpdateAuthorizationBasedOnClientId(authorization);
 //                if authorization doesn't contain clientid we throw an exception
             }else {
-                msgManager.sendAndLogErrorMsg("HAS.sAL001","Authorization entity not valid. clientId is null.");
+                throw new UnexpectedStateException("HAS.sAL001","Authorization entity not valid. clientId is null.",msgManager);
             }
         } else {
-            msgManager.sendAndLogErrorMsg("HAS.sAL001","No authorization for app with name '" + displayName + "' in DB.");
+            throw new UnexpectedStateException("HAS.sAL002","No authorization for app with name '" + displayName + "' in DB.", msgManager);
         }
     }
     
@@ -103,10 +104,9 @@ public class HueAuthorizationService{
                 log.debug("JUST FOR DEBUGGING PURPOSES LETS CHECK IF ORIGINAL SENDER IS SET FOR MSGMANAGER(authenticateApp): "+msgManager.getOriginalSender().getId());
                 msgManager.sendTelegramMessage("Tokens retrieved! App " + authorization.getDisplayName() + " authorized!", msgManager.getME());
 //                if any of required authorization fields are missing
-            }else msgManager.sendAndLogErrorMsg("HAS.aA001","Part of Authorization missing.");
+            }else throw new UnexpectedStateException("HAS.aA001","Part of Authorization missing.",msgManager);
 //            if there isn't any authorization with given state
-        }else
-            msgManager.sendAndLogErrorMsg("HAS.aA002","No authorization with state: "+ state+" in DB.");
+        }else throw new UnexpectedStateException("HAS.aA002","No authorization with state: "+ state+" in DB.",msgManager);
     }
 
     public String checkAndRefreshToken(){
@@ -142,17 +142,14 @@ public class HueAuthorizationService{
         //                                            authorization token and username check
         if (authorization.getTokens().getAccess_token() != null && authorization.getUsername() != null) {
 //                                                check if access token and username is valid
-            if (request.hueGetResourceDevice(authorization) != null && request.hueGetResourceDevice(authorization).getErrors().size() == 0) {
+            if (request.hueGetResourceDevice(authorization) != null && request.hueGetResourceDevice(authorization).getErrors().isEmpty()) {
                 log.debug("Tokens for " + authorization.getDisplayName() + " checked and valid. checkHueAuthorization");
                 return true;
             } else{
                 log.debug("Token invalid. Must be refreshed");
                 return false;
             }
-        }else {
-            msgManager.sendAndLogErrorMsg("HAS.cHA001","Access token or username is null." );
-            throw new RuntimeException("HAS.cHA001");
-        }
+        }else throw new UnexpectedStateException("HAS.cHA001","Access token or username is null.",msgManager);
     }
     private String refreshAndSaveHueToken(@NotNull HueAuthorization authorization){
 //        authorization check for null pointers
@@ -165,10 +162,7 @@ public class HueAuthorizationService{
             log.debug("HUE Token refreshed and saved succesfully. refreshHueToken");
             return "HUE Token refreshed and saved succesfully.";
 //            authorization has some unexpected nulls
-        }else {
-            msgManager.sendAndLogErrorMsg("HAS.rASHT001","ClientId, ClientSecret or RefreshToken is null.");
-            return "Error code: HAS.rASHT001";
-        }
+        }else throw new UnexpectedStateException("HAS.rASHT001","ClientId, ClientSecret or RefreshToken is null.",msgManager);
     }
     private HueAuthorization checkDbForExistingClientId(HueAuthorization ent){
         if (repository.findByClientId(ent.getClientId()) != null)

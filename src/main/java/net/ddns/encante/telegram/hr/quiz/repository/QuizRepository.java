@@ -25,5 +25,5 @@ public interface QuizRepository extends JpaRepository<Quiz, Long> {
     @Query("SELECT q FROM Quiz q WHERE q.retriesCount > 0")
     List<Quiz> findAllRetries();
     @Query("SELECT q FROM Quiz q WHERE q.messageId = :messageId AND q.chatId = :chatId")
-    Quiz findByCredentials(@Param("messageId") Long messageId, @Param("chatId") Long chatId);
+    Quiz findByCredentials(@Param("chatId") Long chatId, @Param("messageId") Long messageId);
 }

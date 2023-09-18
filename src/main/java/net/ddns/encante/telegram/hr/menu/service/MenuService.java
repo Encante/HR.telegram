@@ -3,6 +3,7 @@ package net.ddns.encante.telegram.hr.menu.service;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import net.ddns.encante.telegram.hr.Utils;
+import net.ddns.encante.telegram.hr.exceptions.UnexpectedStateException;
 import net.ddns.encante.telegram.hr.hue.service.HueAuthorizationService;
 import net.ddns.encante.telegram.hr.menu.entity.InlineMenuButton;
 import net.ddns.encante.telegram.hr.menu.entity.Menu;
@@ -54,9 +55,8 @@ public class MenuService {
             saveMenu();
         }else {
             log.debug("Menu existing in DB");
-            if (menu.getMessageId() == null) {
-                msgMgr.sendAndLogErrorMsg("MS.cMM001","Can't delete old menu message. Menu object doesn't have a messageId assigned");
-            }else{
+            if (menu.getMessageId() == null) throw new UnexpectedStateException("MS.cMM001","Can't delete old menu message. Menu object doesn't have a messageId assigned",msgMgr);
+            else{
                 //            set up new menu
                 sendNextMenuPatternByDeletingOldAndSave("MainMenu", "created");
             }
@@ -64,13 +64,11 @@ public class MenuService {
     }
     public void handleMenuButton(@NotNull WebhookUpdate update){
         menu = menuRepo.findByCredentials(msgMgr.getOriginalSender().getId(),update.getCallback_query().getMessage().getMessage_id());
-        if(menu == null){
-            msgMgr.sendAndLogErrorMsg("MS.hMC001","Can't find menu in DB");
-        }else{
+        if(menu == null) throw new UnexpectedStateException("MS.hMC001","Can't find menu in DB",msgMgr);
+            else{
             String buttonAction = update.getCallback_query().getData();
-            if (buttonAction == null) {
-                msgMgr.sendAndLogErrorMsg("MS.hMC002","Button Action is null.");
-            }else {
+            if (buttonAction == null) throw new UnexpectedStateException("MS.hMC002","Button Action is null.",msgMgr);
+            else {
                 log.debug("ButtonAction received: "+buttonAction);
                 switch (buttonAction){
                     case "/testMenu" -> {
@@ -80,9 +78,8 @@ public class MenuService {
                         sendNextInfoTextInputMenuAndSave("Wpisz tu: ","Wpisz tu:",buttonAction);
                     }
                     case "/back" ->{
-                        if (menu == null || menu.getCurrentPattern() == null || menu.getCurrentPattern().getUpperPatternName() == null) {
-                            msgMgr.sendAndLogErrorMsg("MS.hMC003", "No upper pattern in MenuPattern: "+ newMenu.getCurrentPattern().getName()+". Object invalid");
-                        }else {
+                        if (menu == null || menu.getCurrentPattern() == null || menu.getCurrentPattern().getUpperPatternName() == null) throw new UnexpectedStateException("MS.hMC003", "No upper pattern in MenuPattern: "+ newMenu.getCurrentPattern().getName()+". Object invalid",msgMgr);
+                            else {
                             newMenu= menu;
                             newMenu.setLastSentDate(Utils.getCurrentUnixTime());
                             newMenu.setLastPattern(menu.getCurrentPattern());
@@ -143,10 +140,8 @@ public class MenuService {
         menu = getMenuByCredentials(update.getMessage().getFrom().getId(), update.getMessage().getReply_to_message().getMessage_id());
         String menuReply = update.getMessage().getText();
 //        if we don't get text in reply send warning and send menu with forceReply again
-        if (menu == null || menu.getCurrentPattern()==null || menu.getData() == null) {
-            msgMgr.sendAndLogErrorMsg("MS.hMR001", "oldMenu field is invalid");
-            throw new RuntimeException("MS.hMR001");
-        }else {
+        if (menu == null || menu.getCurrentPattern()==null || menu.getData() == null) throw new UnexpectedStateException("MS.hMR001", "oldMenu field is invalid",msgMgr);
+        else {
             if (menuReply == null) {
                 log.debug("Reply to menu does not contain text. Sending menu again.");
                 sendNextInfoTextInputMenuAndSave("Nie wpisałeś tekstu. Wpisz tekst: ", "Wpisz tu: ",newMenu.getInvoker());
@@ -182,9 +177,8 @@ public class MenuService {
                     }
                     case "QuizSendChoice" -> {
                         String invoker = this.menu.getData();
-                        if (invoker == null) {
-                            msgMgr.sendAndLogErrorMsg("MS.hMI001","MenuData is null.");
-                        } else if (invoker.equals("/snqId")) {
+                        if (invoker == null) throw new UnexpectedStateException("MS.hMI001","MenuData is null.",msgMgr);
+                            else if (invoker.equals("/snqId")) {
                             UserEntity user = webhookService.getUserEntityByUserId(Long.decode(menuReply.replaceAll("[^\\d-]", "0")));//we only want numbers in our ID
                             if (user == null) {
                                 sendNextInfoMenuWithBackButton("Nie ma użytkownika z takim ID w bazie.",menu);
@@ -204,10 +198,8 @@ public class MenuService {
      */
     public Menu getMenuByCredentials(@NonNull Long chatId, @NonNull Long messageId){
         menu = menuRepo.findByCredentials(chatId,messageId);
-        if (menu == null) {
-            msgMgr.sendAndLogErrorMsg("MS.gMBC001", "No Menu entries in db with such credentials. MessageId: "+messageId+"ChatId: "+chatId);
-            return null;
-        }else return menu;
+        if (menu == null) throw new UnexpectedStateException("MS.gMBC001", "No Menu entries in db with such credentials. MessageId: "+messageId+"ChatId: "+chatId,msgMgr);
+            else return menu;
     }
     /**
      * Deletes *menu* message and sends new menu using *menu* field data but changing reply markup to Force Reply.
@@ -216,10 +208,8 @@ public class MenuService {
      * @return saved Menu obj.
      */
     private Menu sendNextTextInputMenuAndSave(String inputFieldPlaceholder){
-        if (menu == null) {
-            msgMgr.sendAndLogErrorMsg("MS.sDIMM001","menu field is null.");
-            throw new RuntimeException("MS.sDIMM001");
-        }else{
+        if (menu == null) throw new UnexpectedStateException("MS.sDIMM001","menu field is null.",msgMgr);
+            else{
             deleteMenuMessage();
             menu.setData(data);
             menu.setLastSentDate(Utils.getCurrentUnixTime());
@@ -236,10 +226,8 @@ public class MenuService {
      * @return
      */
     private Menu sendNextInfoTextInputMenuAndSave(String info, String inputFieldPlaceholder, @NonNull String invoker){
-        if (menu == null || menu.getCurrentPattern() == null) {
-            msgMgr.sendAndLogErrorMsg("MS.sNITIM001","OldMenu field is null.");
-            throw new RuntimeException("MS.sNITIM001");
-        }else {
+        if (menu == null || menu.getCurrentPattern() == null) throw new UnexpectedStateException("MS.sNITIM001","OldMenu field is null.",msgMgr);
+            else {
             deleteMenuMessage();
             newMenu= menu;
             String originalPatternText = newMenu.getCurrentPattern().getText();
@@ -267,10 +255,8 @@ public class MenuService {
      * Deletes menu message based on menu field.
      */
     private void deleteMenuMessage(){
-        if (menu == null || menu.getMessageId() ==null) {
-            msgMgr.sendAndLogErrorMsg("MS.dOMM001","menu field is null.");
-            throw new RuntimeException("MS.dOMM001");
-        }else {
+        if (menu == null || menu.getMessageId() ==null) throw new UnexpectedStateException("MS.dOMM001","menu field is null.",msgMgr);
+            else {
             msgMgr.deleteTelegramMessage(menu.getChatId(), menu.getMessageId());
         }
     }
@@ -285,36 +271,32 @@ public class MenuService {
                 || newMenu.getCurrentPattern().getText() == null
                 || newMenu.getCurrentPattern().getCols() == 0
                 || newMenu.getCurrentPattern().getRows() == 0
-                || newMenu.getCurrentPattern().getButtons() == null) {
-            msgMgr.sendAndLogErrorMsg("MS.cMM001","newMenu field object null or missing fields.");
-            throw new RuntimeException("MS.cMM001");
-        } else if (newMenu.getCurrentPattern().getRows()*newMenu.getCurrentPattern().getCols() != newMenu.getCurrentPattern().getButtons().size()) {
-            msgMgr.sendAndLogErrorMsg("MS.cEMM002","Number of cols and rows assigned to menu is invalid or there is not enough menu buttons in DB " +
-                    "\nText: "+newMenu.getCurrentPattern().getText()+
-                    "\nCols: "+newMenu.getCurrentPattern().getCols()+
-                    "\nRows: "+newMenu.getCurrentPattern().getRows()+
-                    "\nSize of Buttons Array: "+newMenu.getCurrentPattern().getButtons().size());
-            throw new RuntimeException("MS.cEMM002");
-        }else {
-            ArrayList<InlineKeyboardButton> inlineButtons = new ArrayList<>();
-            ArrayList<InlineKeyboardButton> rowx = new ArrayList<>();
-            ArrayList<ArrayList<InlineKeyboardButton>> inlineLayout = new ArrayList<>();
-            for (InlineMenuButton menuButton :
-                    newMenu.getCurrentPattern().getButtons()) {
-                inlineButtons.add(menuButton.transformToInlineKeyboardButton());
-            }
-            for (int i = 0; i < newMenu.getCurrentPattern().getRows(); i++) {
-                for (int j = 0; j < newMenu.getCurrentPattern().getCols(); j++) {
-                    rowx.add(inlineButtons.get(0));
-                    inlineButtons.remove(0);
-                }
-                inlineLayout.add(rowx);
-                rowx=new ArrayList<>();
-            }
-            return new SendMessage()
-                    .setChat_id(newMenu.getChatId())
-                    .setText(newMenu.getCurrentPattern().getText())
-                    .setReply_markup(new InlineKeyboardMarkup(inlineLayout));
+                || newMenu.getCurrentPattern().getButtons() == null) throw new UnexpectedStateException("MS.dOMM001","menu field is null.",msgMgr);
+            else if (newMenu.getCurrentPattern().getRows()*newMenu.getCurrentPattern().getCols() != newMenu.getCurrentPattern().getButtons().size()) throw new UnexpectedStateException("MS.cEMM002","Number of cols and rows assigned to menu is invalid or there is not enough menu buttons in DB " +
+                "\nText: "+newMenu.getCurrentPattern().getText()+
+                "\nCols: "+newMenu.getCurrentPattern().getCols()+
+                "\nRows: "+newMenu.getCurrentPattern().getRows()+
+                "\nSize of Buttons Array: "+newMenu.getCurrentPattern().getButtons().size(),msgMgr);
+                else {
+                    ArrayList<InlineKeyboardButton> inlineButtons = new ArrayList<>();
+                    ArrayList<InlineKeyboardButton> rowx = new ArrayList<>();
+                    ArrayList<ArrayList<InlineKeyboardButton>> inlineLayout = new ArrayList<>();
+                    for (InlineMenuButton menuButton :
+                            newMenu.getCurrentPattern().getButtons()) {
+                        inlineButtons.add(menuButton.transformToInlineKeyboardButton());
+                    }
+                    for (int i = 0; i < newMenu.getCurrentPattern().getRows(); i++) {
+                        for (int j = 0; j < newMenu.getCurrentPattern().getCols(); j++) {
+                            rowx.add(inlineButtons.get(0));
+                            inlineButtons.remove(0);
+                        }
+                        inlineLayout.add(rowx);
+                        rowx=new ArrayList<>();
+                    }
+                    return new SendMessage()
+                            .setChat_id(newMenu.getChatId())
+                            .setText(newMenu.getCurrentPattern().getText())
+                            .setReply_markup(new InlineKeyboardMarkup(inlineLayout));
         }
 
 
@@ -328,10 +310,8 @@ public class MenuService {
         if (newMenu == null
         || newMenu.getCurrentPattern() == null
         || newMenu.getCurrentPattern().getText() == null
-        || newMenu.getChatId() == null) {
-            msgMgr.sendAndLogErrorMsg("MS.cMMWTI001", "New Menu field is corrupted.");
-            throw new RuntimeException("MS.cMMWTI001");
-        }else {
+        || newMenu.getChatId() == null) throw new UnexpectedStateException("MS.cMMWTI001", "New Menu field is corrupted.",msgMgr);
+            else {
             return new SendMessage().setText(newMenu.getCurrentPattern().getText())
                     .setChat_id(newMenu.getChatId())
                     .setReply_markup(new ForceReply()
@@ -349,45 +329,39 @@ public class MenuService {
                 || newMenu.getCurrentPattern().getText() == null
                 || newMenu.getCurrentPattern().getCols() == 0
                 || newMenu.getCurrentPattern().getRows() == 0
-                || newMenu.getCurrentPattern().getButtons() == null) {
-            msgMgr.sendAndLogErrorMsg("MS.cEMM001","newMenu field object null or missing fields.");
-            throw new RuntimeException("MS.cEMM001");
-        } else if (newMenu.getCurrentPattern().getRows()*newMenu.getCurrentPattern().getCols() != newMenu.getCurrentPattern().getButtons().size()) {
-            msgMgr.sendAndLogErrorMsg("MS.cEMM002","Number of cols and rows assigned to menu is invalid or there is not enough menu buttons in DB " +
-                    "\nText: "+newMenu.getCurrentPattern().getText()+
-                    "\nCols: "+newMenu.getCurrentPattern().getCols()+
-                    "\nRows: "+newMenu.getCurrentPattern().getRows()+
-                    "\nSize of Buttons Array: "+newMenu.getCurrentPattern().getButtons().size());
-            throw new RuntimeException("MS.cEMM002");
-        }else {
-            ArrayList<InlineKeyboardButton> inlineButtons = new ArrayList<>();
-            ArrayList<InlineKeyboardButton> rowx = new ArrayList<>();
-            ArrayList<ArrayList<InlineKeyboardButton>> inlineLayout = new ArrayList<>();
-            for (InlineMenuButton menuButton :
-                    newMenu.getCurrentPattern().getButtons()) {
-                inlineButtons.add(menuButton.transformToInlineKeyboardButton());
-            }
-            for (int i = 0; i < newMenu.getCurrentPattern().getRows(); i++) {
-                for (int j = 0; j < newMenu.getCurrentPattern().getCols(); j++) {
-                    rowx.add(inlineButtons.get(0));
-                    inlineButtons.remove(0);
+                || newMenu.getCurrentPattern().getButtons() == null) throw new UnexpectedStateException("MS.cEMM001","newMenu field object null or missing fields.",msgMgr);
+            else if (newMenu.getCurrentPattern().getRows()*newMenu.getCurrentPattern().getCols() != newMenu.getCurrentPattern().getButtons().size()) throw new UnexpectedStateException("MS.cEMM002","Number of cols and rows assigned to menu is invalid or there is not enough menu buttons in DB " +
+                "\nText: "+newMenu.getCurrentPattern().getText()+
+                "\nCols: "+newMenu.getCurrentPattern().getCols()+
+                "\nRows: "+newMenu.getCurrentPattern().getRows()+
+                "\nSize of Buttons Array: "+newMenu.getCurrentPattern().getButtons().size(),msgMgr);
+                else {
+                    ArrayList<InlineKeyboardButton> inlineButtons = new ArrayList<>();
+                    ArrayList<InlineKeyboardButton> rowx = new ArrayList<>();
+                    ArrayList<ArrayList<InlineKeyboardButton>> inlineLayout = new ArrayList<>();
+                    for (InlineMenuButton menuButton :
+                            newMenu.getCurrentPattern().getButtons()) {
+                        inlineButtons.add(menuButton.transformToInlineKeyboardButton());
+                    }
+                    for (int i = 0; i < newMenu.getCurrentPattern().getRows(); i++) {
+                        for (int j = 0; j < newMenu.getCurrentPattern().getCols(); j++) {
+                            rowx.add(inlineButtons.get(0));
+                            inlineButtons.remove(0);
+                        }
+                        inlineLayout.add(rowx);
+                        rowx = new ArrayList<>();
+                    }
+                    return EditMessageText.builder()
+                            .chat_id(newMenu.getChatId())
+                            .message_id(newMenu.getMessageId())
+                            .text(newMenu.getCurrentPattern().getText())
+                            .reply_markup(new InlineKeyboardMarkup(inlineLayout))
+                            .build();
                 }
-                inlineLayout.add(rowx);
-                rowx = new ArrayList<>();
-            }
-            return EditMessageText.builder()
-                    .chat_id(newMenu.getChatId())
-                    .message_id(newMenu.getMessageId())
-                    .text(newMenu.getCurrentPattern().getText())
-                    .reply_markup(new InlineKeyboardMarkup(inlineLayout))
-                    .build();
-        }
     }
     private Menu sendNextMenuPatternByEditingOldAndSave(@NonNull String nextPatternName){
-        if (menu == null || menu.getCurrentPattern() == null || this.invoker == null) {
-            msgMgr.sendAndLogErrorMsg("MS.sNMPBEOAS001","OldMenu field is invalid or invoker is null.");
-            throw new RuntimeException("MS.sNMPBEOAS001");
-        }else {
+        if (menu == null || menu.getCurrentPattern() == null || this.invoker == null) throw new UnexpectedStateException("MS.sNMPBEOAS001","OldMenu field is invalid or invoker is null.",msgMgr);
+            else {
 
             newMenu = menu;
             newMenu.setLastSentDate(Utils.getCurrentUnixTime());
@@ -399,10 +373,8 @@ public class MenuService {
         }
     }
     private Menu sendNextMenuPatternByEditingOldAndSave(@NonNull MenuPattern nextPattern, @NonNull String invoker){
-        if (menu == null || menu.getCurrentPattern() == null) {
-            msgMgr.sendAndLogErrorMsg("MS.sNMPBEOAS002","OldMenu field is null.");
-            throw new RuntimeException("MS.sNMPBEOAS002");
-        }else {
+        if (menu == null || menu.getCurrentPattern() == null) throw new UnexpectedStateException("MS.sNMPBEOAS002","OldMenu field is null.",msgMgr);
+            else {
             newMenu= menu;
             newMenu.setLastSentDate(Utils.getCurrentUnixTime());
             newMenu.setInvoker(invoker);
@@ -410,13 +382,11 @@ public class MenuService {
             newMenu.setCurrentPattern(nextPattern);
             newMenu.setMessageId(msgMgr.editTelegramMessage(createEditedMenuMessage()).getResult().getMessage_id());
             return saveMenu();
-        }
+            }
     }
     private Menu sendNextMenuPatternByDeletingOldAndSave(@NonNull MenuPattern nextPattern, @NonNull String invoker){
-        if (menu == null || menu.getCurrentPattern() == null) {
-            msgMgr.sendAndLogErrorMsg("MS.sNMPBDOAS001","OldMenu field is null.");
-            throw new RuntimeException("MS.sNMPBDOAS001");
-        }else {
+        if (menu == null || menu.getCurrentPattern() == null) throw new UnexpectedStateException("MS.sNMPBDOAS001","OldMenu field is null.",msgMgr);
+            else {
             deleteMenuMessage();
             newMenu= menu;
             newMenu.setLastSentDate(Utils.getCurrentUnixTime());
@@ -425,13 +395,11 @@ public class MenuService {
             newMenu.setCurrentPattern(nextPattern);
             newMenu.setMessageId(msgMgr.sendTelegramMessage(createMenuMessageWithButtons()).getResult().getMessage_id());
             return saveMenu();
-        }
+            }
     }
     private Menu sendNextMenuPatternByDeletingOldAndSave(@NonNull String nextPatternName){
-        if (menu == null  || menu.getCurrentPattern() == null || invoker == null) {
-            msgMgr.sendAndLogErrorMsg("MS.sNMPBDOAS002","menu field or invoker is null.");
-            throw new RuntimeException("MS.sNMPBDOAS002");
-        }else {
+        if (menu == null  || menu.getCurrentPattern() == null || invoker == null) throw new UnexpectedStateException("MS.sNMPBDOAS002","menu field or invoker is null.",msgMgr);
+            else {
             deleteMenuMessage();
             newMenu= menu;
             newMenu.setLastSentDate(Utils.getCurrentUnixTime());
@@ -440,7 +408,7 @@ public class MenuService {
             newMenu.setCurrentPattern(menuRepo.getPatternByName(nextPatternName));
             newMenu.setMessageId(msgMgr.sendTelegramMessage(createMenuMessageWithButtons()).getResult().getMessage_id());
             return saveMenu();
-        }
+            }
     }
 
     /**
@@ -448,10 +416,8 @@ public class MenuService {
      * @return saved Menu obj.
      */
     private Menu saveMenu(){
-        if (menu == null) {
-            msgMgr.sendAndLogErrorMsg("MS.sM001","NewMenu field is null.");
-            throw new RuntimeException("MS.sM001");
-        }else {
+        if (menu == null) throw new UnexpectedStateException("MS.sM001","NewMenu field is null.",msgMgr);
+            else {
             return menuRepo.save(menu);
         }
     }

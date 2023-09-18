@@ -2,14 +2,10 @@ package net.ddns.encante.telegram.hr;
 
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
-import net.ddns.encante.telegram.hr.hue.entity.HueAuthorization;
 import net.ddns.encante.telegram.hr.hue.service.HueAuthorizationService;
 import net.ddns.encante.telegram.hr.menu.service.MenuService;
 import net.ddns.encante.telegram.hr.quiz.service.QuizService;
 import net.ddns.encante.telegram.hr.telegram.api.methods.AnswerCallbackQuery;
-import net.ddns.encante.telegram.hr.telegram.api.methods.SendMessage;
-import net.ddns.encante.telegram.hr.telegram.api.objects.ReplyKeyboardMarkup;
-import net.ddns.encante.telegram.hr.telegram.api.objects.ReplyKeyboardRemove;
 import net.ddns.encante.telegram.hr.telegram.api.objects.WebhookUpdate;
 import net.ddns.encante.telegram.hr.telegram.service.MessageManager;
 import net.ddns.encante.telegram.hr.telegram.service.WebhookUpdateService;
@@ -95,72 +91,74 @@ public RequestHandler(Gson gson, WebhookUpdateService wus, QuizService qs, HueAu
 
 
 //        check if incoming message have any and if there is do commands:
-                if (update.getMessage().getText().charAt(0) == '/') {
-                    this.commands = update.getMessage().getText().split(" ");
-                    switch (commands[0]) {
-                        case "/menu" -> menuService.sendMainMenu(msgManager.getOriginalSender().getId());
-                        case "/start" -> msgManager.greetFirstTime();
-                        case "/quiz" -> {
-                            if (checkCommandLenght(2, "/quiz")) {
-                                if (commands[1].equalsIgnoreCase("me"))
-                                    quizService.sendNextQuizToId(msgManager.getME());
-                                if (commands[1].equalsIgnoreCase("yas")) quizService.sendNextQuizToYasia();
-                                if (commands[1].equalsIgnoreCase("chom"))
-                                    quizService.sendNextQuizToId(msgManager.getCHOMIK());
-                                if (commands[1].equalsIgnoreCase("id")) {
-                                    if (checkCommandLenght(3, "/quiz id"))
-                                        quizService.sendNextQuizToId(Long.decode(commands[2]));
-                                }
-                            }
-                        }
-                        case "/smk" -> {
-                            String[] names = {"Reply", "she", "goes"};
-                            msgManager.sendTelegramMessage(new SendMessage()
-                                    .setText("Message with keyboard")
-                                    .setReply_markup(new ReplyKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
-                                    .setChat_id(msgManager.getOriginalSender().getId()));
-                        }
-                        case "/rmk" -> {
-                            msgManager.sendTelegramMessage(new SendMessage()
-                                    .setText("Keyboard removed! Have fun you little shmuck ;)")
-                                    .setChat_id(msgManager.getOriginalSender().getId())
-                                    .setReply_markup(new ReplyKeyboardRemove()));
-                        }
-                        case "/searchUserById" -> {
-                            if (checkCommandLenght(2, "/searchUserById")) {
-                                if (webhookService.getUserEntityByUserId(Long.decode(commands[1])) != null) {
-                                    msgManager.sendBackTelegramTextMessage("To " + webhookService.getUserEntityByUserId(Long.decode(commands[1])).getFirstName());
-                                } else
-                                    msgManager.sendBackTelegramTextMessage("User with id " + commands[1] + " not in DB!");
-                            }
-                        }
-                        case "/hueapp" -> {
-//                            command lenght check
-                            if (checkCommandLenght(3, "/hueapp")) {
-                                if (commands[1].equalsIgnoreCase("link")) {
-                                    hueAuthorizationService.sendAuthorizationLink(commands[2]);
-                                }
-                                if (commands[1].equalsIgnoreCase("add")) {
-                                    if (checkCommandLenght(5, "/hueapp add")) {
-                                        HueAuthorization authorization = new HueAuthorization();
-                                        authorization.setClientId(commands[2]);
-                                        authorization.setClientSecret(commands[3]);
-                                        authorization.setDisplayName(commands[4]);
-                                        hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(authorization);
-                                        msgManager.sendBackTelegramTextMessage("hue App " + authorization.getDisplayName() + " added to DB.");
-                                    }
-                                }
-                                if (commands[1].equalsIgnoreCase("searchByName")) {
-                                    if (hueAuthorizationService.getAuthorizationForDisplayName(commands[2]) != null) {
-                                        HueAuthorization entity =
-                                                hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
-                                        msgManager.sendBackTelegramTextMessage("App with this Id already in DB with client ID: " + entity.getClientId());
-                                    } else msgManager.sendBackTelegramTextMessage("No app with this name added");
-                                }
-                            }
-                        }
-                    }
-                }
+
+//                if (update.getMessage().getText().charAt(0) == '/') {
+//                    this.commands = update.getMessage().getText().split(" ");
+//                    switch (commands[0]) {
+//                        case "/menu" -> menuService.sendMainMenu(msgManager.getOriginalSender().getId());
+//                        case "/start" -> msgManager.greetFirstTime();
+//                        case "/quiz" -> {
+//                            if (checkCommandLenght(2, "/quiz")) {
+//                                if (commands[1].equalsIgnoreCase("me"))
+//                                    quizService.sendNextQuizToId(msgManager.getME());
+//                                if (commands[1].equalsIgnoreCase("yas")) quizService.sendNextQuizToYasia();
+//                                if (commands[1].equalsIgnoreCase("chom"))
+//                                    quizService.sendNextQuizToId(msgManager.getCHOMIK());
+//                                if (commands[1].equalsIgnoreCase("id")) {
+//                                    if (checkCommandLenght(3, "/quiz id"))
+//                                        quizService.sendNextQuizToId(Long.decode(commands[2]));
+//                                }
+//                            }
+//                        }
+//                        case "/smk" -> {
+//                            String[] names = {"Reply", "she", "goes"};
+//                            msgManager.sendTelegramMessage(new SendMessage()
+//                                    .setText("Message with keyboard")
+//                                    .setReply_markup(new ReplyKeyboardMarkup.KeyboardBuilder(3, 1, names).build())
+//                                    .setChat_id(msgManager.getOriginalSender().getId()));
+//                        }
+//                        case "/rmk" -> {
+//                            msgManager.sendTelegramMessage(new SendMessage()
+//                                    .setText("Keyboard removed! Have fun you little shmuck ;)")
+//                                    .setChat_id(msgManager.getOriginalSender().getId())
+//                                    .setReply_markup(new ReplyKeyboardRemove()));
+//                        }
+//                        case "/searchUserById" -> {
+//                            if (checkCommandLenght(2, "/searchUserById")) {
+//                                if (webhookService.getUserEntityByUserId(Long.decode(commands[1])) != null) {
+//                                    msgManager.sendBackTelegramTextMessage("To " + webhookService.getUserEntityByUserId(Long.decode(commands[1])).getFirstName());
+//                                } else
+//                                    msgManager.sendBackTelegramTextMessage("User with id " + commands[1] + " not in DB!");
+//                            }
+//                        }
+//                        case "/hueapp" -> {
+////                            command lenght check
+//                            if (checkCommandLenght(3, "/hueapp")) {
+//                                if (commands[1].equalsIgnoreCase("link")) {
+//                                    hueAuthorizationService.sendAuthorizationLink(commands[2]);
+//                                }
+//                                if (commands[1].equalsIgnoreCase("add")) {
+//                                    if (checkCommandLenght(5, "/hueapp add")) {
+//                                        HueAuthorization authorization = new HueAuthorization();
+//                                        authorization.setClientId(commands[2]);
+//                                        authorization.setClientSecret(commands[3]);
+//                                        authorization.setDisplayName(commands[4]);
+//                                        hueAuthorizationService.saveOrUpdateAuthorizationBasedOnClientId(authorization);
+//                                        msgManager.sendBackTelegramTextMessage("hue App " + authorization.getDisplayName() + " added to DB.");
+//                                    }
+//                                }
+//                                if (commands[1].equalsIgnoreCase("searchByName")) {
+//                                    if (hueAuthorizationService.getAuthorizationForDisplayName(commands[2]) != null) {
+//                                        HueAuthorization entity =
+//                                                hueAuthorizationService.getAuthorizationForDisplayName(commands[2]);
+//                                        msgManager.sendBackTelegramTextMessage("App with this Id already in DB with client ID: " + entity.getClientId());
+//                                    } else msgManager.sendBackTelegramTextMessage("No app with this name added");
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+
                 //        if not from me, send message to me
                 if (!msgManager.getOriginalSender().getId().equals(msgManager.getME())) {
                     msgManager.sendTelegramMessage("New message T: " + Utils.getCurrentDateTime()
@@ -207,16 +205,5 @@ public RequestHandler(Gson gson, WebhookUpdateService wus, QuizService qs, HueAu
         log.debug("New hue code retrieved!"+code);
         hueAuthorizationService.authenticateApp(state,code);
         log.debug("End of RequestHandler.hueAuthentication<<");
-    }
-//
-//              PRIVATE ONLY
-//
-    Boolean checkCommandLenght (int atLeast, String invoker){
-        if (commands.length >= atLeast){
-            return true;
-        }else {
-            msgManager.sendAndLogErrorMsg("RH.cCL","Bad command lenght - insuficient parameters from command "+ invoker);
-            return false;
-        }
     }
 }
