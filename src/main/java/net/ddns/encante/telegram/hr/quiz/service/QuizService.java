@@ -429,7 +429,7 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
                 Collections.addAll(answers,quiz.getCorrectAnswer(), quiz.getOptB(), quiz.getOptC(), quiz.getOptD());
                 for (String answer :
                         answers) {
-                    if (answer.equals("forceReply")) answers.remove(answer)
+                    if (answer.equals("forceReply")) answers.remove(answer);
                     else {
                         answers.add(answer+" ");
                     }
