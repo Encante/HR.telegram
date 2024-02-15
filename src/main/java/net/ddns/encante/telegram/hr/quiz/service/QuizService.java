@@ -21,6 +21,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -303,12 +304,11 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
                         .text(update.getCallback_query().getMessage().getText()+"\nTwoja odpowiedź: "+ update.getCallback_query().getData())
                         .build()
                 );
-                /// TODO: 18.09.2023  
+//        actual check
+//        if answer is good-
             }
         }
 
-//        actual check
-//        if answer is good-
                 if (quiz.getLastAnswer().equals(quiz.getCorrectAnswer())){
 //            write result to quiz object
                     quiz.setSuccess(true);
@@ -424,7 +424,19 @@ public QuizService(QuizRepository repository, MessageManager msgMgr, EventReposi
                 quiz.setMessageId(msgMgr.sendTelegramMessage(quiz.getQuestion() + "\nTwoja odpowiedź: " + quiz.getLastAnswer(), quiz.getChatId()).getResult().getMessage_id());
 //        actual check
 //        if answer is good-
-                if (quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer()) || quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer() + " ")) {
+//                here's multi correct option implementation: firstly we will check if option B,C or D id different than standard 'forceReply'. Option A must remain forceReply for algorithm to know it's forceReply type of quiz.
+                List<String> answers = new ArrayList<>();
+                Collections.addAll(answers,quiz.getCorrectAnswer(), quiz.getOptB(), quiz.getOptC(), quiz.getOptD());
+                for (String answer :
+                        answers) {
+                    if (answer.equals("forceReply")) answers.remove(answer)
+                    else {
+                        answers.add(answer+" ");
+                    }
+                }
+                if (quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer())
+                || quiz.getLastAnswer().equalsIgnoreCase(quiz.getCorrectAnswer() + " ")
+                || quiz.getLastAnswer()) {
 //            write result to quiz object
                     quiz.setSuccess(true);
 //                        if it's Yana answer save an event for statistics
